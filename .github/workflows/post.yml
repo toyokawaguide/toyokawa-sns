@@ -1,0 +1,25 @@
+name: SNS自動投稿
+
+on:
+  schedule:
+    - cron: '0 10 * * *'  # 毎日19:00 JST（UTC+9なのでUTC 10:00）
+  workflow_dispatch:       # 手動実行ボタンも有効化
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: ライブラリインストール
+        run: pip install requests
+
+      - name: Instagram投稿
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+        run: python post_instagram.py
