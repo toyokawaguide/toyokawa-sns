@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 環境変数
+.env
+
+# 占い：ローカル生成物（GHAでは生成されないが念のため）
+uranai/output/
+uranai/scripts/output/
+
+# 一時ファイル
+*.bak
+*.tmp
+~*

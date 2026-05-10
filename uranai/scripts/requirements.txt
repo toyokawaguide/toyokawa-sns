@@ -1,0 +1,23 @@
+# 占い配信プロジェクト 依存パッケージ
+# 最終更新: 2026-05-07
+
+# Claude API（記事生成）
+anthropic>=0.40.0
+
+# 環境変数
+python-dotenv>=1.0.0
+
+# HTTP（WP / Threads / Instagram / Meta）
+requests>=2.31.0
+
+# Excel 操作（マスタ・入力シート・配信ログ・グループ）
+openpyxl>=3.1.0
+
+# データ処理（過去記事抽出等で使用）
+pandas>=2.0.0
+
+# 画像生成（Pillow）
+Pillow>=10.0.0
+
+# X (Twitter) API
+tweepy>=4.14.0
