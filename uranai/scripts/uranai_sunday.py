@@ -24,6 +24,7 @@ ORANGE_TIRED = (230, 140, 70)
 # === 環境設定(claude.codeで実行する際に変更してください) ===
 # Linux環境のデフォルト。Windowsの場合は下記コメントを参照
 import os
+from pathlib import Path
 # .env から URANAI_FONT_DIR / URANAI_LOGO_PATH を読み込み（単体実行・モジュール経由いずれも対応）
 try:
     from dotenv import load_dotenv
