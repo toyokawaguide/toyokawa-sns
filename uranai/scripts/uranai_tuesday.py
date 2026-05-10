@@ -32,7 +32,7 @@ try:
 except ImportError:
     pass
 _FONT_DIR = os.environ.get("URANAI_FONT_DIR", "/usr/share/fonts/opentype/noto")
-_LOGO_PATH = os.environ.get("URANAI_LOGO_PATH", "/home/claude/logo_white_trimmed.png")
+_LOGO_PATH = os.environ.get("URANAI_LOGO_PATH", str(Path(__file__).resolve().parent.parent / "assets" / "logo_white_trimmed.png"))
 # Windows例: URANAI_FONT_DIR="C:/Windows/Fonts" + フォントファイル名を変更
 # macOS例: URANAI_FONT_DIR="/System/Library/Fonts"
 # ============================================================

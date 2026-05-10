@@ -170,16 +170,25 @@ def update_wp_post(post_id: int, title: str, content: str,
     if ig_eyecatch_path and ig_eyecatch_path.exists():
         _, ig_image_url = _upload_media(ig_eyecatch_path)
 
-    payload = {"title": title, "content": content,
-               "status": "publish" if publish else "draft"}
+    # XSERVER WAF対策：content + status を1回で送ると 403 になることがあるため、
+    # ①content・タイトル・アイキャッチを draft で更新 → ②publish なら status だけ別リクエスト で切替
+    payload1 = {"title": title, "content": content, "status": "draft"}
     if wp_media_id:
-        payload["featured_media"] = wp_media_id
-    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    r = requests.post(f"{WP_URL}/wp-json/wp/v2/posts/{post_id}", headers=headers_post, data=body, timeout=30)
-    if r.status_code != 200:
-        return {"error": f"WP update failed: {r.status_code} {r.text[:200]}"}
+        payload1["featured_media"] = wp_media_id
+    body1 = json.dumps(payload1, ensure_ascii=False).encode("utf-8")
+    r1 = requests.post(f"{WP_URL}/wp-json/wp/v2/posts/{post_id}", headers=headers_post, data=body1, timeout=30)
+    if r1.status_code != 200:
+        return {"error": f"WP draft update failed: {r1.status_code} {r1.text[:200]}"}
 
-    j = r.json()
+    if publish:
+        body2 = json.dumps({"status": "publish"}, ensure_ascii=False).encode("utf-8")
+        r2 = requests.post(f"{WP_URL}/wp-json/wp/v2/posts/{post_id}", headers=headers_post, data=body2, timeout=30)
+        if r2.status_code != 200:
+            return {"error": f"WP publish failed: {r2.status_code} {r2.text[:200]}"}
+        j = r2.json()
+    else:
+        j = r1.json()
+
     return {
         "preview_url": f"{WP_URL}/?p={post_id}&preview=true",
         "link": j.get("link") or f"{WP_URL}/?p={post_id}",

@@ -9,12 +9,12 @@ on:
         description: '対象日 YYYY-MM-DD（空ならJSTの今日）'
         required: false
       mode:
-        description: '実行モード'
+        description: '実行モード（テスト時のみ dry-run に変更）'
         type: choice
         options:
           - publish
           - dry-run
-        default: 'dry-run'
+        default: 'publish'
 
 jobs:
   uranai:
