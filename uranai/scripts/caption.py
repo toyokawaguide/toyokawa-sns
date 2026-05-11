@@ -248,7 +248,7 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
     sp = _chain(spot.name, spot.is_chain)
     beta = f"\n\n{BETA_NOTICE_LONG}" if _is_beta(target_date) else ""
     common_tags = "#豊川ガイド #豊川市 #toyokawa #愛知県 #朝の占い #占い好き #ご当地"
-    cta = "📌全項目はブログで\n@toyokawa.guide のプロフィールリンクから↗"
+    cta = "📌全項目はブログで\n@toyokawaguide → プロフィールのリンクから\nトップページの「🔮 今日の占い」をチェック！"
 
     def _block(rank, label, stars_text, comment):
         return f"{rank}{label} {stars_text}\n{_first_sentence(comment)}\n\n"

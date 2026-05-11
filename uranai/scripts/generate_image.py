@@ -310,7 +310,69 @@ def generate_image(*, target_date: date, weekday_key: str, format: str,
     else:
         raise ValueError(f"unsupported weekday_key: {weekday_key}")
 
+    # IG画像は 1080x1080 → 1080x1350 (4:5) に変換・上下に紺色帯
+    if format == "ig":
+        _finalize_ig_image(output_path, target_date)
+
     return output_path
+
+
+def _finalize_ig_image(path: Path, target_date: date) -> None:
+    """1080x1080 IG画像を 1080x1350 (4:5) に変換し、上下に紺色帯を追加"""
+    import os
+    import platform
+    from PIL import Image, ImageDraw, ImageFont
+
+    try:
+        src = Image.open(str(path))
+    except Exception:
+        return
+    if src.size != (1080, 1080):
+        return
+
+    BLUE = (3, 58, 154)
+    WHITE = (255, 255, 255)
+
+    font_dir = os.environ.get("URANAI_FONT_DIR", "/usr/share/fonts/opentype/noto")
+    if platform.system() == "Windows" and "Windows/Fonts" in font_dir.replace("\\", "/"):
+        FB = f"{font_dir}/meiryob.ttc"
+        FR = f"{font_dir}/meiryo.ttc"
+    else:
+        FB = f"{font_dir}/NotoSansCJK-Bold.ttc"
+        FR = f"{font_dir}/NotoSansCJK-Regular.ttc"
+
+    def f(p, s):
+        try:
+            return ImageFont.truetype(p, s)
+        except Exception:
+            return ImageFont.load_default()
+
+    canvas = Image.new("RGB", (1080, 1350), BLUE)
+    canvas.paste(src, (0, 135))
+    d = ImageDraw.Draw(canvas)
+
+    # === ヘッダー (上 135px) ===
+    d.text((40, 25), "豊川ガイド", font=f(FB, 56), fill=WHITE)
+    d.text((44, 95), "toyokawaguide", font=f(FR, 22), fill=WHITE)
+    # 右：年月（2行）
+    year_str = f"{target_date.year}年"
+    month_str = f"{target_date.month:02d}月"
+    yf = f(FB, 34)
+    yb = d.textbbox((0, 0), year_str, font=yf)
+    mb = d.textbbox((0, 0), month_str, font=yf)
+    d.text((1080 - (yb[2] - yb[0]) - 40, 25), year_str, font=yf, fill=WHITE)
+    d.text((1080 - (mb[2] - mb[0]) - 40, 75), month_str, font=yf, fill=WHITE)
+
+    # === フッター (下 135px・y=1215〜1350) ===
+    footer_y = 1215
+    line1 = "▶ プロフィールリンクから"
+    line2 = "トップの「今日の占い」コーナーへ"
+    ff = f(FB, 30)
+    for i, line in enumerate([line1, line2]):
+        lb = d.textbbox((0, 0), line, font=ff)
+        d.text(((1080 - (lb[2] - lb[0])) // 2, footer_y + 25 + i * 45), line, font=ff, fill=WHITE)
+
+    canvas.save(str(path))
 
 
 # ============================================================
