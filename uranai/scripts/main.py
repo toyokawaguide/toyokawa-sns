@@ -137,7 +137,8 @@ def fix_sunday_spots_week(data: dict, target_date: date) -> dict:
 def update_wp_post(post_id: int, title: str, content: str,
                     eyecatch_path: Path | None = None,
                     *, publish: bool = False,
-                    ig_eyecatch_path: Path | None = None) -> dict:
+                    ig_eyecatch_path: Path | None = None,
+                    slug: str | None = None) -> dict:
     """WP の指定 post を更新（status=draft or publish）
 
     Returns: {"preview_url"|"link", "wp_image_url", "ig_image_url"}
@@ -173,6 +174,8 @@ def update_wp_post(post_id: int, title: str, content: str,
     # XSERVER WAF対策：content + status を1回で送ると 403 になることがあるため、
     # ①content・タイトル・アイキャッチを draft で更新 → ②publish なら status だけ別リクエスト で切替
     payload1 = {"title": title, "content": content, "status": "draft"}
+    if slug:
+        payload1["slug"] = slug
     if wp_media_id:
         payload1["featured_media"] = wp_media_id
     body1 = json.dumps(payload1, ensure_ascii=False).encode("utf-8")
@@ -280,10 +283,12 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
             print(f"  [skip] {weekday_key} の DRAFT_POST_IDS 未定義")
             result["steps"]["wp"] = {"status": "no_post_id"}
         else:
+            slug = f"uranai-{target_date.strftime('%Y%m%d')}"
             wp_res = update_wp_post(
                 post_id, article["title"], article["wp_content"],
                 eyecatch_path=wp_img, publish=publish,
                 ig_eyecatch_path=ig_img,
+                slug=slug,
             )
             if "error" in wp_res:
                 print(f"  [error] {wp_res['error']}")
