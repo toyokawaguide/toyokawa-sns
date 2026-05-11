@@ -71,17 +71,17 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
     md = _md(target_date)
     wd = _wd_jp(target_date)
     sp = _chain(spot.name, spot.is_chain)
-    beta = f"\n\n{BETA_NOTICE_SHORT}" if _is_beta(target_date) else ""
+    head = f"{BETA_NOTICE_SHORT}\n\n" if _is_beta(target_date) else ""
 
     if weekday_key == "mon":
         items = sorted(data.get("items", []), key=lambda x: -x.get("stars", 0))
         return (
+            f"{head}"
             f"🔮{md}({wd})の占い・全12星座いっき見!\n\n"
             f"🥇{items[0]['label']} ★{items[0]['stars']}\n"
             f"🥈{items[1]['label']} ★{items[1]['stars']}\n"
             f"🥉{items[2]['label']} ★{items[2]['stars']}\n\n"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
             f"#豊川ガイド #今日の占い #星座占い"
         )
@@ -90,13 +90,13 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
         blood = data.get("blood", {})
         order = sorted(["A", "B", "O", "AB"], key=lambda k: -blood.get(k, {}).get("stars", 0))
         return (
+            f"{head}"
             f"🔮{md}({wd})の占い・血液型!\n\n"
             f"🥇{order[0]}型 ★{blood[order[0]]['stars']}\n"
             f"🥈{order[1]}型 ★{blood[order[1]]['stars']}\n"
             f"🥉{order[2]}型 ★{blood[order[2]]['stars']}\n"
             f"4位:{order[3]}型 ★{blood[order[3]]['stars']}\n\n"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
             f"#豊川ガイド #今日の占い #血液型占い"
         )
@@ -106,12 +106,12 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
         kind = {"wed": "誕生月", "thu": "干支"}[weekday_key]
         tag = {"wed": "#誕生月占い", "thu": "#干支占い"}[weekday_key]
         return (
+            f"{head}"
             f"🔮{md}({wd})の占い・{kind}!\n\n"
             f"🥇{items[0]['label']} ★{items[0]['stars']}\n"
             f"🥈{items[1]['label']} ★{items[1]['stars']}\n"
             f"🥉{items[2]['label']} ★{items[2]['stars']}\n\n"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
             f"#豊川ガイド #今日の占い {tag}"
         )
@@ -124,13 +124,13 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
         kind = {"fri": "ラッキー生まれ年TOP10", "sat": "ラッキータウンTOP10"}[weekday_key]
         tag = {"fri": "#生まれ年占い", "sat": "#ラッキータウン"}[weekday_key]
         return (
+            f"{head}"
             f"{emo}{md}({wd}){kind}!\n\n"
             f"🥇{items[0]['label']} {format_star_score(stars[0])}\n"
             f"🥈{items[1]['label']} {format_star_score(stars[1])}\n"
             f"🥉{items[2]['label']} {format_star_score(stars[2])}\n"
             f"…続きはブログで\n\n"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
             f"#豊川ガイド {tag}"
         )
@@ -139,12 +139,12 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
         theme = data.get("next_week_theme", "-")
         msg = _first_sentence(data.get("next_week_message", ""))
         return (
+            f"{head}"
             f"🔮{md}({wd})今週まとめ&来週運勢\n\n"
             f"今週も1週間お疲れさまでした!\n\n"
             f"🌱来週のテーマは「{theme}」\n"
             f"{msg}\n\n"
-            f"明日からまた毎朝6時にお届けします🦊"
-            f"{beta}\n\n"
+            f"明日からまた毎朝6時にお届けします🦊\n\n"
             f"{post_url}\n"
             f"#豊川ガイド #今週のまとめ #占い"
         )
@@ -160,19 +160,19 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
     md = _md(target_date)
     wd = _wd_jp(target_date)
     sp = _chain(spot.name, spot.is_chain)
-    beta = f"\n\n{BETA_NOTICE_SHORT}" if _is_beta(target_date) else ""
+    head = f"{BETA_NOTICE_SHORT}\n\n" if _is_beta(target_date) else ""
 
     if weekday_key in ("mon", "wed", "thu"):
         items = sorted(data.get("items", []), key=lambda x: -x.get("stars", 0))
         kind = {"mon": "全12星座いっき見", "wed": "誕生月", "thu": "干支"}[weekday_key]
         tag = {"mon": "#星座占い", "wed": "#誕生月占い", "thu": "#干支占い"}[weekday_key]
         return (
+            f"{head}"
             f"🔮{md}({wd})の占い・{kind}!\n\n"
             f"🥇{items[0]['label']} ★{items[0]['stars']}\n{_trim(items[0]['comment'])}\n\n"
             f"🥈{items[1]['label']} ★{items[1]['stars']}\n{_trim(items[1]['comment'])}\n\n"
             f"🥉{items[2]['label']} ★{items[2]['stars']}\n{_trim(items[2]['comment'])}\n\n"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"→詳細はブログで\n{post_url}\n\n"
             f"#豊川ガイド #豊川市 #今日の占い {tag}"
         )
@@ -186,10 +186,10 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
             b = blood[k]
             body += f"{labels[i]}{k}型 ★{b['stars']}\n{_trim(b['comment'])}\n\n"
         return (
+            f"{head}"
             f"🔮{md}({wd})の占い・血液型!\n\n"
             f"{body}"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"→詳細はブログで\n{post_url}\n\n"
             f"#豊川ガイド #豊川市 #今日の占い #血液型占い"
         )
@@ -202,13 +202,13 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
         kind = {"fri": "ラッキー生まれ年TOP10", "sat": "ラッキータウンTOP10"}[weekday_key]
         tag = {"fri": "#生まれ年占い", "sat": "#ラッキータウン #ご当地占い"}[weekday_key]
         return (
+            f"{head}"
             f"{emo}{md}({wd}){kind}!\n\n"
             f"🥇{items[0]['label']} {format_star_score(stars[0])}\n{_trim(items[0]['comment'])}\n\n"
             f"🥈{items[1]['label']} {format_star_score(stars[1])}\n{_trim(items[1]['comment'])}\n\n"
             f"🥉{items[2]['label']} {format_star_score(stars[2])}\n{_trim(items[2]['comment'])}\n\n"
             f"…続きはブログで全10位!\n\n"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n\n"
             f"#豊川ガイド #豊川市 {tag}"
         )
@@ -225,12 +225,12 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
             spot_lines.append(f"・{md_p}({wd_jp[i]}) {spots_week.get(key, '-')}")
         spots_block = "\n".join(spot_lines)
         return (
+            f"{head}"
             f"🔮{md}({wd})今週まとめ&来週運勢\n\n"
             f"今週も1週間お疲れさまでした!\n\n"
             f"🦊今週のラッキースポット振り返り\n{spots_block}\n\n"
             f"🌱来週のテーマは「{theme}」\n{msg}\n\n"
-            f"明日からまた毎朝6時に🦊"
-            f"{beta}\n\n"
+            f"明日からまた毎朝6時に🦊\n\n"
             f"{post_url}\n\n"
             f"#豊川ガイド #豊川市 #今週のまとめ #占い"
         )
@@ -246,7 +246,7 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
     md = _md(target_date)
     wd = _wd_jp(target_date)
     sp = _chain(spot.name, spot.is_chain)
-    beta = f"\n\n{BETA_NOTICE_LONG}" if _is_beta(target_date) else ""
+    head = f"{BETA_NOTICE_LONG}\n\n" if _is_beta(target_date) else ""
     common_tags = "#豊川ガイド #豊川市 #toyokawa #愛知県 #朝の占い #占い好き #ご当地"
     cta = "📌全項目はブログで\n@toyokawaguide → プロフィールのリンクから\nトップページの「🔮 今日の占い」をチェック！"
 
@@ -261,11 +261,11 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
         b1 = _block("🥈", items[1]["label"], f"★{items[1]['stars']}", items[1]["comment"])
         b2 = _block("🥉", items[2]["label"], f"★{items[2]['stars']}", items[2]["comment"])
         return (
+            f"{head}"
             f"✨{target_date.year}年{md}({wd})の占い・{kind}✨\n\n"
             f"📖今日のTOP3\n\n"
             f"{b0}{b1}{b2}"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{cta}\n\n"
             f"{common_tags} #今日の占い {tag}"
         )
@@ -279,11 +279,11 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
             b = blood[k]
             body += _block(rank_emojis[i], f"{k}型", f"★{b['stars']}", b["comment"])
         return (
+            f"{head}"
             f"✨{target_date.year}年{md}({wd})の占い・血液型✨\n\n"
             f"📖今日の運勢\n\n"
             f"{body}"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{cta}\n\n"
             f"{common_tags} #今日の占い #血液型占い"
         )
@@ -299,12 +299,12 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
         b1 = _block("🥈", items[1]["label"], format_star_score(stars[1]), items[1]["comment"])
         b2 = _block("🥉", items[2]["label"], format_star_score(stars[2]), items[2]["comment"])
         return (
+            f"{head}"
             f"{emo}{target_date.year}年{md}({wd}) {kind}{emo}\n\n"
             f"📖今日のTOP3\n\n"
             f"{b0}{b1}{b2}"
             f"…続きはブログで全10位!\n\n"
-            f"🦊本日のラッキースポット\n{sp}"
-            f"{beta}\n\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{cta}\n\n"
             f"{common_tags} {tag}"
         )
@@ -321,12 +321,12 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
             spot_lines.append(f"・{md_p}({wd_jp[i]}) {spots_week.get(key, '-')}")
         spots_block = "\n".join(spot_lines)
         return (
+            f"{head}"
             f"🔮{target_date.year}年{md}({wd}) 今週まとめ&来週運勢🔮\n\n"
             f"今週も1週間お疲れさまでした!\n\n"
             f"🦊今週のラッキースポット振り返り\n{spots_block}\n\n"
             f"🌱来週のテーマは「{theme}」\n{msg}\n\n"
-            f"明日からまた毎朝6時にお届けします🦊"
-            f"{beta}\n\n"
+            f"明日からまた毎朝6時にお届けします🦊\n\n"
             f"{cta}\n\n"
             f"{common_tags} #今週のまとめ #占い"
         )
