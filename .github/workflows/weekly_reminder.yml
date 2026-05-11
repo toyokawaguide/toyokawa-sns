@@ -2,7 +2,7 @@ name: 週次リマインダー（占い）
 
 on:
   schedule:
-    - cron: '0 12 * * 0'  # 毎週日曜 21:00 JST（UTC 日曜 12:00）
+    - cron: '0 12 * * 6'  # 毎週土曜 21:00 JST（UTC 土曜 12:00）
   workflow_dispatch:
 
 jobs:
