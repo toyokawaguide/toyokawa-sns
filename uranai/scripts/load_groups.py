@@ -63,15 +63,23 @@ def get_week_number(target_date: date, *, weekday_kind: str) -> int:
     return ((week_offset) % cycle) + 1
 
 
-def _load_schedule(xlsx_path: Path, week_num: int) -> list[dict]:
+def _load_schedule(xlsx_path: Path, week_num: int, sheet_alias: str = "") -> list[dict]:
     """配信スケジュールシートから week_num の行を抽出
 
-    Returns:
-        各行の dict（生 row データ）
+    Sheets モード（URANAI_SHEETS_URL 設定時）優先・失敗時 xlsx フォールバック。
+    sheet_alias: Sheets 側のシート名（"生まれ年配信スケジュール" / "町名配信スケジュール"）
     """
-    wb = openpyxl.load_workbook(xlsx_path, data_only=True)
-    ws = wb[SHEET_NAME]
-    rows = list(ws.iter_rows(values_only=True))
+    rows = None
+    try:
+        import load_sheets
+        if load_sheets.is_enabled() and sheet_alias:
+            rows = load_sheets.fetch_sheet_normalized(sheet_alias)
+    except ImportError:
+        pass
+    if rows is None:
+        wb = openpyxl.load_workbook(xlsx_path, data_only=True)
+        ws = wb[SHEET_NAME]
+        rows = list(ws.iter_rows(values_only=True))
     # ヘッダーは行4 (index 3)。データは index 4 以降
     headers = rows[3]
     items = []
@@ -95,7 +103,7 @@ def load_birthyear_group(week_num: int) -> list[dict]:
         [{"順番": 1, "生まれ年": "1983年", "和暦": "昭和58年", "備考": ""}, ...]
         順番（2列目）でソート済
     """
-    items = _load_schedule(BIRTHYEAR_XLSX, week_num)
+    items = _load_schedule(BIRTHYEAR_XLSX, week_num, sheet_alias="生まれ年配信スケジュール")
     # 順番列でソート
     items.sort(key=lambda x: x.get("順番", 0) or 0)
     return items
@@ -108,7 +116,7 @@ def load_town_group(week_num: int) -> list[dict]:
         [{"順番": 1, "町名": "南大通", ...}, ...]
         順番（2列目）でソート済
     """
-    items = _load_schedule(TOWN_XLSX, week_num)
+    items = _load_schedule(TOWN_XLSX, week_num, sheet_alias="町名配信スケジュール")
     items.sort(key=lambda x: x.get("順番", 0) or 0)
     return items
 

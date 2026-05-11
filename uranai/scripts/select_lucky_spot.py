@@ -77,6 +77,25 @@ def load_workbook_ro():
     return openpyxl.load_workbook(LUCKY_XLSX, data_only=True)
 
 
+def _get_rows(wb_or_none, sheet_name: str) -> list[tuple] | None:
+    """xlsx か Google Sheets からシートを取得（Sheets優先・xlsxフォールバック）"""
+    # Sheets 優先（環境変数あれば）
+    try:
+        import load_sheets
+        if load_sheets.is_enabled():
+            rows = load_sheets.fetch_sheet_normalized(sheet_name)
+            if rows is not None:
+                return rows
+            # Sheets 失敗時は xlsx にフォールバック
+    except ImportError:
+        pass
+    # xlsx フォールバック
+    if wb_or_none is None:
+        return None
+    ws = wb_or_none[sheet_name]
+    return list(ws.iter_rows(values_only=True))
+
+
 def lookup_input_sheet(wb, target_date: date) -> Spot | None:
     """入力シートで target_date のスポットを検索
 
@@ -85,8 +104,9 @@ def lookup_input_sheet(wb, target_date: date) -> Spot | None:
         B: スポット名
         C: チェーン店?（空欄でない=チェーン店扱い）
     """
-    ws = wb[INPUT_SHEET]
-    rows = list(ws.iter_rows(values_only=True))
+    rows = _get_rows(wb, INPUT_SHEET)
+    if rows is None:
+        return None
     # データ部は行6（index 5）以降
     for r in rows[5:]:
         if not r or r[0] is None:
@@ -116,8 +136,7 @@ def load_master_active(wb) -> list[Spot]:
         E: 最終使用日
         F: 使用回数
     """
-    ws = wb[MASTER_SHEET]
-    rows = list(ws.iter_rows(values_only=True))
+    rows = _get_rows(wb, MASTER_SHEET) or []
     # データ部は行6（index 5）以降
     spots = []
     for r in rows[5:]:
@@ -138,10 +157,9 @@ def load_master_active(wb) -> list[Spot]:
 
 def load_recent_used_names(wb, target_date: date, days: int = 7) -> set[str]:
     """配信ログから直近 N 日に使ったスポット名を取得（同週NGチェック用）"""
-    if LOG_SHEET not in wb.sheetnames:
+    rows = _get_rows(wb, LOG_SHEET)
+    if rows is None:
         return set()
-    ws = wb[LOG_SHEET]
-    rows = list(ws.iter_rows(values_only=True))
     # 配信ログのヘッダー: 行3 (index 2) - 配信日, 曜日, TOP1, TOP2, TOP3, 最下位, ラッキースポット
     # ラッキースポット列の値を target_date 直近days日分から拾う
     used = set()
@@ -176,8 +194,15 @@ def select_lucky_spot(target_date, *, recent_used_extra: set[str] | None = None,
     target_date = to_date(target_date)
     if seed is not None:
         random.seed(seed)
-    if wb is None:
-        wb = load_workbook_ro()
+    # Sheets モード時は wb 不要
+    try:
+        import load_sheets
+        if load_sheets.is_enabled():
+            wb = None  # Sheets 経由で取得
+        else:
+            wb = wb or load_workbook_ro()
+    except ImportError:
+        wb = wb or load_workbook_ro()
 
     # Step 1: 入力シート検索（社長指名・最優先）
     spot = lookup_input_sheet(wb, target_date)
