@@ -314,7 +314,31 @@ def generate_image(*, target_date: date, weekday_key: str, format: str,
     if format == "ig":
         _finalize_ig_image(output_path, target_date)
 
+    # WP画像は 1024x576 → 1920x1080 にアップスケール（X カード summary_large_image 対応）
+    if format == "wp":
+        _finalize_wp_image(output_path)
+
     return output_path
+
+
+def _finalize_wp_image(path: Path) -> None:
+    """1024x576 で生成されたWP画像を 1920x1080 にアップスケールする。
+
+    X (Twitter) の summary_large_image カードは画像サイズが小さい（1024×576）と
+    軽量カード扱いされてアイキャッチが表示されないことがあるため、推奨サイズに拡大。
+    LANCZOS 補完で文字の劣化はほぼなし。
+    """
+    from PIL import Image
+
+    try:
+        src = Image.open(str(path))
+    except Exception:
+        return
+    # 1024x576 以外（既に大きい・小さい）の場合はスキップ
+    if src.size != (1024, 576):
+        return
+    upscaled = src.resize((1920, 1080), Image.LANCZOS)
+    upscaled.save(str(path), optimize=True)
 
 
 def _finalize_ig_image(path: Path, target_date: date) -> None:
