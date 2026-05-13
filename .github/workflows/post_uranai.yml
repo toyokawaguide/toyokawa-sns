@@ -37,12 +37,23 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
-          # fonts-noto-cjk (軽量版) は Regular/Bold のみ。
+          # 実ファイルパスを動的検出（Ubuntu バージョンでパス違いに対応）
+          BOLD=$(find /usr/share/fonts -name "NotoSansCJK-Bold*" 2>/dev/null | head -1)
+          REGULAR=$(find /usr/share/fonts -name "NotoSansCJK-Regular*" 2>/dev/null | head -1)
+          if [ -z "$BOLD" ] || [ -z "$REGULAR" ]; then
+            echo "::error::NotoSansCJK フォントが見つかりません"
+            echo "fonts-noto-cjk パッケージのファイル一覧:"
+            dpkg -L fonts-noto-cjk | grep -i "\.ttc\|\.otf" | head -20
+            exit 1
+          fi
+          FONT_DIR=$(dirname "$BOLD")
+          echo "検出した FONT_DIR: $FONT_DIR"
           # コードが要求する Black/Medium をシンボリックリンクで代用
-          FONT_DIR=/usr/share/fonts/opentype/noto-cjk
-          sudo ln -sf "$FONT_DIR/NotoSansCJK-Bold.ttc" "$FONT_DIR/NotoSansCJK-Black.ttc"
-          sudo ln -sf "$FONT_DIR/NotoSansCJK-Regular.ttc" "$FONT_DIR/NotoSansCJK-Medium.ttc"
-          ls -la "$FONT_DIR"/NotoSansCJK-*.ttc
+          sudo ln -sf "$BOLD" "$FONT_DIR/NotoSansCJK-Black.ttc"
+          sudo ln -sf "$REGULAR" "$FONT_DIR/NotoSansCJK-Medium.ttc"
+          ls -la "$FONT_DIR"/NotoSansCJK-*
+          # 後続ステップに動的パスを引き継ぐ
+          echo "URANAI_FONT_DIR=$FONT_DIR" >> $GITHUB_ENV
 
       - name: ffmpeg セットアップ（事前ビルド済みバイナリ）
         uses: FedericoCarboni/setup-ffmpeg@v3
@@ -70,7 +81,7 @@ jobs:
           SNS_LOG_SECRET: ${{ secrets.SNS_LOG_SECRET }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          URANAI_FONT_DIR: /usr/share/fonts/opentype/noto-cjk
+          # URANAI_FONT_DIR は前ステップで $GITHUB_ENV に動的に設定済み
         run: |
           DATE_ARG=""
           if [ -n "${{ github.event.inputs.target_date }}" ]; then
