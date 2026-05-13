@@ -332,3 +332,90 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
         )
 
     return ""
+
+
+# ============================================================
+# Instagram Reels（フィードより詳細・全位掲載版）
+# ============================================================
+# 動画内で全位表示しているリールに合わせ、キャプションでも全位を掲載。
+# TOP3はコメント付き / 4位以下は星評価のみの簡易表示。
+# 狙い：検索性UP・保存価値UP・再生時間UPでアルゴリズム評価改善。
+
+def make_instagram_reel_caption(weekday_key: str, data: dict, spot, target_date: date) -> str:
+    md = _md(target_date)
+    wd = _wd_jp(target_date)
+    sp = _chain(spot.name, spot.is_chain)
+    head = f"{BETA_NOTICE_LONG}\n\n" if _is_beta(target_date) else ""
+    common_tags = "#豊川ガイド #豊川市 #toyokawa #愛知県 #朝の占い #占い好き #ご当地"
+    cta = "📌全文＋スポット詳細はブログで\n@toyokawaguide → プロフィールのリンクから\nトップページの「🔮 今日の占い」をチェック！"
+
+    def _block(rank, label, stars_text, comment):
+        return f"{rank}{label} {stars_text}\n{_first_sentence(comment)}\n\n"
+
+    def _short(rank_label, label, stars_text):
+        return f"{rank_label} {label} {stars_text}\n"
+
+    if weekday_key in ("mon", "wed", "thu"):
+        items = sorted(data.get("items", []), key=lambda x: -x.get("stars", 0))
+        kind = {"mon": "全12星座", "wed": "誕生月", "thu": "干支"}[weekday_key]
+        tag = {"mon": "#星座占い", "wed": "#誕生月占い", "thu": "#干支占い"}[weekday_key]
+
+        b0 = _block("🥇", items[0]["label"], f"★{items[0]['stars']}", items[0]["comment"])
+        b1 = _block("🥈", items[1]["label"], f"★{items[1]['stars']}", items[1]["comment"])
+        b2 = _block("🥉", items[2]["label"], f"★{items[2]['stars']}", items[2]["comment"])
+
+        rank_labels = ["4位", "5位", "6位", "7位", "8位", "9位", "10位", "11位", "12位"]
+        rest = ""
+        for i, item in enumerate(items[3:]):
+            rest += _short(rank_labels[i], item["label"], f"★{item['stars']}")
+
+        return (
+            f"{head}"
+            f"✨{target_date.year}年{md}({wd})の占い・{kind}✨\n\n"
+            f"📖今日のTOP3\n\n"
+            f"{b0}{b1}{b2}"
+            f"📊全ランキング\n"
+            f"{rest}\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
+            f"{cta}\n\n"
+            f"{common_tags} #今日の占い {tag}"
+        )
+
+    if weekday_key == "tue":
+        # 血液型は4種なので元々全部記載・フィード版と同じ内容
+        return make_instagram_caption(weekday_key, data, spot, target_date)
+
+    if weekday_key in ("fri", "sat"):
+        items = data.get("items", [])
+        seed = target_date.year * 10000 + target_date.month * 100 + target_date.day
+        stars = get_top10_stars(seed=seed)
+        emo = {"fri": "🎂", "sat": "🏘️"}[weekday_key]
+        kind = {"fri": "ラッキー生まれ年TOP10", "sat": "ラッキータウンTOP10"}[weekday_key]
+        tag = {"fri": "#生まれ年占い", "sat": "#ラッキータウン #ご当地占い"}[weekday_key]
+
+        b0 = _block("🥇", items[0]["label"], format_star_score(stars[0]), items[0]["comment"])
+        b1 = _block("🥈", items[1]["label"], format_star_score(stars[1]), items[1]["comment"])
+        b2 = _block("🥉", items[2]["label"], format_star_score(stars[2]), items[2]["comment"])
+
+        rank_labels = ["4位", "5位", "6位", "7位", "8位", "9位", "10位"]
+        rest = ""
+        for i, item in enumerate(items[3:]):
+            rest += _short(rank_labels[i], item["label"], format_star_score(stars[i + 3]))
+
+        return (
+            f"{head}"
+            f"{emo}{target_date.year}年{md}({wd}) {kind}{emo}\n\n"
+            f"📖今日のTOP3\n\n"
+            f"{b0}{b1}{b2}"
+            f"📊全ランキング\n"
+            f"{rest}\n"
+            f"🦊本日のラッキースポット\n{sp}\n\n"
+            f"{cta}\n\n"
+            f"{common_tags} {tag}"
+        )
+
+    if weekday_key == "sun":
+        # 日曜は週まとめでフィード版と内容差別化の余地が少ない
+        return make_instagram_caption(weekday_key, data, spot, target_date)
+
+    return ""

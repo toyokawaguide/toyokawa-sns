@@ -14,7 +14,7 @@ from datetime import date
 
 import requests
 
-from caption import make_instagram_caption
+from caption import make_instagram_caption, make_instagram_reel_caption
 
 GRAPH_API = "https://graph.facebook.com/v19.0"
 DEFAULT_IG_ACCOUNT_ID = "17841467629335560"  # toyokawa-sns 既存と同じ
@@ -83,7 +83,7 @@ def post_instagram_uranai_reel(*, weekday_key: str, data: dict, spot, target_dat
 
     Returns: {"status": "ok"/"dry"/"error", "post_id": str|None, "caption": str}
     """
-    caption = make_instagram_caption(weekday_key, data, spot, target_date)
+    caption = make_instagram_reel_caption(weekday_key, data, spot, target_date)
 
     if dry:
         return {"status": "dry", "post_id": None, "caption": caption,
