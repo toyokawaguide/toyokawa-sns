@@ -9,6 +9,9 @@ __pycache__/
 # 占い：ローカル生成物（GHAでは生成されないが念のため）
 uranai/output/
 uranai/scripts/output/
+uranai/scripts/preview_*.png
+uranai/scripts/test_*.mp4
+uranai/scripts/test_*.png
 
 # 一時ファイル
 *.bak

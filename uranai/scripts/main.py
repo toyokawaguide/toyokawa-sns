@@ -138,10 +138,11 @@ def update_wp_post(post_id: int, title: str, content: str,
                     eyecatch_path: Path | None = None,
                     *, publish: bool = False,
                     ig_eyecatch_path: Path | None = None,
+                    reel_video_path: Path | None = None,
                     slug: str | None = None) -> dict:
     """WP の指定 post を更新（status=draft or publish）
 
-    Returns: {"preview_url"|"link", "wp_image_url", "ig_image_url"}
+    Returns: {"preview_url"|"link", "wp_image_url", "ig_image_url", "reel_video_url"}
     """
     WP_URL = os.getenv("WP_URL")
     if not WP_URL:
@@ -151,12 +152,22 @@ def update_wp_post(post_id: int, title: str, content: str,
     headers_post = {"Authorization": f"Basic {token}", "Content-Type": "application/json"}
     headers_up = {"Authorization": f"Basic {token}"}
 
+    def _content_type(name: str) -> str:
+        n = name.lower()
+        if n.endswith(".mp4"):
+            return "video/mp4"
+        if n.endswith(".jpg") or n.endswith(".jpeg"):
+            return "image/jpeg"
+        if n.endswith(".gif"):
+            return "image/gif"
+        return "image/png"
+
     def _upload_media(p: Path) -> tuple[int | None, str | None]:
         with open(p, "rb") as f:
             uph = {**headers_up,
                    "Content-Disposition": f'attachment; filename="{p.name}"',
-                   "Content-Type": "image/png"}
-            r = requests.post(f"{WP_URL}/wp-json/wp/v2/media", headers=uph, data=f.read(), timeout=60)
+                   "Content-Type": _content_type(p.name)}
+            r = requests.post(f"{WP_URL}/wp-json/wp/v2/media", headers=uph, data=f.read(), timeout=120)
         if r.status_code in (200, 201):
             j = r.json()
             return j["id"], j.get("source_url")
@@ -170,6 +181,10 @@ def update_wp_post(post_id: int, title: str, content: str,
     ig_image_url = None
     if ig_eyecatch_path and ig_eyecatch_path.exists():
         _, ig_image_url = _upload_media(ig_eyecatch_path)
+
+    reel_video_url = None
+    if reel_video_path and reel_video_path.exists():
+        _, reel_video_url = _upload_media(reel_video_path)
 
     # XSERVER WAF対策：content + status を1回で送ると 403 になることがあるため、
     # ①content・タイトル・アイキャッチを draft で更新 → ②publish なら status だけ別リクエスト で切替
@@ -197,6 +212,7 @@ def update_wp_post(post_id: int, title: str, content: str,
         "link": j.get("link") or f"{WP_URL}/?p={post_id}",
         "wp_image_url": wp_image_url,
         "ig_image_url": ig_image_url,
+        "reel_video_url": reel_video_url,
         "status": j.get("status"),
     }
 
@@ -250,11 +266,12 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
     result["steps"]["article"] = {"title": article["title"], "wp_chars": len(article["wp_content"]),
                                    "raw_file": str(raw_file)}
 
-    # ---------- Step 4: 画像生成 ----------
-    print("\n[4/7] 画像生成（WP + IG）")
+    # ---------- Step 4: 画像生成（WP + IG + Reel動画） ----------
+    print("\n[4/7] 画像生成（WP + IG + Reel）")
     items = article.get("items_for_image", [])
     wp_img = OUTPUT_DIR / f"{target_date}_{weekday_key}_wp.png"
     ig_img = OUTPUT_DIR / f"{target_date}_{weekday_key}_ig.png"
+    reel_video = OUTPUT_DIR / f"{target_date}_{weekday_key}_reel.mp4"
     try:
         generate_image(target_date=target_date, weekday_key=weekday_key, format="wp",
                        spot_name=spot.name, items=items, output_path=wp_img)
@@ -262,17 +279,34 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
                        spot_name=spot.name, items=items, output_path=ig_img)
         print(f"  WP画像: {wp_img.name}")
         print(f"  IG画像: {ig_img.name}")
-        result["steps"]["image"] = {"wp": str(wp_img), "ig": str(ig_img)}
+        # Reel動画生成（失敗してもメインフローは止めない）
+        try:
+            from generate_reel import generate_reel
+            generate_reel(
+                target_date=target_date, weekday_key=weekday_key,
+                items=items,
+                spot={"name": spot.name, "area": getattr(spot, "area", "")},
+                output_path=reel_video,
+            )
+            print(f"  Reel動画: {reel_video.name} ({reel_video.stat().st_size/1024:.0f}KB)")
+            result["steps"]["image"] = {"wp": str(wp_img), "ig": str(ig_img), "reel": str(reel_video)}
+        except Exception as e_reel:
+            print(f"  [warn] Reel動画生成失敗（メインフロー継続）: {e_reel}")
+            result["steps"]["image"] = {"wp": str(wp_img), "ig": str(ig_img),
+                                          "reel_error": str(e_reel)}
+            reel_video = None
     except Exception as e:
         print(f"  [error] 画像生成失敗: {e}")
         result["steps"]["image"] = {"error": str(e)}
         wp_img = None
+        reel_video = None
 
     # ---------- Step 5: WP投稿（draft or publish） ----------
     label = "WP公開投稿" if publish else "WP下書き保存"
     print(f"\n[5/7] {label}")
     wp_image_url = None
     ig_image_url = None
+    reel_video_url = None
     post_url = None
     if skip_wp:
         print("  → [skip] --skip-wp 指定")
@@ -288,6 +322,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
                 post_id, article["title"], article["wp_content"],
                 eyecatch_path=wp_img, publish=publish,
                 ig_eyecatch_path=ig_img,
+                reel_video_path=reel_video,
                 slug=slug,
             )
             if "error" in wp_res:
@@ -296,6 +331,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
             else:
                 wp_image_url = wp_res.get("wp_image_url")
                 ig_image_url = wp_res.get("ig_image_url")
+                reel_video_url = wp_res.get("reel_video_url")
                 post_url = wp_res.get("link") if publish else wp_res.get("preview_url")
                 print(f"  → {wp_res.get('link')}  status={wp_res.get('status')}")
                 if publish:
@@ -339,7 +375,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
         print(f"     status={th_res['status']}  post_id={th_res.get('post_id')}")
         sns_results["threads"] = th_res
 
-        print("  [Instagram]")
+        print("  [Instagram Feed]")
         if not ig_image_url:
             print("     [skip] IG画像URL未取得（WP メディアアップ失敗）")
             sns_results["instagram"] = {"status": "skipped", "reason": "no_ig_url"}
@@ -350,6 +386,22 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
             )
             print(f"     status={ig_res['status']}  post_id={ig_res.get('post_id')}")
             sns_results["instagram"] = ig_res
+
+        # Reels 投稿（動画URL取得済みなら追加）
+        print("  [Instagram Reels]")
+        if not reel_video_url:
+            print("     [skip] Reel動画URL未取得（生成失敗 or WP アップ失敗）")
+            sns_results["instagram_reel"] = {"status": "skipped", "reason": "no_reel_url"}
+        else:
+            from post_instagram_uranai import post_instagram_uranai_reel
+            ig_reel_res = post_instagram_uranai_reel(
+                weekday_key=weekday_key, data=article.get("data", {}), spot=spot,
+                target_date=target_date, video_url=reel_video_url,
+                cover_url=ig_image_url,  # サムネは IG画像を流用
+                dry=False,
+            )
+            print(f"     status={ig_reel_res['status']}  post_id={ig_reel_res.get('post_id')}")
+            sns_results["instagram_reel"] = ig_reel_res
 
         result["steps"]["sns"] = sns_results
 

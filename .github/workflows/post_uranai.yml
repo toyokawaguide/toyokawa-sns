@@ -19,7 +19,7 @@ on:
 jobs:
   uranai:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20  # Reels動画のIG側処理待ち（最大3分ポーリング）に余裕を持たせる
     defaults:
       run:
         working-directory: uranai/scripts
@@ -33,10 +33,10 @@ jobs:
           cache: 'pip'
           cache-dependency-path: uranai/scripts/requirements.txt
 
-      - name: 日本語フォントインストール
+      - name: 日本語フォント＋ffmpegインストール
         run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra ffmpeg
 
       - name: ライブラリインストール
         run: pip install -r requirements.txt
