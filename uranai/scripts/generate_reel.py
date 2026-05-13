@@ -379,6 +379,37 @@ def _scene_spot(target_date: date, lucky_spot: dict, *,
 # 公開エントリポイント
 # ============================================================
 
+def _normalize_item(it) -> dict:
+    """ArticleItem (dataclass) or dict を {name, c1, c2, filled, rank} に正規化"""
+    if isinstance(it, dict):
+        return it
+    # dataclass (ArticleItem: rank, label, stars 0-5, comment, extras)
+    rank = getattr(it, "rank", None)
+    label = getattr(it, "label", "") or ""
+    stars = int(getattr(it, "stars", 0) or 0)
+    comment = (getattr(it, "comment", "") or "").strip()
+    # コメントを2行に分割（句点 → 読点 → 等分の優先順位）
+    if "。" in comment:
+        idx = comment.index("。")
+        c1 = comment[:idx + 1]
+        c2 = comment[idx + 1:].strip()
+    elif "、" in comment:
+        idx = comment.index("、")
+        c1 = comment[:idx + 1]
+        c2 = comment[idx + 1:].strip()
+    else:
+        half = len(comment) // 2
+        c1 = comment[:half]
+        c2 = comment[half:]
+    return {
+        "name": label,
+        "c1": c1,
+        "c2": c2,
+        "filled": stars * 2,  # 0-5 → 0-10
+        "rank": rank,
+    }
+
+
 # 曜日別のメタ情報（generate_image.py と統一）
 WEEKDAY_META = {
     "mon": {"badge": "今日は月曜・月の日", "sub": "今日のラッキー星座ランキング", "hashtag": "星座",
@@ -418,13 +449,14 @@ def generate_reel(*, target_date: date, weekday_key: str,
     sub_title = meta["sub"]
     planet_func = _planet_icon_func(meta["planet_icon"])
 
-    # items は {name, c1, c2, filled} 形式を期待
+    # items を正規化（ArticleItem dataclass or dict → dict）
+    normalized = [_normalize_item(it) for it in items]
     # filled 降順でソート（rank があれば優先）
     def _sort_key(it):
         if "rank" in it and it["rank"]:
             return (0, int(it["rank"]))
         return (1, -int(it.get("filled", 0)))
-    sorted_items = sorted(items, key=_sort_key)
+    sorted_items = sorted(normalized, key=_sort_key)
 
     # 12要素揃える（不足は空欄で埋める）
     while len(sorted_items) < 12:
