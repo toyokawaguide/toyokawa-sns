@@ -37,6 +37,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          # fonts-noto-cjk (軽量版) は Regular/Bold のみ。
+          # コードが要求する Black/Medium をシンボリックリンクで代用
+          FONT_DIR=/usr/share/fonts/opentype/noto-cjk
+          sudo ln -sf "$FONT_DIR/NotoSansCJK-Bold.ttc" "$FONT_DIR/NotoSansCJK-Black.ttc"
+          sudo ln -sf "$FONT_DIR/NotoSansCJK-Regular.ttc" "$FONT_DIR/NotoSansCJK-Medium.ttc"
+          ls -la "$FONT_DIR"/NotoSansCJK-*.ttc
 
       - name: ffmpeg セットアップ（事前ビルド済みバイナリ）
         uses: FedericoCarboni/setup-ffmpeg@v3
@@ -64,7 +70,7 @@ jobs:
           SNS_LOG_SECRET: ${{ secrets.SNS_LOG_SECRET }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          URANAI_FONT_DIR: /usr/share/fonts/opentype/noto
+          URANAI_FONT_DIR: /usr/share/fonts/opentype/noto-cjk
         run: |
           DATE_ARG=""
           if [ -n "${{ github.event.inputs.target_date }}" ]; then
