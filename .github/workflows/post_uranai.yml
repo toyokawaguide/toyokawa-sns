@@ -38,22 +38,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           # 実ファイルパスを動的検出（Ubuntu バージョンでパス違いに対応）
-          BOLD=$(find /usr/share/fonts -name "NotoSansCJK-Bold*" 2>/dev/null | head -1)
-          REGULAR=$(find /usr/share/fonts -name "NotoSansCJK-Regular*" 2>/dev/null | head -1)
+          # -L で symlink を辿って実体ファイルを取得（壊れた symlink を除外）
+          BOLD=$(find -L /usr/share/fonts -name "NotoSansCJK-Bold*" -type f 2>/dev/null | head -1)
+          REGULAR=$(find -L /usr/share/fonts -name "NotoSansCJK-Regular*" -type f 2>/dev/null | head -1)
           if [ -z "$BOLD" ] || [ -z "$REGULAR" ]; then
             echo "::error::NotoSansCJK フォントが見つかりません"
             echo "fonts-noto-cjk パッケージのファイル一覧:"
             dpkg -L fonts-noto-cjk | grep -i "\.ttc\|\.otf" | head -20
             exit 1
           fi
-          FONT_DIR=$(dirname "$BOLD")
-          echo "検出した FONT_DIR: $FONT_DIR"
-          # コードが要求する Black/Medium をシンボリックリンクで代用
-          sudo ln -sf "$BOLD" "$FONT_DIR/NotoSansCJK-Black.ttc"
-          sudo ln -sf "$REGULAR" "$FONT_DIR/NotoSansCJK-Medium.ttc"
-          ls -la "$FONT_DIR"/NotoSansCJK-*
-          # 後続ステップに動的パスを引き継ぐ
-          echo "URANAI_FONT_DIR=$FONT_DIR" >> $GITHUB_ENV
+          echo "検出した BOLD: $BOLD"
+          echo "検出した REGULAR: $REGULAR"
+          # 固定の安全な場所に実体コピー（symlink先ディレクトリ不在の問題を完全回避）
+          SAFE_FONT_DIR=/tmp/uranai_fonts
+          mkdir -p "$SAFE_FONT_DIR"
+          # cp -L で symlink を辿って実体ファイルをコピー
+          cp -L "$BOLD" "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc"
+          cp -L "$REGULAR" "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc"
+          # コードが要求する Black/Medium も同じファイルで代用（cpなので確実）
+          cp -L "$BOLD" "$SAFE_FONT_DIR/NotoSansCJK-Black.ttc"
+          cp -L "$REGULAR" "$SAFE_FONT_DIR/NotoSansCJK-Medium.ttc"
+          ls -la "$SAFE_FONT_DIR"/NotoSansCJK-*
+          # 後続ステップに固定パスを引き継ぐ
+          echo "URANAI_FONT_DIR=$SAFE_FONT_DIR" >> $GITHUB_ENV
 
       - name: ffmpeg セットアップ（事前ビルド済みバイナリ）
         uses: FedericoCarboni/setup-ffmpeg@v3
