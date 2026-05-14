@@ -405,7 +405,7 @@ def _normalize_item(it) -> dict:
         "name": label,
         "c1": c1,
         "c2": c2,
-        "filled": stars * 2,  # 0-5 → 0-10
+        "filled": stars * 2 if stars <= 5 else stars,  # 旧5段階(0-5)なら×2 / 新10段階(0-10)ならそのまま
         "rank": rank,
     }
 
