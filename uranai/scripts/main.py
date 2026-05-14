@@ -397,7 +397,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
             ig_reel_res = post_instagram_uranai_reel(
                 weekday_key=weekday_key, data=article.get("data", {}), spot=spot,
                 target_date=target_date, video_url=reel_video_url,
-                cover_url=ig_image_url,  # サムネは IG画像を流用
+                cover_url=None,  # Instagramが動画の1フレーム目を自動サムネ化（再生時の切替が自然・グリッドでもフィード画像と差別化）
                 dry=False,
             )
             print(f"     status={ig_reel_res['status']}  post_id={ig_reel_res.get('post_id')}")
