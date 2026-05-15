@@ -33,31 +33,24 @@ jobs:
           cache: 'pip'
           cache-dependency-path: uranai/scripts/requirements.txt
 
-      - name: 日本語フォントインストール（軽量版）
+      - name: 日本語フォントセットアップ（GitHub直接DL方式・apt-get廃止）
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
-          # 実ファイルパスを動的検出（Ubuntu バージョンでパス違いに対応）
-          # -L で symlink を辿って実体ファイルを取得（壊れた symlink を除外）
-          BOLD=$(find -L /usr/share/fonts -name "NotoSansCJK-Bold*" -type f 2>/dev/null | head -1)
-          REGULAR=$(find -L /usr/share/fonts -name "NotoSansCJK-Regular*" -type f 2>/dev/null | head -1)
-          if [ -z "$BOLD" ] || [ -z "$REGULAR" ]; then
-            echo "::error::NotoSansCJK フォントが見つかりません"
-            echo "fonts-noto-cjk パッケージのファイル一覧:"
-            dpkg -L fonts-noto-cjk | grep -i "\.ttc\|\.otf" | head -20
-            exit 1
-          fi
-          echo "検出した BOLD: $BOLD"
-          echo "検出した REGULAR: $REGULAR"
-          # 固定の安全な場所に実体コピー（symlink先ディレクトリ不在の問題を完全回避）
+          # apt-get fonts-noto-cjk は Azure Ubuntu Mirror 経由で61.2MBを取得するが
+          # 数分かかることがあるため、GitHub Raw 経由で直接DLに変更（数十秒で完了）
           SAFE_FONT_DIR=/tmp/uranai_fonts
           mkdir -p "$SAFE_FONT_DIR"
-          # cp -L で symlink を辿って実体ファイルをコピー
-          cp -L "$BOLD" "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc"
-          cp -L "$REGULAR" "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc"
-          # コードが要求する Black/Medium も同じファイルで代用（cpなので確実）
-          cp -L "$BOLD" "$SAFE_FONT_DIR/NotoSansCJK-Black.ttc"
-          cp -L "$REGULAR" "$SAFE_FONT_DIR/NotoSansCJK-Medium.ttc"
+          BASE_URL="https://github.com/notofonts/noto-cjk/raw/main/Sans/OTC"
+          echo "フォント直接DL: $BASE_URL"
+          curl -fsSL --retry 3 --max-time 180 \
+            -o "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc" \
+            "$BASE_URL/NotoSansCJK-Bold.ttc"
+          curl -fsSL --retry 3 --max-time 180 \
+            -o "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc" \
+            "$BASE_URL/NotoSansCJK-Regular.ttc"
+          # コードが要求する Black/Medium も同じファイルで代用
+          cp "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc" "$SAFE_FONT_DIR/NotoSansCJK-Black.ttc"
+          cp "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc" "$SAFE_FONT_DIR/NotoSansCJK-Medium.ttc"
+          # サイズ確認（途中切れ等を検出）
           ls -la "$SAFE_FONT_DIR"/NotoSansCJK-*
           # 後続ステップに固定パスを引き継ぐ
           echo "URANAI_FONT_DIR=$SAFE_FONT_DIR" >> $GITHUB_ENV
