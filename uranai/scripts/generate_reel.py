@@ -199,7 +199,8 @@ def _draw_title_section(d: ImageDraw.ImageDraw, top_y: int,
 def _scene_top5(target_date: date, items: list, *,
                 rank_offset: int, rank_label: str,
                 badge_text: str, sub_title: str,
-                draw_planet_icon) -> Image.Image:
+                draw_planet_icon,
+                weekday_key: str | None = None) -> Image.Image:
     """5枚のカードを縦並びで描画（ベース紺色背景・白文字＋白カード）
     社長要望：1ページ5位ずつ・統一感保持・不足は「—」表示の同サイズカード"""
     img = Image.new("RGB", (REEL_W, REEL_H), BLUE)
@@ -263,9 +264,14 @@ def _scene_top5(target_date: date, items: list, *,
             sx = stars_x_start + (s - 5) * star_gap + star_size
             color = GOLD if s < filled else STAR_EMPTY_DARK
             draw_star(d, sx, y + 74, star_size, color)
-        # スコア表示 (整数なら N/10・小数なら N.5/10 のように丸める)
+        # スコア表示 (整数なら N・小数なら N.5 のように丸める)
         filled_disp = int(filled) if filled == int(filled) else round(filled, 1)
-        score_text = f"{filled_disp}/10"
+        # 金/土は seed ベースの小数 stars（★10/★9.5 等・/10 表記なし）
+        # それ以外は N/10 表記（社長要望でフィード投稿と統一）
+        if weekday_key in ("fri", "sat"):
+            score_text = f"★{filled_disp}"
+        else:
+            score_text = f"{filled_disp}/10"
         scf = f(FBd, 24)
         scb = d.textbbox((0, 0), score_text, font=scf)
         d.text((card_x + card_w - (scb[2] - scb[0]) - 28, y + 115),
@@ -276,6 +282,159 @@ def _scene_top5(target_date: date, items: list, *,
         comment_font = f(FM, 26)
         d.text((nx, y + 86), it.get("c1", ""), font=comment_font, fill=TEXT_DARK)
         d.text((nx, y + 128), it.get("c2", ""), font=comment_font, fill=TEXT_DARK)
+
+    _draw_vertical_sidebar(d, img)
+    return img
+
+
+# ============================================================
+# シーン: 日曜・今週まとめ（フィード投稿準拠）
+# ============================================================
+
+def _scene_sunday_summary(target_date: date, data: dict, *,
+                          badge_text: str, draw_planet_icon) -> Image.Image:
+    """日曜版：今週のラッキースポット振り返り＋スポット募集
+    フィード投稿のレイアウトをリール用1080×1920に拡張"""
+    img = Image.new("RGB", (REEL_W, REEL_H), BLUE)
+    d = ImageDraw.Draw(img)
+
+    header_h = _draw_header(d, img, target_date)
+
+    # ベージュ背景の本体エリア
+    body_top = header_h + 20
+    body_bottom = REEL_H - 220  # フッター用に下を空ける
+    d.rectangle([0, body_top, REEL_W, body_bottom], fill=BEIGE)
+
+    # メインタイトル「★ 豊川ガイド的 今週のまとめ ★」
+    title_y = body_top + 50
+    star_size = 32
+    draw_star(d, CONTENT_LEFT + 80, title_y + 36, star_size, GOLD)
+    draw_star(d, CONTENT_RIGHT - 80, title_y + 36, star_size, GOLD)
+    title = "豊川ガイド的　今週のまとめ"
+    tf = f(FB, 56)
+    tb = d.textbbox((0, 0), title, font=tf)
+    d.text(((REEL_W - (tb[2] - tb[0])) // 2, title_y), title, font=tf, fill=BLUE)
+
+    # バッジ「今日は日曜・太陽の日」
+    badge_y = title_y + 100
+    bdf = f(FM, 22)
+    bdb = d.textbbox((0, 0), badge_text, font=bdf)
+    text_w = bdb[2] - bdb[0]
+    icon_size = 18
+    icon_gap = 10
+    badge_w = text_w + icon_size + icon_gap + 50
+    badge_h = 38
+    badge_x = (REEL_W - badge_w) // 2
+    d.rounded_rectangle([badge_x, badge_y, badge_x + badge_w, badge_y + badge_h],
+                        radius=19, fill=WHITE, outline=GOLD, width=2)
+    draw_planet_icon(d, badge_x + 22, badge_y + badge_h // 2 - 2, icon_size, GOLD, WHITE)
+    d.text((badge_x + 22 + icon_size // 2 + icon_gap + 6, badge_y + 5),
+           badge_text, font=bdf, fill=BLUE)
+
+    # サブテキスト「今週のおさらい&ラッキースポット募集中!」
+    sub_y = badge_y + badge_h + 14
+    sub = "今週のおさらい&ラッキースポット募集中!"
+    sf = f(FBd, 32)
+    sb = d.textbbox((0, 0), sub, font=sf)
+    d.text(((REEL_W - (sb[2] - sb[0])) // 2, sub_y), sub, font=sf, fill=TEXT_DARK)
+
+    # ===== セクション1: 今週のラッキースポットおさらい =====
+    sec1_y = sub_y + 70
+    sec1_h = 480
+    d.rounded_rectangle([CONTENT_LEFT, sec1_y, CONTENT_RIGHT, sec1_y + sec1_h],
+                        radius=22, fill=WHITE, outline=BLUE, width=3)
+
+    sec1_title = "◆ 今週のラッキースポットおさらい"
+    s1tf = f(FBd, 30)
+    d.text((CONTENT_LEFT + 32, sec1_y + 24), sec1_title, font=s1tf, fill=BLUE)
+    # アンダーライン
+    s1tb = d.textbbox((0, 0), sec1_title, font=s1tf)
+    d.rectangle([CONTENT_LEFT + 32, sec1_y + 60,
+                 CONTENT_LEFT + 32 + (s1tb[2] - s1tb[0]) - 50, sec1_y + 63], fill=GOLD)
+
+    # 月〜土の6スポット（2列×3行 でなく1列×6行で縦に並べる・リール縦長活用）
+    spots_week = data.get("spots_week", {})
+    day_labels = [("月", "mon"), ("火", "tue"), ("水", "wed"),
+                  ("木", "thu"), ("金", "fri"), ("土", "sat")]
+    spot_y_start = sec1_y + 100
+    spot_h = 56
+    spot_gap = 6
+    badge_size = 44
+    for i, (jp, key) in enumerate(day_labels):
+        sy = spot_y_start + i * (spot_h + spot_gap)
+        # 曜日バッジ（紺色四角＋白文字）
+        bx = CONTENT_LEFT + 38
+        by = sy + (spot_h - badge_size) // 2
+        d.rounded_rectangle([bx, by, bx + badge_size, by + badge_size],
+                            radius=8, fill=BLUE)
+        bf = f(FB, 30)
+        bbox = d.textbbox((0, 0), jp, font=bf)
+        d.text((bx + (badge_size - (bbox[2] - bbox[0])) // 2,
+                by + (badge_size - (bbox[3] - bbox[1])) // 2 - bbox[1]),
+               jp, font=bf, fill=WHITE)
+        # スポット名
+        spot_name = spots_week.get(key, "—")
+        spf = f(FBd, 30)
+        d.text((bx + badge_size + 20, sy + (spot_h - 30) // 2),
+               spot_name, font=spf, fill=TEXT_DARK)
+
+    # ===== セクション2: ラッキースポット募集 =====
+    sec2_y = sec1_y + sec1_h + 24
+    sec2_h = 320
+    d.rounded_rectangle([CONTENT_LEFT, sec2_y, CONTENT_RIGHT, sec2_y + sec2_h],
+                        radius=22, fill=BLUE)
+
+    sec2_title = "★ ラッキースポット、絶賛募集中!"
+    s2tf = f(FBd, 30)
+    s2tb = d.textbbox((0, 0), sec2_title, font=s2tf)
+    d.text(((REEL_W - (s2tb[2] - s2tb[0])) // 2, sec2_y + 24),
+           sec2_title, font=s2tf, fill=GOLD)
+    # 上下の罫線
+    d.rectangle([CONTENT_LEFT + 60, sec2_y + 72,
+                 CONTENT_RIGHT - 60, sec2_y + 74], fill=GOLD)
+
+    quote1 = "自分がそう思ったら"
+    quote2 = "もうラッキースポットでいいんじゃない?"
+    qf = f(FB, 34)
+    q1b = d.textbbox((0, 0), quote1, font=qf)
+    q2b = d.textbbox((0, 0), quote2, font=qf)
+    d.text(((REEL_W - (q1b[2] - q1b[0])) // 2, sec2_y + 100),
+           quote1, font=qf, fill=WHITE)
+    d.text(((REEL_W - (q2b[2] - q2b[0])) // 2, sec2_y + 150),
+           quote2, font=qf, fill=WHITE)
+
+    byline = "— by 豊川ガイド"
+    bynf = f(FM, 24)
+    bynb = d.textbbox((0, 0), byline, font=bynf)
+    d.text((CONTENT_RIGHT - (bynb[2] - bynb[0]) - 40, sec2_y + 210),
+           byline, font=bynf, fill=GOLD)
+
+    d.rectangle([CONTENT_LEFT + 60, sec2_y + 252,
+                 CONTENT_RIGHT - 60, sec2_y + 254], fill=GOLD)
+
+    foot_msg = "自薦・他薦どっちもOK!お気軽にどうぞ"
+    fmf = f(FBd, 26)
+    fmb = d.textbbox((0, 0), foot_msg, font=fmf)
+    d.text(((REEL_W - (fmb[2] - fmb[0])) // 2, sec2_y + 270),
+           foot_msg, font=fmf, fill=GOLD)
+
+    # フッター注釈
+    note = "※プロフィールのリンクから、お気軽に教えてくださいませ"
+    nf = f(FM, 22)
+    nb = d.textbbox((0, 0), note, font=nf)
+    d.text(((REEL_W - (nb[2] - nb[0])) // 2, body_bottom - 50),
+           note, font=nf, fill=TEXT_GRAY)
+
+    # 下部紺帯：プロフィール誘導
+    foot_text1 = "▶ プロフィールリンクから"
+    foot_text2 = "トップの「今日の占い」コーナーへ"
+    ftf = f(FBd, 32)
+    ft1b = d.textbbox((0, 0), foot_text1, font=ftf)
+    ft2b = d.textbbox((0, 0), foot_text2, font=ftf)
+    d.text(((REEL_W - (ft1b[2] - ft1b[0])) // 2, body_bottom + 50),
+           foot_text1, font=ftf, fill=WHITE)
+    d.text(((REEL_W - (ft2b[2] - ft2b[0])) // 2, body_bottom + 110),
+           foot_text2, font=ftf, fill=WHITE)
 
     _draw_vertical_sidebar(d, img)
     return img
@@ -471,7 +630,8 @@ def _planet_icon_func(name: str):
 
 def generate_reel(*, target_date: date, weekday_key: str,
                   items: list, spot: dict,
-                  output_path: Path) -> Path:
+                  output_path: Path,
+                  data: dict | None = None) -> Path:
     """リール動画(15秒・3シーン・1080×1920)を生成"""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -481,13 +641,20 @@ def generate_reel(*, target_date: date, weekday_key: str,
     sub_title = meta["sub"]
     planet_func = _planet_icon_func(meta["planet_icon"])
 
-    # 日曜は週まとめ専用構成（TOP-N形式ではないのでリール動画は当面スキップ）
-    # generate_text.py の data には items が無く spots_week などが入る構造のため
+    # 日曜は週まとめ専用シーン（フィード投稿準拠）
     if weekday_key == "sun":
-        raise NotImplementedError(
-            "日曜は週まとめ専用構成のため、現状はリール動画を生成しません。"
-            "Reels用テンプレを別途設計してから対応予定。"
-        )
+        if not data or not data.get("spots_week"):
+            raise ValueError("日曜は data['spots_week'] が必須です")
+        sun_img = _scene_sunday_summary(target_date, data,
+                                          badge_text=badge_text,
+                                          draw_planet_icon=planet_func)
+        scenes = [("sunday_summary", sun_img,
+                    SCENE_DURATIONS.get("top_first", 5.0) * 2)]  # 1シーンで10秒
+        # ラッキースポット拡大シーン（今週のスポット振り返り風）はスキップ
+        total_dur = sum(s[2] for s in scenes)
+        print(f"  reel: {weekday_key} {len(scenes)}シーン 計{total_dur:.1f}秒")
+        # ffmpeg で MP4 出力（既存ロジックへフォールスルー）
+        return _render_scenes_to_mp4(scenes, output_path)
 
     # 金/土は items に stars がないので seed ベースで注入（プロンプト側で『stars は使わない』仕様）
     if weekday_key in ("fri", "sat"):
@@ -559,7 +726,8 @@ def generate_reel(*, target_date: date, weekday_key: str,
         img = _scene_top5(target_date, scene_items,
                           rank_offset=rank_offset, rank_label=rank_label,
                           badge_text=badge_text, sub_title=sub_title,
-                          draw_planet_icon=planet_func)
+                          draw_planet_icon=planet_func,
+                          weekday_key=weekday_key)
         scenes.append((name, img, scene_dur))
 
     # ラッキースポットは最後に
@@ -571,7 +739,13 @@ def generate_reel(*, target_date: date, weekday_key: str,
     total_dur = sum(s[2] for s in scenes)
     print(f"  reel: {weekday_key} {len(scenes)}シーン 計{total_dur:.1f}秒")
 
-    # ffmpeg で MP4 出力
+    return _render_scenes_to_mp4(scenes, output_path)
+
+
+def _render_scenes_to_mp4(scenes: list, output_path: Path) -> Path:
+    """scenes リスト[(name, PIL.Image, duration_sec), ...] を mp4 にレンダリング"""
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
         png_paths = []

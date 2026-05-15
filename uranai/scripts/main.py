@@ -287,6 +287,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
                 items=items,
                 spot={"name": spot.name, "area": getattr(spot, "area", "")},
                 output_path=reel_video,
+                data=article.get("data", {}),  # 日曜の spots_week 用
             )
             print(f"  Reel動画: {reel_video.name} ({reel_video.stat().st_size/1024:.0f}KB)")
             result["steps"]["image"] = {"wp": str(wp_img), "ig": str(ig_img), "reel": str(reel_video)}
