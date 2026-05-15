@@ -196,11 +196,12 @@ def _draw_title_section(d: ImageDraw.ImageDraw, top_y: int,
 # シーン: TOP6 カードリスト（1-6位 or 7-12位）
 # ============================================================
 
-def _scene_top6(target_date: date, items: list, *,
+def _scene_top5(target_date: date, items: list, *,
                 rank_offset: int, rank_label: str,
                 badge_text: str, sub_title: str,
                 draw_planet_icon) -> Image.Image:
-    """6枚のカードを縦並びで描画（ベース紺色背景・白文字＋白カード）"""
+    """5枚のカードを縦並びで描画（ベース紺色背景・白文字＋白カード）
+    社長要望：1ページ5位ずつ・統一感保持・不足は「—」表示の同サイズカード"""
     img = Image.new("RGB", (REEL_W, REEL_H), BLUE)
     d = ImageDraw.Draw(img)
 
@@ -209,17 +210,17 @@ def _scene_top6(target_date: date, items: list, *,
                                     rank_label=rank_label,
                                     draw_planet_icon=draw_planet_icon)
 
-    # カード設定（コンテンツ領域内に収める）
+    # カード設定（5枚化で縦に余裕ができるためカード高さを大きくし読みやすく）
     card_x = CONTENT_LEFT       # 40
     card_w = CONTENT_W          # 900
-    card_h = 150
-    card_gap = 14
+    card_h = 180
+    card_gap = 18
     card_y0 = content_y
 
     rank_color = lambda r: GOLD if r == 1 else SILVER if r == 2 else BRONZE if r == 3 else (180, 200, 220)
 
-    use_items = items[:6] if len(items) >= 6 else items
-    while len(use_items) < 6:
+    use_items = items[:5] if len(items) >= 5 else list(items)
+    while len(use_items) < 5:
         use_items.append({"name": "—", "c1": "", "c2": "", "filled": 0})
 
     for i, it in enumerate(use_items):
@@ -233,39 +234,46 @@ def _scene_top6(target_date: date, items: list, *,
         # 順位バッジ円
         cx = card_x + 85
         cy = y + card_h // 2
-        cr = 52
+        cr = 58
         d.ellipse([cx - cr, cy - cr, cx + cr, cy + cr], fill=rank_color(rank))
-        rank_font = f(FB, 56 if rank < 10 else 44)
+        rank_font = f(FB, 62 if rank < 10 else 48)
         draw_text_centered_in_circle(d, cx, cy, str(rank), rank_font, WHITE)
 
         # 名前
-        nx = card_x + 165
+        nx = card_x + 170
         name = it.get("name", "")
-        d.text((nx, y + 16), name, font=f(FB, 36), fill=BLUE)
+        d.text((nx, y + 22), name, font=f(FB, 38), fill=BLUE)
 
         # 星評価（右上・空星は濃いめのグレー）
-        STAR_EMPTY_DARK = (140, 150, 170)  # STAR_EMPTYを上書き・濃いブルーグレー
-        filled = int(it.get("filled", 0))
-        star_size = 13
-        star_gap = 26
-        stars_x_start = card_x + card_w - 5 * star_gap - 24
+        STAR_EMPTY_DARK = (140, 150, 170)
+        # filled は dict 経由でも 0-10 範囲（_normalize_item で正規化済）・小数許容
+        filled_raw = it.get("filled", 0)
+        try:
+            filled = float(filled_raw)
+        except (TypeError, ValueError):
+            filled = 0.0
+        star_size = 14
+        star_gap = 28
+        stars_x_start = card_x + card_w - 5 * star_gap - 28
         for s in range(5):
             sx = stars_x_start + s * star_gap + star_size
             color = GOLD if s < filled else STAR_EMPTY_DARK
-            draw_star(d, sx, y + 32, star_size, color)
+            draw_star(d, sx, y + 38, star_size, color)
         for s in range(5, 10):
             sx = stars_x_start + (s - 5) * star_gap + star_size
             color = GOLD if s < filled else STAR_EMPTY_DARK
-            draw_star(d, sx, y + 64, star_size, color)
-        score_text = f"{filled}/10"
-        scf = f(FBd, 22)
+            draw_star(d, sx, y + 74, star_size, color)
+        # スコア表示 (整数なら N/10・小数なら N.5/10 のように丸める)
+        filled_disp = int(filled) if filled == int(filled) else round(filled, 1)
+        score_text = f"{filled_disp}/10"
+        scf = f(FBd, 24)
         scb = d.textbbox((0, 0), score_text, font=scf)
-        d.text((card_x + card_w - (scb[2] - scb[0]) - 24, y + 96),
+        d.text((card_x + card_w - (scb[2] - scb[0]) - 28, y + 115),
                score_text, font=scf, fill=GOLD)
 
         # コメント（c1, c2 の2行）
-        d.text((nx, y + 70), it.get("c1", ""), font=f(FM, 24), fill=TEXT_DARK)
-        d.text((nx, y + 105), it.get("c2", ""), font=f(FM, 24), fill=TEXT_DARK)
+        d.text((nx, y + 86), it.get("c1", ""), font=f(FM, 26), fill=TEXT_DARK)
+        d.text((nx, y + 128), it.get("c2", ""), font=f(FM, 26), fill=TEXT_DARK)
 
     _draw_vertical_sidebar(d, img)
     return img
@@ -379,33 +387,54 @@ def _scene_spot(target_date: date, lucky_spot: dict, *,
 # 公開エントリポイント
 # ============================================================
 
-def _normalize_item(it) -> dict:
-    """ArticleItem (dataclass) or dict を {name, c1, c2, filled, rank} に正規化"""
-    if isinstance(it, dict):
-        return it
-    # dataclass (ArticleItem: rank, label, stars 0-5, comment, extras)
-    rank = getattr(it, "rank", None)
-    label = getattr(it, "label", "") or ""
-    stars = int(getattr(it, "stars", 0) or 0)
-    comment = (getattr(it, "comment", "") or "").strip()
-    # コメントを2行に分割（句点 → 読点 → 等分の優先順位）
+def _split_comment_for_card(comment: str) -> tuple[str, str]:
+    """コメントを2行に分割（句点 → 読点 → 等分の優先順位）"""
+    comment = (comment or "").strip()
     if "。" in comment:
         idx = comment.index("。")
-        c1 = comment[:idx + 1]
-        c2 = comment[idx + 1:].strip()
-    elif "、" in comment:
+        return comment[:idx + 1], comment[idx + 1:].strip()
+    if "、" in comment:
         idx = comment.index("、")
-        c1 = comment[:idx + 1]
-        c2 = comment[idx + 1:].strip()
-    else:
-        half = len(comment) // 2
-        c1 = comment[:half]
-        c2 = comment[half:]
+        return comment[:idx + 1], comment[idx + 1:].strip()
+    half = len(comment) // 2
+    return comment[:half], comment[half:]
+
+
+def _normalize_item(it) -> dict:
+    """ArticleItem (dataclass) or dict を {name, c1, c2, filled, rank} に正規化
+
+    dict が来た場合も、name/c1/c2/filled キーが無ければ label/comment/stars から
+    生成する。raw data の items は dict 形式（label/stars/comment）で来るため、
+    そのままだと _scene で filled=0 として描画されてしまうのを防ぐ。
+    """
+    if isinstance(it, dict):
+        out = dict(it)  # 元の dict は変更しない
+        if "name" not in out and "label" in out:
+            out["name"] = out["label"]
+        if ("c1" not in out or "c2" not in out) and "comment" in out:
+            c1, c2 = _split_comment_for_card(out["comment"])
+            out.setdefault("c1", c1)
+            out.setdefault("c2", c2)
+        if "filled" not in out and "stars" in out:
+            s = out["stars"]
+            try:
+                s_num = float(s) if s is not None else 0
+            except (TypeError, ValueError):
+                s_num = 0
+            # 旧5段階(0-5)なら×2 / 新10段階(0-10)ならそのまま
+            out["filled"] = s_num * 2 if s_num <= 5 else s_num
+        return out
+    # dataclass (ArticleItem: rank, label, stars 0-5/0-10, comment, extras)
+    rank = getattr(it, "rank", None)
+    label = getattr(it, "label", "") or ""
+    stars = float(getattr(it, "stars", 0) or 0)
+    comment = (getattr(it, "comment", "") or "").strip()
+    c1, c2 = _split_comment_for_card(comment)
     return {
         "name": label,
         "c1": c1,
         "c2": c2,
-        "filled": stars * 2 if stars <= 5 else stars,  # 旧5段階(0-5)なら×2 / 新10段階(0-10)ならそのまま
+        "filled": stars * 2 if stars <= 5 else stars,
         "rank": rank,
     }
 
@@ -455,33 +484,62 @@ def generate_reel(*, target_date: date, weekday_key: str,
     def _sort_key(it):
         if "rank" in it and it["rank"]:
             return (0, int(it["rank"]))
-        return (1, -int(it.get("filled", 0)))
+        return (1, -float(it.get("filled", 0)))
     sorted_items = sorted(normalized, key=_sort_key)
 
-    # 12要素揃える（不足は空欄で埋める）
-    while len(sorted_items) < 12:
-        sorted_items.append({"name": "—", "c1": "", "c2": "", "filled": 0})
+    # 曜日別シーン構成（社長要望：1ページ5位ずつ・同サイズカード固定）
+    # mon/wed/thu (12位): 1-5 / 6-10 / 11-12 / ラッキー = 4シーン
+    # fri/sat (10位):    1-5 / 6-10 / ラッキー = 3シーン
+    # tue (4種):         1-4(+空1) / ラッキー = 2シーン
+    # sun:               別構成・現状は fri/sat と同じ（将来カスタマイズ可）
+    def _pad(items_, n):
+        out = list(items_)
+        while len(out) < n:
+            out.append({"name": "—", "c1": "", "c2": "", "filled": 0})
+        return out
 
-    # シーン生成
-    img_top_first = _scene_top6(target_date, sorted_items[:6],
-                                 rank_offset=0, rank_label="1〜6位",
-                                 badge_text=badge_text, sub_title=sub_title,
-                                 draw_planet_icon=planet_func)
-    img_top_second = _scene_top6(target_date, sorted_items[6:12],
-                                  rank_offset=6, rank_label="7〜12位",
-                                  badge_text=badge_text, sub_title=sub_title,
-                                  draw_planet_icon=planet_func)
+    if weekday_key == "tue":
+        items_pad = _pad(sorted_items, 4)
+        scenes_spec = [("rank_only", items_pad[:5], 0, "ランキング")]  # 5枠目は自動で「—」
+    elif weekday_key in ("fri", "sat"):
+        items_pad = _pad(sorted_items, 10)
+        scenes_spec = [
+            ("rank_1_5", items_pad[:5], 0, "1〜5位"),
+            ("rank_6_10", items_pad[5:10], 5, "6〜10位"),
+        ]
+    elif weekday_key in ("mon", "wed", "thu"):
+        items_pad = _pad(sorted_items, 12)
+        scenes_spec = [
+            ("rank_1_5", items_pad[:5], 0, "1〜5位"),
+            ("rank_6_10", items_pad[5:10], 5, "6〜10位"),
+            ("rank_11_12", items_pad[10:12], 10, "11〜12位"),
+        ]
+    else:
+        # 日曜・その他（暫定で fri/sat と同じ）
+        items_pad = _pad(sorted_items, 10)
+        scenes_spec = [
+            ("rank_1_5", items_pad[:5], 0, "1〜5位"),
+            ("rank_6_10", items_pad[5:10], 5, "6〜10位"),
+        ]
+
+    # シーン画像生成
+    scenes = []
+    scene_dur = SCENE_DURATIONS.get("top_first", 5.0)
+    for name, scene_items, rank_offset, rank_label in scenes_spec:
+        img = _scene_top5(target_date, scene_items,
+                          rank_offset=rank_offset, rank_label=rank_label,
+                          badge_text=badge_text, sub_title=sub_title,
+                          draw_planet_icon=planet_func)
+        scenes.append((name, img, scene_dur))
+
+    # ラッキースポットは最後に
     img_spot = _scene_spot(target_date, spot,
                             badge_text=badge_text, sub_title=sub_title,
                             draw_planet_icon=planet_func)
+    scenes.append(("spot", img_spot, SCENE_DURATIONS.get("spot", 5.0)))
 
-    scenes = [
-        ("top_first", img_top_first, SCENE_DURATIONS["top_first"]),
-        ("top_second", img_top_second, SCENE_DURATIONS["top_second"]),
-        ("spot", img_spot, SCENE_DURATIONS["spot"]),
-    ]
     total_dur = sum(s[2] for s in scenes)
-    print(f"  reel: {weekday_key} 3シーン 計{total_dur:.1f}秒")
+    print(f"  reel: {weekday_key} {len(scenes)}シーン 計{total_dur:.1f}秒")
 
     # ffmpeg で MP4 出力
     with tempfile.TemporaryDirectory() as tmp:
