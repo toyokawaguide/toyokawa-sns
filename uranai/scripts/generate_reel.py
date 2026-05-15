@@ -219,9 +219,9 @@ def _scene_top5(target_date: date, items: list, *,
 
     rank_color = lambda r: GOLD if r == 1 else SILVER if r == 2 else BRONZE if r == 3 else (180, 200, 220)
 
-    use_items = items[:5] if len(items) >= 5 else list(items)
-    while len(use_items) < 5:
-        use_items.append({"name": "—", "c1": "", "c2": "", "filled": 0})
+    # 渡された分のカードだけ描画（5枠固定にせず・空欄カードを追加しない）
+    # 例：シーン3「11〜12位」は2枚カードのみ／火曜の血液型は4枚のみ
+    use_items = items[:5]
 
     for i, it in enumerate(use_items):
         rank = rank_offset + i + 1
@@ -272,8 +272,25 @@ def _scene_top5(target_date: date, items: list, *,
                score_text, font=scf, fill=GOLD)
 
         # コメント（c1, c2 の2行）
-        d.text((nx, y + 86), it.get("c1", ""), font=f(FM, 26), fill=TEXT_DARK)
-        d.text((nx, y + 128), it.get("c2", ""), font=f(FM, 26), fill=TEXT_DARK)
+        # 横幅オーバー時の自動切り詰め（星評価エリアにかからないように）
+        comment_font = f(FM, 26)
+        comment_max_x = stars_x_start - 16  # 星のすぐ左までを許容範囲
+        comment_max_w = comment_max_x - nx
+
+        def _truncate(text: str, font, max_w: int) -> str:
+            if not text:
+                return ""
+            if font.getbbox(text)[2] <= max_w:
+                return text
+            # 末尾の文字を削って「…」を付ける
+            while text and font.getbbox(text + "…")[2] > max_w:
+                text = text[:-1]
+            return text + "…" if text else ""
+
+        c1 = _truncate(it.get("c1", ""), comment_font, comment_max_w)
+        c2 = _truncate(it.get("c2", ""), comment_font, comment_max_w)
+        d.text((nx, y + 86), c1, font=comment_font, fill=TEXT_DARK)
+        d.text((nx, y + 128), c2, font=comment_font, fill=TEXT_DARK)
 
     _draw_vertical_sidebar(d, img)
     return img
