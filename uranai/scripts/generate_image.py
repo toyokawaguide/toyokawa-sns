@@ -136,8 +136,8 @@ def _to_top3_format(items: list, count: int = 3) -> list[dict]:
     result = []
     for item in sorted_items:
         c1, c2 = _split_comment(item.comment)
-        # stars が 0-5（旧5段階）なら×2で10段階化、0-10ならそのまま
-        filled = item.stars * 2 if item.stars <= 5 else item.stars
+        # stars は 0-10 範囲で来る前提（×2は廃止・stars=5を10と同列にする順位逆転を防ぐ）
+        filled = item.stars
         result.append({
             "name": item.label,
             "c1": c1,
@@ -163,9 +163,8 @@ def _to_blood_format(items: list) -> dict:
         if type_str not in result:
             continue
         c1, c2 = _split_comment(item.comment)
-        s = item.stars
-        filled = s * 2 if s <= 5 else s
-        filled = min(filled, 10)
+        # stars は 0-10 範囲で来る前提（×2廃止）
+        filled = min(item.stars, 10)
         result[type_str] = {"c1": c1, "c2": c2, "stars": filled}
     return result
 

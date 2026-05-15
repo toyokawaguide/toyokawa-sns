@@ -271,35 +271,11 @@ def _scene_top5(target_date: date, items: list, *,
         d.text((card_x + card_w - (scb[2] - scb[0]) - 28, y + 115),
                score_text, font=scf, fill=GOLD)
 
-        # コメント（c1, c2 の2行・横幅オーバー時は自動でフォント縮小）
-        # 星評価エリアと重ならない＆コメント全文表示の両立
-        comment_max_x = stars_x_start - 16
-        comment_max_w = comment_max_x - nx
-
-        def _fit_font(text: str, max_w: int, max_size: int = 26, min_size: int = 18):
-            """テキストが max_w に収まる最大フォントサイズを返す"""
-            if not text:
-                return f(FM, max_size)
-            size = max_size
-            while size > min_size:
-                fnt = f(FM, size)
-                if fnt.getbbox(text)[2] <= max_w:
-                    return fnt
-                size -= 1
-            return f(FM, min_size)
-
-        c1_text = it.get("c1", "")
-        c2_text = it.get("c2", "")
-        # c1 と c2 で同じフォントサイズに揃える（小さい方優先）
-        f1 = _fit_font(c1_text, comment_max_w)
-        f2 = _fit_font(c2_text, comment_max_w)
-        # サイズ取得（小さい方）
-        s1 = f1.size if hasattr(f1, "size") else 26
-        s2 = f2.size if hasattr(f2, "size") else 26
-        common_size = min(s1, s2)
-        cf = f(FM, common_size)
-        d.text((nx, y + 86), c1_text, font=cf, fill=TEXT_DARK)
-        d.text((nx, y + 128), c2_text, font=cf, fill=TEXT_DARK)
+        # コメント（c1, c2 の2行・固定フォントサイズ26px・切り詰めもフォント縮小もしない）
+        # 長すぎる場合は generate_text.py のプロンプト側で短く生成するように調整する方針
+        comment_font = f(FM, 26)
+        d.text((nx, y + 86), it.get("c1", ""), font=comment_font, fill=TEXT_DARK)
+        d.text((nx, y + 128), it.get("c2", ""), font=comment_font, fill=TEXT_DARK)
 
     _draw_vertical_sidebar(d, img)
     return img
@@ -447,10 +423,11 @@ def _normalize_item(it) -> dict:
                 s_num = float(s) if s is not None else 0
             except (TypeError, ValueError):
                 s_num = 0
-            # 旧5段階(0-5)なら×2 / 新10段階(0-10)ならそのまま
-            out["filled"] = s_num * 2 if s_num <= 5 else s_num
+            # stars は generate_text.py が 0-10 範囲で出力する前提（×2はしない）
+            # 旧仕様の×2は stars=5 を stars=10 と同列にして順位逆転を起こすため廃止
+            out["filled"] = s_num
         return out
-    # dataclass (ArticleItem: rank, label, stars 0-5/0-10, comment, extras)
+    # dataclass (ArticleItem: rank, label, stars 0-10, comment, extras)
     rank = getattr(it, "rank", None)
     label = getattr(it, "label", "") or ""
     stars = float(getattr(it, "stars", 0) or 0)
@@ -460,7 +437,7 @@ def _normalize_item(it) -> dict:
         "name": label,
         "c1": c1,
         "c2": c2,
-        "filled": stars * 2 if stars <= 5 else stars,
+        "filled": stars,
         "rank": rank,
     }
 
