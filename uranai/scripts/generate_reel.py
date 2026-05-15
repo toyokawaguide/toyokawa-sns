@@ -294,146 +294,148 @@ def _scene_top5(target_date: date, items: list, *,
 def _scene_sunday_summary(target_date: date, data: dict, *,
                           badge_text: str, draw_planet_icon) -> Image.Image:
     """日曜版：今週のラッキースポット振り返り＋スポット募集
-    フィード投稿のレイアウトをリール用1080×1920に拡張"""
+    リール他曜日と同じ青基調で統一・余白とセクション間隔を均一化"""
     img = Image.new("RGB", (REEL_W, REEL_H), BLUE)
     d = ImageDraw.Draw(img)
 
     header_h = _draw_header(d, img, target_date)
+    content_x_left = CONTENT_LEFT       # 40
+    content_x_right = CONTENT_RIGHT     # 940 (REEL_W - SAFE_RIGHT)
+    center_x = (content_x_left + content_x_right) // 2
 
-    # ベージュ背景の本体エリア
-    body_top = header_h + 20
-    body_bottom = REEL_H - 220  # フッター用に下を空ける
-    d.rectangle([0, body_top, REEL_W, body_bottom], fill=BEIGE)
-
-    # メインタイトル「★ 豊川ガイド的 今週のまとめ ★」
-    title_y = body_top + 50
-    star_size = 32
-    draw_star(d, CONTENT_LEFT + 80, title_y + 36, star_size, GOLD)
-    draw_star(d, CONTENT_RIGHT - 80, title_y + 36, star_size, GOLD)
+    # ---------- メインタイトル ----------
+    title_y = header_h + 40
     title = "豊川ガイド的　今週のまとめ"
-    tf = f(FB, 56)
+    tf = f(FB, 54)
     tb = d.textbbox((0, 0), title, font=tf)
-    d.text(((REEL_W - (tb[2] - tb[0])) // 2, title_y), title, font=tf, fill=BLUE)
+    title_w = tb[2] - tb[0]
+    title_x = (REEL_W - title_w) // 2
+    # 左右の星（タイトル幅基準で配置）
+    star_size = 28
+    star_y = title_y + tf.size // 2 - star_size // 2
+    draw_star(d, title_x - 50, star_y + star_size, star_size, GOLD)
+    draw_star(d, title_x + title_w + 50, star_y + star_size, star_size, GOLD)
+    d.text((title_x, title_y), title, font=tf, fill=WHITE)
 
-    # バッジ「今日は日曜・太陽の日」
-    badge_y = title_y + 100
+    # ---------- バッジ ----------
+    badge_y = title_y + 92
     bdf = f(FM, 22)
     bdb = d.textbbox((0, 0), badge_text, font=bdf)
     text_w = bdb[2] - bdb[0]
     icon_size = 18
     icon_gap = 10
     badge_w = text_w + icon_size + icon_gap + 50
-    badge_h = 38
+    badge_h = 40
     badge_x = (REEL_W - badge_w) // 2
     d.rounded_rectangle([badge_x, badge_y, badge_x + badge_w, badge_y + badge_h],
-                        radius=19, fill=WHITE, outline=GOLD, width=2)
+                        radius=20, fill=WHITE, outline=GOLD, width=2)
     draw_planet_icon(d, badge_x + 22, badge_y + badge_h // 2 - 2, icon_size, GOLD, WHITE)
-    d.text((badge_x + 22 + icon_size // 2 + icon_gap + 6, badge_y + 5),
+    d.text((badge_x + 22 + icon_size // 2 + icon_gap + 6, badge_y + 6),
            badge_text, font=bdf, fill=BLUE)
 
-    # サブテキスト「今週のおさらい&ラッキースポット募集中!」
-    sub_y = badge_y + badge_h + 14
+    # ---------- サブテキスト ----------
+    sub_y = badge_y + badge_h + 18
     sub = "今週のおさらい&ラッキースポット募集中!"
-    sf = f(FBd, 32)
+    sf = f(FBd, 30)
     sb = d.textbbox((0, 0), sub, font=sf)
-    d.text(((REEL_W - (sb[2] - sb[0])) // 2, sub_y), sub, font=sf, fill=TEXT_DARK)
+    d.text(((REEL_W - (sb[2] - sb[0])) // 2, sub_y), sub, font=sf, fill=WHITE)
+
+    # 「〜当たるも八卦 当たらぬも八卦〜」金線
+    line_y = sub_y + 50
+    d.rectangle([(REEL_W - 200) // 2, line_y, (REEL_W + 200) // 2, line_y + 4], fill=GOLD)
 
     # ===== セクション1: 今週のラッキースポットおさらい =====
-    sec1_y = sub_y + 70
-    sec1_h = 480
-    d.rounded_rectangle([CONTENT_LEFT, sec1_y, CONTENT_RIGHT, sec1_y + sec1_h],
-                        radius=22, fill=WHITE, outline=BLUE, width=3)
+    sec1_y = line_y + 30
+    sec1_h = 560
+    sec1_r = 24
+    d.rounded_rectangle([content_x_left, sec1_y, content_x_right, sec1_y + sec1_h],
+                        radius=sec1_r, fill=WHITE, outline=GOLD, width=3)
 
     sec1_title = "◆ 今週のラッキースポットおさらい"
-    s1tf = f(FBd, 30)
-    d.text((CONTENT_LEFT + 32, sec1_y + 24), sec1_title, font=s1tf, fill=BLUE)
-    # アンダーライン
+    s1tf = f(FBd, 32)
+    d.text((content_x_left + 36, sec1_y + 24), sec1_title, font=s1tf, fill=BLUE)
     s1tb = d.textbbox((0, 0), sec1_title, font=s1tf)
-    d.rectangle([CONTENT_LEFT + 32, sec1_y + 60,
-                 CONTENT_LEFT + 32 + (s1tb[2] - s1tb[0]) - 50, sec1_y + 63], fill=GOLD)
+    d.rectangle([content_x_left + 36, sec1_y + 64,
+                 content_x_left + 36 + (s1tb[2] - s1tb[0]) - 30, sec1_y + 68], fill=GOLD)
 
-    # 月〜土の6スポット（2列×3行 でなく1列×6行で縦に並べる・リール縦長活用）
     spots_week = data.get("spots_week", {})
     day_labels = [("月", "mon"), ("火", "tue"), ("水", "wed"),
                   ("木", "thu"), ("金", "fri"), ("土", "sat")]
-    spot_y_start = sec1_y + 100
-    spot_h = 56
-    spot_gap = 6
-    badge_size = 44
+    spot_y_start = sec1_y + 110
+    spot_h = 62
+    spot_gap = 10
+    badge_size = 48
     for i, (jp, key) in enumerate(day_labels):
         sy = spot_y_start + i * (spot_h + spot_gap)
-        # 曜日バッジ（紺色四角＋白文字）
-        bx = CONTENT_LEFT + 38
+        bx = content_x_left + 40
         by = sy + (spot_h - badge_size) // 2
         d.rounded_rectangle([bx, by, bx + badge_size, by + badge_size],
-                            radius=8, fill=BLUE)
-        bf = f(FB, 30)
+                            radius=10, fill=BLUE)
+        bf = f(FB, 32)
         bbox = d.textbbox((0, 0), jp, font=bf)
         d.text((bx + (badge_size - (bbox[2] - bbox[0])) // 2,
                 by + (badge_size - (bbox[3] - bbox[1])) // 2 - bbox[1]),
                jp, font=bf, fill=WHITE)
-        # スポット名
         spot_name = spots_week.get(key, "—")
-        spf = f(FBd, 30)
-        d.text((bx + badge_size + 20, sy + (spot_h - 30) // 2),
+        spf = f(FBd, 32)
+        d.text((bx + badge_size + 24, sy + (spot_h - 32) // 2),
                spot_name, font=spf, fill=TEXT_DARK)
 
-    # ===== セクション2: ラッキースポット募集 =====
-    sec2_y = sec1_y + sec1_h + 24
-    sec2_h = 320
-    d.rounded_rectangle([CONTENT_LEFT, sec2_y, CONTENT_RIGHT, sec2_y + sec2_h],
-                        radius=22, fill=BLUE)
+    # ===== セクション2: 募集ボックス（青基調・既存通り） =====
+    sec2_y = sec1_y + sec1_h + 30
+    sec2_h = 340
+    d.rounded_rectangle([content_x_left, sec2_y, content_x_right, sec2_y + sec2_h],
+                        radius=24, fill=BLUE, outline=GOLD, width=3)
 
     sec2_title = "★ ラッキースポット、絶賛募集中!"
-    s2tf = f(FBd, 30)
+    s2tf = f(FBd, 32)
     s2tb = d.textbbox((0, 0), sec2_title, font=s2tf)
-    d.text(((REEL_W - (s2tb[2] - s2tb[0])) // 2, sec2_y + 24),
+    d.text(((REEL_W - (s2tb[2] - s2tb[0])) // 2, sec2_y + 28),
            sec2_title, font=s2tf, fill=GOLD)
-    # 上下の罫線
-    d.rectangle([CONTENT_LEFT + 60, sec2_y + 72,
-                 CONTENT_RIGHT - 60, sec2_y + 74], fill=GOLD)
+    d.rectangle([content_x_left + 70, sec2_y + 80,
+                 content_x_right - 70, sec2_y + 82], fill=GOLD)
 
     quote1 = "自分がそう思ったら"
     quote2 = "もうラッキースポットでいいんじゃない?"
-    qf = f(FB, 34)
+    qf = f(FB, 32)
     q1b = d.textbbox((0, 0), quote1, font=qf)
     q2b = d.textbbox((0, 0), quote2, font=qf)
-    d.text(((REEL_W - (q1b[2] - q1b[0])) // 2, sec2_y + 100),
+    d.text(((REEL_W - (q1b[2] - q1b[0])) // 2, sec2_y + 110),
            quote1, font=qf, fill=WHITE)
-    d.text(((REEL_W - (q2b[2] - q2b[0])) // 2, sec2_y + 150),
+    d.text(((REEL_W - (q2b[2] - q2b[0])) // 2, sec2_y + 158),
            quote2, font=qf, fill=WHITE)
 
     byline = "— by 豊川ガイド"
     bynf = f(FM, 24)
     bynb = d.textbbox((0, 0), byline, font=bynf)
-    d.text((CONTENT_RIGHT - (bynb[2] - bynb[0]) - 40, sec2_y + 210),
+    d.text((content_x_right - (bynb[2] - bynb[0]) - 50, sec2_y + 214),
            byline, font=bynf, fill=GOLD)
 
-    d.rectangle([CONTENT_LEFT + 60, sec2_y + 252,
-                 CONTENT_RIGHT - 60, sec2_y + 254], fill=GOLD)
+    d.rectangle([content_x_left + 70, sec2_y + 258,
+                 content_x_right - 70, sec2_y + 260], fill=GOLD)
 
     foot_msg = "自薦・他薦どっちもOK!お気軽にどうぞ"
     fmf = f(FBd, 26)
     fmb = d.textbbox((0, 0), foot_msg, font=fmf)
-    d.text(((REEL_W - (fmb[2] - fmb[0])) // 2, sec2_y + 270),
+    d.text(((REEL_W - (fmb[2] - fmb[0])) // 2, sec2_y + 280),
            foot_msg, font=fmf, fill=GOLD)
 
-    # フッター注釈
+    # ---------- フッター注釈 + プロフィール誘導 ----------
+    note_y = sec2_y + sec2_h + 30
     note = "※プロフィールのリンクから、お気軽に教えてくださいませ"
     nf = f(FM, 22)
     nb = d.textbbox((0, 0), note, font=nf)
-    d.text(((REEL_W - (nb[2] - nb[0])) // 2, body_bottom - 50),
-           note, font=nf, fill=TEXT_GRAY)
+    d.text(((REEL_W - (nb[2] - nb[0])) // 2, note_y),
+           note, font=nf, fill=GOLD)
 
-    # 下部紺帯：プロフィール誘導
     foot_text1 = "▶ プロフィールリンクから"
     foot_text2 = "トップの「今日の占い」コーナーへ"
-    ftf = f(FBd, 32)
+    ftf = f(FBd, 30)
     ft1b = d.textbbox((0, 0), foot_text1, font=ftf)
     ft2b = d.textbbox((0, 0), foot_text2, font=ftf)
-    d.text(((REEL_W - (ft1b[2] - ft1b[0])) // 2, body_bottom + 50),
+    d.text(((REEL_W - (ft1b[2] - ft1b[0])) // 2, note_y + 50),
            foot_text1, font=ftf, fill=WHITE)
-    d.text(((REEL_W - (ft2b[2] - ft2b[0])) // 2, body_bottom + 110),
+    d.text(((REEL_W - (ft2b[2] - ft2b[0])) // 2, note_y + 100),
            foot_text2, font=ftf, fill=WHITE)
 
     _draw_vertical_sidebar(d, img)
@@ -656,19 +658,8 @@ def generate_reel(*, target_date: date, weekday_key: str,
         # ffmpeg で MP4 出力（既存ロジックへフォールスルー）
         return _render_scenes_to_mp4(scenes, output_path)
 
-    # 金/土は items に stars がないので seed ベースで注入（プロンプト側で『stars は使わない』仕様）
-    if weekday_key in ("fri", "sat"):
-        try:
-            from uranai_fri_sat import get_top10_stars
-            seed = target_date.year * 10000 + target_date.month * 100 + target_date.day
-            top10 = get_top10_stars(seed=seed)
-            items = [
-                dict(it, stars=top10[i]) if isinstance(it, dict) and i < len(top10) and not it.get("stars")
-                else it
-                for i, it in enumerate(items)
-            ]
-        except Exception as e:
-            print(f"  [warn] 金/土 stars 注入失敗（caption側と不整合の可能性）: {e}")
+    # 金/土の stars 注入は generate_text.py 側（items_for_image生成時）で完結済み
+    # generate_reel に渡される items は ArticleItem (dataclass) のリストで stars が入っている
 
     # items を正規化（ArticleItem dataclass or dict → dict）
     normalized = [_normalize_item(it) for it in items]

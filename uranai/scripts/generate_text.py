@@ -512,18 +512,41 @@ def generate_uranai_article_template(
                 extras={"match": b.get("match", ""), "action": b.get("action", ""), "caution": b.get("caution", "")},
             ))
     else:
-        # ランキング系：items 配列を stars 降順で並び替え＋rank 付与
+        # ランキング系：items 配列を ArticleItem に変換
         items_raw = data.get("items", [])
-        items_sorted = sorted(enumerate(items_raw), key=lambda x: (-x[1].get("stars", 0), x[0]))
-        items_sorted = [it for _, it in items_sorted]
-        for i, it in enumerate(items_sorted):
-            items_for_image.append(ArticleItem(
-                rank=i + 1,
-                label=f"【{it.get('label', '-')}】",
-                stars=it.get("stars", 0),
-                comment=it.get("comment", ""),
-                extras={},
-            ))
+
+        if weekday_key in ("fri", "sat"):
+            # 金/土はプロンプト側で順位確定済み・stars は seed ベースで別途生成
+            # （caption.py 側と同じ get_top10_stars(seed) を使い、整合性を保つ）
+            try:
+                from uranai_fri_sat import get_top10_stars
+                seed_v = target_date.year * 10000 + target_date.month * 100 + target_date.day
+                top10_stars = get_top10_stars(seed=seed_v)
+            except Exception:
+                top10_stars = None
+            for i, it in enumerate(items_raw):
+                stars_val = it.get("stars")
+                if not stars_val and top10_stars and i < len(top10_stars):
+                    stars_val = top10_stars[i]
+                items_for_image.append(ArticleItem(
+                    rank=i + 1,
+                    label=f"【{it.get('label', '-')}】",
+                    stars=stars_val or 0,
+                    comment=it.get("comment", ""),
+                    extras={},
+                ))
+        else:
+            # 月/水/木：stars 降順で並び替え＋rank 付与
+            items_sorted = sorted(enumerate(items_raw), key=lambda x: (-x[1].get("stars", 0), x[0]))
+            items_sorted = [it for _, it in items_sorted]
+            for i, it in enumerate(items_sorted):
+                items_for_image.append(ArticleItem(
+                    rank=i + 1,
+                    label=f"【{it.get('label', '-')}】",
+                    stars=it.get("stars", 0),
+                    comment=it.get("comment", ""),
+                    extras={},
+                ))
 
     # タイトルはテンプレ1行目（# 〜）を採用し、`# ` 接頭辞は除去
     first_line = wp_content.split("\n", 1)[0].strip()
