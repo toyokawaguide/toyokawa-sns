@@ -240,48 +240,62 @@ def _scene_top5(target_date: date, items: list, *,
         rank_font = f(FB, 62 if rank < 10 else 48)
         draw_text_centered_in_circle(d, cx, cy, str(rank), rank_font, WHITE)
 
-        # 名前
+        # 名前（金/土は文字数多いのでテキストブロックを上下中央配置）
         nx = card_x + 170
         name = it.get("name", "")
-        d.text((nx, y + 22), name, font=f(FB, 38), fill=BLUE)
+        if weekday_key in ("fri", "sat"):
+            # 名前(38px) + c1(26px) + c2(26px) ≒ 130px 高のブロックを card 中央に
+            name_y = y + (card_h - 130) // 2
+            c1_y = name_y + 50
+            c2_y = c1_y + 42
+        else:
+            name_y = y + 22
+            c1_y = y + 86
+            c2_y = y + 128
+        d.text((nx, name_y), name, font=f(FB, 38), fill=BLUE)
 
-        # 星評価（右上・空星は濃いめのグレー）
-        STAR_EMPTY_DARK = (140, 150, 170)
         # filled は dict 経由でも 0-10 範囲（_normalize_item で正規化済）・小数許容
         filled_raw = it.get("filled", 0)
         try:
             filled = float(filled_raw)
         except (TypeError, ValueError):
             filled = 0.0
-        star_size = 14
-        star_gap = 28
-        stars_x_start = card_x + card_w - 5 * star_gap - 28
-        for s in range(5):
-            sx = stars_x_start + s * star_gap + star_size
-            color = GOLD if s < filled else STAR_EMPTY_DARK
-            draw_star(d, sx, y + 38, star_size, color)
-        for s in range(5, 10):
-            sx = stars_x_start + (s - 5) * star_gap + star_size
-            color = GOLD if s < filled else STAR_EMPTY_DARK
-            draw_star(d, sx, y + 74, star_size, color)
-        # スコア表示 (整数なら N・小数なら N.5 のように丸める)
         filled_disp = int(filled) if filled == int(filled) else round(filled, 1)
-        # 金/土は seed ベースの小数 stars（★10/★9.5 等・/10 表記なし）
-        # それ以外は N/10 表記（社長要望でフィード投稿と統一）
-        if weekday_key in ("fri", "sat"):
-            score_text = f"★{filled_disp}"
-        else:
-            score_text = f"{filled_disp}/10"
-        scf = f(FBd, 24)
-        scb = d.textbbox((0, 0), score_text, font=scf)
-        d.text((card_x + card_w - (scb[2] - scb[0]) - 28, y + 115),
-               score_text, font=scf, fill=GOLD)
 
-        # コメント（c1, c2 の2行・固定フォントサイズ26px・切り詰めもフォント縮小もしない）
-        # 長すぎる場合は generate_text.py のプロンプト側で短く生成するように調整する方針
+        if weekday_key in ("fri", "sat"):
+            # 金/土：星マーク列は表示せず「★N」を大きく中央配置（社長要望）
+            score_text = f"★{filled_disp}"
+            scf = f(FBd, 50)
+            scb = d.textbbox((0, 0), score_text, font=scf)
+            sw = scb[2] - scb[0]
+            sh = scb[3] - scb[1]
+            d.text((card_x + card_w - sw - 36,
+                    y + (card_h - sh) // 2 - scb[1]),
+                   score_text, font=scf, fill=GOLD)
+        else:
+            # 月/水/木：星マーク列＋N/10 表記
+            STAR_EMPTY_DARK = (140, 150, 170)
+            star_size = 14
+            star_gap = 28
+            stars_x_start = card_x + card_w - 5 * star_gap - 28
+            for s in range(5):
+                sx = stars_x_start + s * star_gap + star_size
+                color = GOLD if s < filled else STAR_EMPTY_DARK
+                draw_star(d, sx, y + 38, star_size, color)
+            for s in range(5, 10):
+                sx = stars_x_start + (s - 5) * star_gap + star_size
+                color = GOLD if s < filled else STAR_EMPTY_DARK
+                draw_star(d, sx, y + 74, star_size, color)
+            score_text = f"{filled_disp}/10"
+            scf = f(FBd, 24)
+            scb = d.textbbox((0, 0), score_text, font=scf)
+            d.text((card_x + card_w - (scb[2] - scb[0]) - 28, y + 115),
+                   score_text, font=scf, fill=GOLD)
+
+        # コメント（c1, c2 の2行・固定フォントサイズ26px）
         comment_font = f(FM, 26)
-        d.text((nx, y + 86), it.get("c1", ""), font=comment_font, fill=TEXT_DARK)
-        d.text((nx, y + 128), it.get("c2", ""), font=comment_font, fill=TEXT_DARK)
+        d.text((nx, c1_y), it.get("c1", ""), font=comment_font, fill=TEXT_DARK)
+        d.text((nx, c2_y), it.get("c2", ""), font=comment_font, fill=TEXT_DARK)
 
     _draw_vertical_sidebar(d, img)
     return img
@@ -294,14 +308,17 @@ def _scene_top5(target_date: date, items: list, *,
 def _scene_sunday_summary(target_date: date, data: dict, *,
                           badge_text: str, draw_planet_icon) -> Image.Image:
     """日曜版：今週のラッキースポット振り返り＋スポット募集
-    リール他曜日と同じ青基調で統一・余白とセクション間隔を均一化"""
+    サイドバー（縦書きロゴ）を除いた領域の中央に全要素を配置（社長要望）"""
     img = Image.new("RGB", (REEL_W, REEL_H), BLUE)
     d = ImageDraw.Draw(img)
 
     header_h = _draw_header(d, img, target_date)
-    content_x_left = CONTENT_LEFT       # 40
-    content_x_right = CONTENT_RIGHT     # 940 (REEL_W - SAFE_RIGHT)
-    center_x = (content_x_left + content_x_right) // 2
+    # サイドバー（縦書きロゴ）を除いた表示領域
+    # 左 CONTENT_LEFT (40) 〜 右 REEL_W - SAFE_RIGHT (880・SAFE_RIGHT=200)
+    CW = REEL_W - SAFE_RIGHT  # = 880（サイドバー左端）
+    content_x_left = CONTENT_LEFT  # 40
+    content_x_right = CW  # 880
+    center_x = CW // 2  # 440 = サイドバーを除いた領域の中央
 
     # ---------- メインタイトル ----------
     title_y = header_h + 40
@@ -309,7 +326,7 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     tf = f(FB, 54)
     tb = d.textbbox((0, 0), title, font=tf)
     title_w = tb[2] - tb[0]
-    title_x = (REEL_W - title_w) // 2
+    title_x = (CONTENT_LEFT + CW - title_w) // 2
     # 左右の星（タイトル幅基準で配置）
     star_size = 28
     star_y = title_y + tf.size // 2 - star_size // 2
@@ -326,7 +343,7 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     icon_gap = 10
     badge_w = text_w + icon_size + icon_gap + 50
     badge_h = 40
-    badge_x = (REEL_W - badge_w) // 2
+    badge_x = (CONTENT_LEFT + CW - badge_w) // 2
     d.rounded_rectangle([badge_x, badge_y, badge_x + badge_w, badge_y + badge_h],
                         radius=20, fill=WHITE, outline=GOLD, width=2)
     draw_planet_icon(d, badge_x + 22, badge_y + badge_h // 2 - 2, icon_size, GOLD, WHITE)
@@ -338,11 +355,11 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     sub = "今週のおさらい&ラッキースポット募集中!"
     sf = f(FBd, 30)
     sb = d.textbbox((0, 0), sub, font=sf)
-    d.text(((REEL_W - (sb[2] - sb[0])) // 2, sub_y), sub, font=sf, fill=WHITE)
+    d.text(((CONTENT_LEFT + CW - (sb[2] - sb[0])) // 2, sub_y), sub, font=sf, fill=WHITE)
 
-    # 「〜当たるも八卦 当たらぬも八卦〜」金線
+    # 金線（タイトル幅程度・中央配置）
     line_y = sub_y + 50
-    d.rectangle([(REEL_W - 200) // 2, line_y, (REEL_W + 200) // 2, line_y + 4], fill=GOLD)
+    d.rectangle([(CONTENT_LEFT + CW - 200) // 2, line_y, (CW + 200) // 2, line_y + 4], fill=GOLD)
 
     # ===== セクション1: 今週のラッキースポットおさらい =====
     sec1_y = line_y + 30
@@ -390,7 +407,7 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     sec2_title = "★ ラッキースポット、絶賛募集中!"
     s2tf = f(FBd, 32)
     s2tb = d.textbbox((0, 0), sec2_title, font=s2tf)
-    d.text(((REEL_W - (s2tb[2] - s2tb[0])) // 2, sec2_y + 28),
+    d.text(((CONTENT_LEFT + CW - (s2tb[2] - s2tb[0])) // 2, sec2_y + 28),
            sec2_title, font=s2tf, fill=GOLD)
     d.rectangle([content_x_left + 70, sec2_y + 80,
                  content_x_right - 70, sec2_y + 82], fill=GOLD)
@@ -400,9 +417,9 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     qf = f(FB, 32)
     q1b = d.textbbox((0, 0), quote1, font=qf)
     q2b = d.textbbox((0, 0), quote2, font=qf)
-    d.text(((REEL_W - (q1b[2] - q1b[0])) // 2, sec2_y + 110),
+    d.text(((CONTENT_LEFT + CW - (q1b[2] - q1b[0])) // 2, sec2_y + 110),
            quote1, font=qf, fill=WHITE)
-    d.text(((REEL_W - (q2b[2] - q2b[0])) // 2, sec2_y + 158),
+    d.text(((CONTENT_LEFT + CW - (q2b[2] - q2b[0])) // 2, sec2_y + 158),
            quote2, font=qf, fill=WHITE)
 
     byline = "— by 豊川ガイド"
@@ -417,7 +434,7 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     foot_msg = "自薦・他薦どっちもOK!お気軽にどうぞ"
     fmf = f(FBd, 26)
     fmb = d.textbbox((0, 0), foot_msg, font=fmf)
-    d.text(((REEL_W - (fmb[2] - fmb[0])) // 2, sec2_y + 280),
+    d.text(((CONTENT_LEFT + CW - (fmb[2] - fmb[0])) // 2, sec2_y + 280),
            foot_msg, font=fmf, fill=GOLD)
 
     # ---------- フッター注釈 + プロフィール誘導 ----------
@@ -425,7 +442,7 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     note = "※プロフィールのリンクから、お気軽に教えてくださいませ"
     nf = f(FM, 22)
     nb = d.textbbox((0, 0), note, font=nf)
-    d.text(((REEL_W - (nb[2] - nb[0])) // 2, note_y),
+    d.text(((CONTENT_LEFT + CW - (nb[2] - nb[0])) // 2, note_y),
            note, font=nf, fill=GOLD)
 
     foot_text1 = "▶ プロフィールリンクから"
@@ -433,9 +450,9 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     ftf = f(FBd, 30)
     ft1b = d.textbbox((0, 0), foot_text1, font=ftf)
     ft2b = d.textbbox((0, 0), foot_text2, font=ftf)
-    d.text(((REEL_W - (ft1b[2] - ft1b[0])) // 2, note_y + 50),
+    d.text(((CONTENT_LEFT + CW - (ft1b[2] - ft1b[0])) // 2, note_y + 50),
            foot_text1, font=ftf, fill=WHITE)
-    d.text(((REEL_W - (ft2b[2] - ft2b[0])) // 2, note_y + 100),
+    d.text(((CONTENT_LEFT + CW - (ft2b[2] - ft2b[0])) // 2, note_y + 100),
            foot_text2, font=ftf, fill=WHITE)
 
     _draw_vertical_sidebar(d, img)
