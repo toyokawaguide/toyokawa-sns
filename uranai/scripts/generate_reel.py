@@ -481,6 +481,28 @@ def generate_reel(*, target_date: date, weekday_key: str,
     sub_title = meta["sub"]
     planet_func = _planet_icon_func(meta["planet_icon"])
 
+    # 日曜は週まとめ専用構成（TOP-N形式ではないのでリール動画は当面スキップ）
+    # generate_text.py の data には items が無く spots_week などが入る構造のため
+    if weekday_key == "sun":
+        raise NotImplementedError(
+            "日曜は週まとめ専用構成のため、現状はリール動画を生成しません。"
+            "Reels用テンプレを別途設計してから対応予定。"
+        )
+
+    # 金/土は items に stars がないので seed ベースで注入（プロンプト側で『stars は使わない』仕様）
+    if weekday_key in ("fri", "sat"):
+        try:
+            from uranai_fri_sat import get_top10_stars
+            seed = target_date.year * 10000 + target_date.month * 100 + target_date.day
+            top10 = get_top10_stars(seed=seed)
+            items = [
+                dict(it, stars=top10[i]) if isinstance(it, dict) and i < len(top10) and not it.get("stars")
+                else it
+                for i, it in enumerate(items)
+            ]
+        except Exception as e:
+            print(f"  [warn] 金/土 stars 注入失敗（caption側と不整合の可能性）: {e}")
+
     # items を正規化（ArticleItem dataclass or dict → dict）
     normalized = [_normalize_item(it) for it in items]
     # filled (stars) 降順で強制ソート → 「ランキング上位=stars多い」を保証
