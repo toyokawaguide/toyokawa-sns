@@ -446,7 +446,8 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     byline = "— by 豊川ガイド"
     bynf = f(FM, 24)
     bynb = d.textbbox((0, 0), byline, font=bynf)
-    d.text((content_x_right - (bynb[2] - bynb[0]) - 50, sec2_y + 210),
+    # 右端を下罫線の右端（content_x_right - 70）に合わせて枠内に収める
+    d.text((content_x_right - (bynb[2] - bynb[0]) - 70, sec2_y + 210),
            byline, font=bynf, fill=GOLD)
 
     # 下の罫線：byline の下端より十分下に配置（byline をしっかり枠内に収める）
