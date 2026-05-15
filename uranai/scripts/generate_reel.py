@@ -271,26 +271,35 @@ def _scene_top5(target_date: date, items: list, *,
         d.text((card_x + card_w - (scb[2] - scb[0]) - 28, y + 115),
                score_text, font=scf, fill=GOLD)
 
-        # コメント（c1, c2 の2行）
-        # 横幅オーバー時の自動切り詰め（星評価エリアにかからないように）
-        comment_font = f(FM, 26)
-        comment_max_x = stars_x_start - 16  # 星のすぐ左までを許容範囲
+        # コメント（c1, c2 の2行・横幅オーバー時は自動でフォント縮小）
+        # 星評価エリアと重ならない＆コメント全文表示の両立
+        comment_max_x = stars_x_start - 16
         comment_max_w = comment_max_x - nx
 
-        def _truncate(text: str, font, max_w: int) -> str:
+        def _fit_font(text: str, max_w: int, max_size: int = 26, min_size: int = 18):
+            """テキストが max_w に収まる最大フォントサイズを返す"""
             if not text:
-                return ""
-            if font.getbbox(text)[2] <= max_w:
-                return text
-            # 末尾の文字を削って「…」を付ける
-            while text and font.getbbox(text + "…")[2] > max_w:
-                text = text[:-1]
-            return text + "…" if text else ""
+                return f(FM, max_size)
+            size = max_size
+            while size > min_size:
+                fnt = f(FM, size)
+                if fnt.getbbox(text)[2] <= max_w:
+                    return fnt
+                size -= 1
+            return f(FM, min_size)
 
-        c1 = _truncate(it.get("c1", ""), comment_font, comment_max_w)
-        c2 = _truncate(it.get("c2", ""), comment_font, comment_max_w)
-        d.text((nx, y + 86), c1, font=comment_font, fill=TEXT_DARK)
-        d.text((nx, y + 128), c2, font=comment_font, fill=TEXT_DARK)
+        c1_text = it.get("c1", "")
+        c2_text = it.get("c2", "")
+        # c1 と c2 で同じフォントサイズに揃える（小さい方優先）
+        f1 = _fit_font(c1_text, comment_max_w)
+        f2 = _fit_font(c2_text, comment_max_w)
+        # サイズ取得（小さい方）
+        s1 = f1.size if hasattr(f1, "size") else 26
+        s2 = f2.size if hasattr(f2, "size") else 26
+        common_size = min(s1, s2)
+        cf = f(FM, common_size)
+        d.text((nx, y + 86), c1_text, font=cf, fill=TEXT_DARK)
+        d.text((nx, y + 128), c2_text, font=cf, fill=TEXT_DARK)
 
     _draw_vertical_sidebar(d, img)
     return img
@@ -497,12 +506,17 @@ def generate_reel(*, target_date: date, weekday_key: str,
 
     # items を正規化（ArticleItem dataclass or dict → dict）
     normalized = [_normalize_item(it) for it in items]
-    # filled 降順でソート（rank があれば優先）
+    # filled (stars) 降順で強制ソート → 「ランキング上位=stars多い」を保証
+    # （Claude API応答は rank と stars が必ずしも対応しないため、stars 優先で再ソート）
+    # 同点の場合は元の rank で安定ソート（rank があれば若い方が上）
     def _sort_key(it):
-        if "rank" in it and it["rank"]:
-            return (0, int(it["rank"]))
-        return (1, -float(it.get("filled", 0)))
+        rank = it.get("rank")
+        rank_val = int(rank) if rank else 999
+        return (-float(it.get("filled", 0)), rank_val)
     sorted_items = sorted(normalized, key=_sort_key)
+    # 表示用に rank を1から振り直す（描画時の番号と stars の整合性を保証）
+    for i, it in enumerate(sorted_items):
+        it["rank"] = i + 1
 
     # 曜日別シーン構成（社長要望：1ページ5位ずつ・同サイズカード固定）
     # mon/wed/thu (12位): 1-5 / 6-10 / 11-12 / ラッキー = 4シーン
