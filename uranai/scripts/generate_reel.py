@@ -372,8 +372,9 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     s1tf = f(FBd, 32)
     d.text((content_x_left + 36, sec1_y + 24), sec1_title, font=s1tf, fill=BLUE)
     s1tb = d.textbbox((0, 0), sec1_title, font=s1tf)
+    # 下線：タイトル全幅に引く（最後の「い」まで覆う）
     d.rectangle([content_x_left + 36, sec1_y + 64,
-                 content_x_left + 36 + (s1tb[2] - s1tb[0]) - 30, sec1_y + 68], fill=GOLD)
+                 content_x_left + 36 + (s1tb[2] - s1tb[0]), sec1_y + 68], fill=GOLD)
 
     spots_week = data.get("spots_week", {})
     # 日付 = 日曜から逆算（月=6日前、火=5日前、…、土=1日前）
@@ -445,16 +446,17 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     byline = "— by 豊川ガイド"
     bynf = f(FM, 24)
     bynb = d.textbbox((0, 0), byline, font=bynf)
-    d.text((content_x_right - (bynb[2] - bynb[0]) - 50, sec2_y + 214),
+    d.text((content_x_right - (bynb[2] - bynb[0]) - 50, sec2_y + 210),
            byline, font=bynf, fill=GOLD)
 
-    d.rectangle([content_x_left + 70, sec2_y + 258,
-                 content_x_right - 70, sec2_y + 260], fill=GOLD)
+    # 下の罫線：byline の下端より十分下に配置（byline をしっかり枠内に収める）
+    d.rectangle([content_x_left + 70, sec2_y + 252,
+                 content_x_right - 70, sec2_y + 254], fill=GOLD)
 
     foot_msg = "自薦・他薦どっちもOK!お気軽にどうぞ"
     fmf = f(FBd, 26)
     fmb = d.textbbox((0, 0), foot_msg, font=fmf)
-    d.text(((CONTENT_LEFT + CW - (fmb[2] - fmb[0])) // 2, sec2_y + 280),
+    d.text(((CONTENT_LEFT + CW - (fmb[2] - fmb[0])) // 2, sec2_y + 274),
            foot_msg, font=fmf, fill=GOLD)
 
     # ---------- フッター注釈 + プロフィール誘導 ----------
