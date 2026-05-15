@@ -107,6 +107,7 @@ jobs:
             uranai/output/*_reel.mp4
             uranai/output/*_wp.png
             uranai/output/*_ig.png
+            uranai/output/*_caption_*.txt
           retention-days: 7
           if-no-files-found: warn
 

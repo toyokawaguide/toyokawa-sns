@@ -349,8 +349,37 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
     print("\n[6/7] SNS投稿（X / Threads / Instagram）")
     sns_results = {}
     if not publish:
+        # dry-run時はキャプションだけ生成して txt 保存（artifact 確認用）
         print("  → [skip] publish=False（dry-run時は SNS投稿なし）")
-        result["steps"]["sns"] = {"status": "skipped", "reason": "publish=False"}
+        print("     ただしキャプションは txt として保存します")
+        try:
+            from caption import (
+                make_x_caption, make_threads_caption,
+                make_instagram_caption, make_instagram_reel_caption,
+            )
+            dummy_url = f"https://toyokawa-rentallife.com/dry-run/{target_date}/"
+            captions_to_save = {
+                "x": make_x_caption(weekday_key, article.get("data", {}), spot,
+                                      target_date, dummy_url),
+                "threads": make_threads_caption(weekday_key, article.get("data", {}),
+                                                  spot, target_date, dummy_url),
+                "instagram_feed": make_instagram_caption(weekday_key,
+                                                          article.get("data", {}),
+                                                          spot, target_date),
+                "instagram_reel": make_instagram_reel_caption(weekday_key,
+                                                                article.get("data", {}),
+                                                                spot, target_date),
+            }
+            for sns_name, cap_text in captions_to_save.items():
+                cap_file = OUTPUT_DIR / f"{target_date}_{weekday_key}_caption_{sns_name}.txt"
+                cap_file.write_text(cap_text, encoding="utf-8")
+                print(f"     キャプション保存: {cap_file.name} ({len(cap_text)}字)")
+            result["steps"]["sns"] = {"status": "skipped", "reason": "publish=False",
+                                       "captions_saved": True}
+        except Exception as e:
+            print(f"     [warn] キャプション生成失敗: {e}")
+            result["steps"]["sns"] = {"status": "skipped", "reason": "publish=False",
+                                       "caption_error": str(e)}
     elif not post_url:
         print("  → [skip] WP投稿失敗のため SNS投稿スキップ")
         result["steps"]["sns"] = {"status": "skipped", "reason": "wp_failed"}
