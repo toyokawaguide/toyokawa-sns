@@ -376,26 +376,46 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
                  content_x_left + 36 + (s1tb[2] - s1tb[0]) - 30, sec1_y + 68], fill=GOLD)
 
     spots_week = data.get("spots_week", {})
-    day_labels = [("月", "mon"), ("火", "tue"), ("水", "wed"),
-                  ("木", "thu"), ("金", "fri"), ("土", "sat")]
+    # 日付 = 日曜から逆算（月=6日前、火=5日前、…、土=1日前）
+    day_labels = [("月", "mon", 6), ("火", "tue", 5), ("水", "wed", 4),
+                  ("木", "thu", 3), ("金", "fri", 2), ("土", "sat", 1)]
     spot_y_start = sec1_y + 110
     spot_h = 62
     spot_gap = 10
     badge_size = 48
-    for i, (jp, key) in enumerate(day_labels):
+    from datetime import timedelta as _td
+    # 日付フィールドを右揃えで揃える: 5/24 など最大幅を計算
+    date_font = f(FBd, 26)
+    max_date_w = 0
+    for _, _, days_ago in day_labels:
+        pd = target_date - _td(days=days_ago)
+        bbox = d.textbbox((0, 0), f"{pd.month}/{pd.day}", font=date_font)
+        max_date_w = max(max_date_w, bbox[2] - bbox[0])
+    date_x_start = content_x_left + 36
+    badge_x = date_x_start + max_date_w + 20  # 日付の右に余白20pxとってバッジ
+    for i, (jp, key, days_ago) in enumerate(day_labels):
         sy = spot_y_start + i * (spot_h + spot_gap)
-        bx = content_x_left + 40
+        past_date = target_date - _td(days=days_ago)
+        md = f"{past_date.month}/{past_date.day}"
+        # 日付（右揃え：max_date_w 内で右寄せ・白ボックス上なので紺色文字）
+        dbox = d.textbbox((0, 0), md, font=date_font)
+        md_w = dbox[2] - dbox[0]
+        d.text((date_x_start + max_date_w - md_w,
+                sy + (spot_h - 26) // 2),
+               md, font=date_font, fill=BLUE)
+        # 曜日バッジ
         by = sy + (spot_h - badge_size) // 2
-        d.rounded_rectangle([bx, by, bx + badge_size, by + badge_size],
+        d.rounded_rectangle([badge_x, by, badge_x + badge_size, by + badge_size],
                             radius=10, fill=BLUE)
-        bf = f(FB, 32)
+        bf = f(FB, 30)
         bbox = d.textbbox((0, 0), jp, font=bf)
-        d.text((bx + (badge_size - (bbox[2] - bbox[0])) // 2,
+        d.text((badge_x + (badge_size - (bbox[2] - bbox[0])) // 2,
                 by + (badge_size - (bbox[3] - bbox[1])) // 2 - bbox[1]),
                jp, font=bf, fill=WHITE)
+        # スポット名
         spot_name = spots_week.get(key, "—")
-        spf = f(FBd, 32)
-        d.text((bx + badge_size + 24, sy + (spot_h - 32) // 2),
+        spf = f(FBd, 30)
+        d.text((badge_x + badge_size + 22, sy + (spot_h - 30) // 2),
                spot_name, font=spf, fill=TEXT_DARK)
 
     # ===== セクション2: 募集ボックス（青基調・既存通り） =====
