@@ -777,6 +777,7 @@ def _render_scenes_to_mp4(scenes: list, output_path: Path) -> Path:
     """scenes リスト[(name, PIL.Image, duration_sec), ...] を mp4 にレンダリング"""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    total_dur = sum(s[2] for s in scenes)
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
         png_paths = []
@@ -790,17 +791,26 @@ def _render_scenes_to_mp4(scenes: list, output_path: Path) -> Path:
             for p, dur in png_paths:
                 fh.write(f"file '{p.as_posix()}'\n")
                 fh.write(f"duration {dur}\n")
+            # 最後のフレーム再参照は必須（concat仕様）だが、`-t` で全体時間を縛る
             fh.write(f"file '{png_paths[-1][0].as_posix()}'\n")
 
+        # ★ Instagram Reels の最低ビットレート要件（1-5Mbps）対応：
+        #   - 5/16実証で 0.2Mbps では IG error 2207077 で弾かれた
+        #   - CBR強制（b:v=minrate=maxrate）で 3Mbps 維持
+        #   - x264-params 'nal-hrd=cbr' で確実にCBR化
+        # ★ 動画長を `-t` で固定（concat 最後のフレームが無限扱いになる問題回避）
         cmd = [
             _ffmpeg_bin(),
             "-y",
             "-f", "concat", "-safe", "0", "-i", str(concat_file),
             "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
             "-vf", f"fps={FPS},scale={REEL_W}:{REEL_H}:force_original_aspect_ratio=decrease,pad={REEL_W}:{REEL_H}:(ow-iw)/2:(oh-ih)/2:color=0x1a3a8e,format=yuv420p",
-            "-c:v", "libx264", "-preset", "medium", "-crf", "23",
+            "-c:v", "libx264", "-preset", "medium",
+            "-b:v", "3M", "-minrate", "3M", "-maxrate", "3M", "-bufsize", "3M",
+            "-x264-params", "nal-hrd=cbr",
             "-r", str(FPS),
-            "-c:a", "aac", "-b:a", "128k", "-shortest",
+            "-c:a", "aac", "-b:a", "128k",
+            "-t", f"{total_dur}",
             "-movflags", "+faststart", "-pix_fmt", "yuv420p",
             str(output_path),
         ]
