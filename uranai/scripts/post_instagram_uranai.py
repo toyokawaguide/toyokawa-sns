@@ -97,59 +97,103 @@ def post_instagram_uranai_reel(*, weekday_key: str, data: dict, spot, target_dat
         return {"status": "error", "post_id": None, "caption": caption,
                 "error": "META_ACCESS_TOKEN / INSTAGRAM_ACCOUNT_ID 未設定"}
 
-    try:
-        # Step1: Reels メディアコンテナ作成
-        params = {
-            "media_type": "REELS",
-            "video_url": video_url,
-            "caption": caption,
-            "access_token": token,
-            "share_to_feed": "true",  # フィード（プロフィール）にも表示
-        }
-        if cover_url:
-            params["cover_url"] = cover_url
+    # 関数内リトライ（最大3回試行）：error code 2207077 等の一時的失敗を救済
+    # フィード投稿/Threads/WP には触らず、Reels投稿だけ再試行する
+    MAX_RETRIES = 3
+    RETRY_WAIT = 60  # 失敗後の待機秒
+    last_error = None
 
-        r1 = requests.post(
-            f"{GRAPH_API}/{ig_account_id}/media",
-            data=params,
-            timeout=120,
-        )
-        if r1.status_code != 200:
-            return {"status": "error", "post_id": None, "caption": caption,
-                    "error": f"reel container failed: {r1.status_code} {r1.text[:300]}"}
-        container_id = r1.json()["id"]
+    for retry_idx in range(MAX_RETRIES):
+        try:
+            # Step1: Reels メディアコンテナ作成
+            params = {
+                "media_type": "REELS",
+                "video_url": video_url,
+                "caption": caption,
+                "access_token": token,
+                "share_to_feed": "true",  # フィード（プロフィール）にも表示
+            }
+            if cover_url:
+                params["cover_url"] = cover_url
 
-        # Step2: 動画処理完了までポーリング（最大3分・5秒間隔）
-        for attempt in range(36):
-            time.sleep(5)
-            rs = requests.get(
-                f"{GRAPH_API}/{container_id}",
-                params={"fields": "status_code,status", "access_token": token},
-                timeout=30,
+            r1 = requests.post(
+                f"{GRAPH_API}/{ig_account_id}/media",
+                data=params,
+                timeout=120,
             )
-            if rs.status_code == 200:
-                status_code = rs.json().get("status_code", "")
-                if status_code == "FINISHED":
-                    break
-                if status_code == "ERROR":
-                    return {"status": "error", "post_id": None, "caption": caption,
-                            "error": f"reel processing error: {rs.json()}"}
-        else:
-            return {"status": "error", "post_id": None, "caption": caption,
-                    "error": "reel processing timeout (3 min)"}
+            if r1.status_code != 200:
+                last_error = f"reel container failed: {r1.status_code} {r1.text[:300]}"
+                if retry_idx < MAX_RETRIES - 1:
+                    print(f"     [retry {retry_idx+1}/{MAX_RETRIES}] container failed, wait {RETRY_WAIT}s")
+                    time.sleep(RETRY_WAIT)
+                    continue
+                return {"status": "error", "post_id": None, "caption": caption,
+                        "error": last_error, "attempts": retry_idx + 1}
+            container_id = r1.json()["id"]
 
-        # Step3: 公開
-        r2 = requests.post(
-            f"{GRAPH_API}/{ig_account_id}/media_publish",
-            data={"creation_id": container_id, "access_token": token},
-            timeout=60,
-        )
-        if r2.status_code != 200:
-            return {"status": "error", "post_id": None, "caption": caption,
-                    "error": f"reel publish failed: {r2.status_code} {r2.text[:200]}"}
+            # Step2: 動画処理完了までポーリング（最大3分・5秒間隔）
+            polling_status = None
+            polling_error_detail = None
+            for attempt in range(36):
+                time.sleep(5)
+                rs = requests.get(
+                    f"{GRAPH_API}/{container_id}",
+                    params={"fields": "status_code,status", "access_token": token},
+                    timeout=30,
+                )
+                if rs.status_code == 200:
+                    status_code = rs.json().get("status_code", "")
+                    if status_code == "FINISHED":
+                        polling_status = "FINISHED"
+                        break
+                    if status_code == "ERROR":
+                        polling_status = "ERROR"
+                        polling_error_detail = rs.json()
+                        break
 
-        post_id = str(r2.json()["id"])
-        return {"status": "ok", "post_id": post_id, "caption": caption,
-                "media_type": "REELS"}
-    except Exception as e:
-        return {"status": "error", "post_id": None, "caption": caption, "error": str(e)}
+            if polling_status != "FINISHED":
+                # ERROR or timeout
+                if polling_status == "ERROR":
+                    last_error = f"reel processing error: {polling_error_detail}"
+                else:
+                    last_error = "reel processing timeout (3 min)"
+                if retry_idx < MAX_RETRIES - 1:
+                    print(f"     [retry {retry_idx+1}/{MAX_RETRIES}] {last_error[:100]}, wait {RETRY_WAIT}s")
+                    time.sleep(RETRY_WAIT)
+                    continue
+                return {"status": "error", "post_id": None, "caption": caption,
+                        "error": last_error, "attempts": retry_idx + 1}
+
+            # Step3: 公開
+            r2 = requests.post(
+                f"{GRAPH_API}/{ig_account_id}/media_publish",
+                data={"creation_id": container_id, "access_token": token},
+                timeout=60,
+            )
+            if r2.status_code != 200:
+                last_error = f"reel publish failed: {r2.status_code} {r2.text[:200]}"
+                if retry_idx < MAX_RETRIES - 1:
+                    print(f"     [retry {retry_idx+1}/{MAX_RETRIES}] publish failed, wait {RETRY_WAIT}s")
+                    time.sleep(RETRY_WAIT)
+                    continue
+                return {"status": "error", "post_id": None, "caption": caption,
+                        "error": last_error, "attempts": retry_idx + 1}
+
+            # 成功
+            post_id = str(r2.json()["id"])
+            return {"status": "ok", "post_id": post_id, "caption": caption,
+                    "media_type": "REELS", "attempts": retry_idx + 1}
+
+        except Exception as e:
+            last_error = str(e)
+            if retry_idx < MAX_RETRIES - 1:
+                print(f"     [retry {retry_idx+1}/{MAX_RETRIES}] exception: {last_error[:100]}, wait {RETRY_WAIT}s")
+                time.sleep(RETRY_WAIT)
+                continue
+            return {"status": "error", "post_id": None, "caption": caption,
+                    "error": last_error, "attempts": retry_idx + 1}
+
+    # ループ抜けた場合（理論上来ない）
+    return {"status": "error", "post_id": None, "caption": caption,
+            "error": f"exhausted {MAX_RETRIES} retries: {last_error}",
+            "attempts": MAX_RETRIES}
