@@ -81,6 +81,8 @@ jobs:
           SNS_LOG_SECRET: ${{ secrets.SNS_LOG_SECRET }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          URANAI_SHEETS_URL: ${{ secrets.URANAI_SHEETS_URL }}
+          URANAI_SHEETS_SECRET: ${{ secrets.URANAI_SHEETS_SECRET }}
           # URANAI_FONT_DIR は前ステップで $GITHUB_ENV に動的に設定済み
         run: |
           DATE_ARG=""
