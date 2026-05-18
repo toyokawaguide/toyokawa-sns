@@ -55,10 +55,18 @@ jobs:
           # 後続ステップに固定パスを引き継ぐ
           echo "URANAI_FONT_DIR=$SAFE_FONT_DIR" >> $GITHUB_ENV
 
-      - name: ffmpeg セットアップ（事前ビルド済みバイナリ）
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: release
+      - name: ffmpeg 確認（プリインストール優先・apt-getフォールバック）
+        run: |
+          # FedericoCarboni/setup-ffmpeg@v3 は外部サイト(johnvansickle)依存で
+          # "Failed to get latest johnvansickle ffmpeg release" で落ちる事故あり(2026-05-18 #48)。
+          # ubuntu-latest は ffmpeg プリインストール済みなので外部依存を排除。
+          if command -v ffmpeg >/dev/null 2>&1; then
+            echo "ffmpeg プリインストール済み: $(ffmpeg -version | head -1)"
+          else
+            echo "ffmpeg 未検出 → apt-get で導入"
+            sudo apt-get update && sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
 
       - name: ライブラリインストール
         run: pip install -r requirements.txt
