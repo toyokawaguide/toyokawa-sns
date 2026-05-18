@@ -194,15 +194,15 @@ def select_lucky_spot(target_date, *, recent_used_extra: set[str] | None = None,
     target_date = to_date(target_date)
     if seed is not None:
         random.seed(seed)
-    # Sheets モード時は wb 不要
+    # Sheets 優先だが、Sheets fetch 失敗時に xlsx フォールバックを必ず生かすため
+    # is_enabled でも xlsx を保険で常時ロードしておく。
+    # （2026-05-18 障害の真因：wb=None だと _get_rows が Sheets失敗時に
+    #  xlsx へ落ちられず入力シート空扱い→マスタrandom→誤スポット選定）
     try:
-        import load_sheets
-        if load_sheets.is_enabled():
-            wb = None  # Sheets 経由で取得
-        else:
-            wb = wb or load_workbook_ro()
+        import load_sheets  # noqa: F401
     except ImportError:
-        wb = wb or load_workbook_ro()
+        pass
+    wb = wb or load_workbook_ro()
 
     # Step 1: 入力シート検索（社長指名・最優先）
     spot = lookup_input_sheet(wb, target_date)
