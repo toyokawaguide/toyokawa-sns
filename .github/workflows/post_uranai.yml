@@ -2,7 +2,8 @@ name: 占い配信（毎朝6時 JST）
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # 毎日 06:00 JST（UTC 21:00 前日）
+    - cron: '0 21 * * *'  # 毎日 06:00 JST（UTC 21:00 前日）本配信
+    - cron: '0 0 * * *'   # 保険 09:00 JST（UTC 0:00）06:00不発/失敗の自動救済・既公開ならスキップ
   workflow_dispatch:
     inputs:
       target_date:
@@ -100,6 +101,10 @@ jobs:
           MODE_FLAGS=""
           if [ "${{ github.event_name }}" = "schedule" ]; then
             MODE_FLAGS="--publish"
+            # 09:00 JST 保険cron は「既に公開済みなら何もしない」を付与（二重投稿防止）
+            if [ "${{ github.event.schedule }}" = "0 0 * * *" ]; then
+              MODE_FLAGS="--publish --skip-if-published"
+            fi
           elif [ "${{ github.event.inputs.mode }}" = "publish" ]; then
             MODE_FLAGS="--publish"
           else

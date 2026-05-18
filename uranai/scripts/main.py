@@ -134,6 +134,38 @@ def fix_sunday_spots_week(data: dict, target_date: date) -> dict:
     return data
 
 
+def check_already_published(target_date: date) -> bool:
+    """今日の占い記事が既にWPで公開済みか判定（保険cron冪等チェック用）
+
+    今日の post_id が status=publish かつ slug=uranai-YYYYMMDD なら True。
+    06:00 が成功済みの時に 09:00 保険cron が二重投稿しないためのガード。
+    判定不能（認証無し・API失敗等）は False を返し、配信を試みる側に倒す。
+    """
+    wk = WEEKDAY_KEYS[target_date.weekday()]
+    post_id = DRAFT_POST_IDS.get(wk)
+    if not post_id:
+        return False
+    WP_URL = os.getenv("WP_URL")
+    if not (WP_URL and os.getenv("WP_USERNAME") and os.getenv("WP_PASSWORD")):
+        return False
+    creds = f"{os.getenv('WP_USERNAME')}:{os.getenv('WP_PASSWORD')}"
+    token = base64.b64encode(creds.encode()).decode()
+    try:
+        r = requests.get(
+            f"{WP_URL}/wp-json/wp/v2/posts/{post_id}",
+            params={"context": "edit"},
+            headers={"Authorization": f"Basic {token}"},
+            timeout=30,
+        )
+        if r.status_code != 200:
+            return False
+        j = r.json()
+        expect_slug = f"uranai-{target_date.strftime('%Y%m%d')}"
+        return j.get("status") == "publish" and j.get("slug") == expect_slug
+    except Exception:
+        return False
+
+
 def update_wp_post(post_id: int, title: str, content: str,
                     eyecatch_path: Path | None = None,
                     *, publish: bool = False,
@@ -481,11 +513,18 @@ def main():
     parser.add_argument("--dry", action="store_true", help="ダミーデータで実行（実API課金なし・¥0）")
     parser.add_argument("--publish", action="store_true", help="本番公開＋SNS投稿（Phase 3 で実装）")
     parser.add_argument("--skip-wp", action="store_true", help="WP下書き保存もスキップ（ローカル生成のみ）")
+    parser.add_argument("--skip-if-published", action="store_true",
+                        help="今日の記事が既にWP公開済みなら何もせず終了（保険cron用・二重投稿防止）")
     args = parser.parse_args()
 
     target_date = (
         datetime.strptime(args.date, "%Y-%m-%d").date() if args.date else get_today_jst()
     )
+
+    # 保険cron冪等ガード：06:00 が成功済みなら 09:00 は何もしない
+    if args.skip_if_published and check_already_published(target_date):
+        print(f"[skip] {target_date} は既にWP公開済み → 保険cron冪等スキップ（二重投稿回避）")
+        return
 
     try:
         result = run_pipeline(target_date, dry=args.dry, publish=args.publish, skip_wp=args.skip_wp)
