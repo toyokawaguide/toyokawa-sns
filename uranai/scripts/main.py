@@ -223,6 +223,12 @@ def update_wp_post(post_id: int, title: str, content: str,
     payload1 = {"title": title, "content": content, "status": "draft"}
     if slug:
         payload1["slug"] = slug
+        # slug=uranai-YYYYMMDD から公開日を配信日に設定。
+        # これが無いと draft作成日のまま公開され URL(/YYYY/MM/DD/)がズレ
+        # X予約投稿リンク404＋トップ最新非表示になる（2026-05-19 障害の真因）
+        ymd = slug.split("uranai-")[-1]
+        if len(ymd) == 8 and ymd.isdigit():
+            payload1["date"] = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:8]}T06:00:00"
     if wp_media_id:
         payload1["featured_media"] = wp_media_id
     body1 = json.dumps(payload1, ensure_ascii=False).encode("utf-8")
