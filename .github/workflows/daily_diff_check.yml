@@ -1,0 +1,51 @@
+name: ラッキースポット日次差分検知（占い）
+
+on:
+  schedule:
+    - cron: '0 15 * * *'  # 毎日 JST 00:00（UTC 15:00 前日）
+  workflow_dispatch:
+
+permissions:
+  contents: write  # スナップショットJSON commit&push 用
+
+jobs:
+  diff_check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: uranai/scripts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: uranai/scripts/requirements.txt
+
+      - name: ライブラリインストール
+        run: pip install -r requirements.txt
+
+      - name: 日次差分チェック実行
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          URANAI_SHEETS_URL: ${{ secrets.URANAI_SHEETS_URL }}
+          URANAI_SHEETS_SECRET: ${{ secrets.URANAI_SHEETS_SECRET }}
+        run: python daily_diff_check.py
+
+      - name: スナップショット commit & push
+        working-directory: ${{ github.workspace }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uranai/data/spot_daily_snapshot.json
+          if ! git diff --staged --quiet; then
+            git pull --rebase
+            git commit -m "daily_diff: snapshot $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          else
+            echo "スナップショット変更なし→commit不要"
+          fi
