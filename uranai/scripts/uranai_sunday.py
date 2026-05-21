@@ -281,7 +281,7 @@ def generate_sunday_wp(target_date, summary, lucky_spots_week, output_path):
     tm_h = 195
     d.rounded_rectangle([20, tm_y, LEFT_W - 20, tm_y + tm_h], radius=14,
                        fill=WHITE, outline=GOLD, width=2)
-    d.text((35, tm_y + 14), "◆ 毎朝6時にお届け!", font=f(FBd, 16), fill=BLUE)
+    d.text((35, tm_y + 14), "◆ 毎朝のお楽しみに!", font=f(FBd, 16), fill=BLUE)
     d.rectangle([35, tm_y + 42, 100, tm_y + 45], fill=GOLD)
     
     # 曜日別メニュー(2列で簡潔に)

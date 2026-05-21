@@ -144,7 +144,7 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
             f"今週も1週間お疲れさまでした!\n\n"
             f"🌱来週のテーマは「{theme}」\n"
             f"{msg}\n\n"
-            f"明日からまた毎朝6時にお届けします🦊\n\n"
+            f"明日からまた毎朝のお楽しみに🦊\n\n"
             f"{post_url}\n"
             f"#豊川ガイド #今週のまとめ #占い"
         )
@@ -230,7 +230,7 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
             f"今週も1週間お疲れさまでした!\n\n"
             f"🦊今週のラッキースポット振り返り\n{spots_block}\n\n"
             f"🌱来週のテーマは「{theme}」\n{msg}\n\n"
-            f"明日からまた毎朝6時に🦊\n\n"
+            f"明日からまた毎朝のお楽しみに🦊\n\n"
             f"{post_url}\n\n"
             f"#豊川ガイド #豊川市 #今週のまとめ #占い"
         )
@@ -326,7 +326,7 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
             f"今週も1週間お疲れさまでした!\n\n"
             f"🦊今週のラッキースポット振り返り\n{spots_block}\n\n"
             f"🌱来週のテーマは「{theme}」\n{msg}\n\n"
-            f"明日からまた毎朝6時にお届けします🦊\n\n"
+            f"明日からまた毎朝のお楽しみに🦊\n\n"
             f"{cta}\n\n"
             f"{common_tags} #今週のまとめ #占い"
         )

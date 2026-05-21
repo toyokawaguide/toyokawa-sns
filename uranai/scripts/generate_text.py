@@ -622,7 +622,7 @@ def _dummy_monday(target_date: date, spot: Spot) -> str:
         "※ラッキースポットがお休みのときは、また別の日に行ってみてね！",
         "※管理人の独断と偏見でお届けする、ゆる〜い占いです",
         "",
-        "明日も6時に会いましょう！",
+        "明日の朝もお楽しみに！",
         "",
         "#豊川ガイド #豊川市 #今日の占い #星座占い",
     ]
@@ -664,7 +664,7 @@ def _dummy_tuesday(target_date: date, spot: Spot) -> str:
         "## 相性・アクション・注意点はブログで→",
         "",
         "※管理人の独断と偏見でお届けする、ゆる〜い占いです",
-        "明日も6時に会いましょう！",
+        "明日の朝もお楽しみに！",
         "",
         "#豊川ガイド #豊川市 #今日の占い #血液型占い",
     ]
@@ -746,7 +746,7 @@ def _dummy_generic(target_date: date, weekday_key: str, spot: Spot) -> str:
 
     lines.extend([
         "※管理人の独断と偏見でお届けする、ゆる〜い占いです",
-        "明日も6時に会いましょう！",
+        "明日の朝もお楽しみに！",
         "",
         f"#豊川ガイド #豊川市 #今日の占い",
     ])
@@ -1093,7 +1093,7 @@ def _rebuild_wp_content_ranked(raw, items_sorted):
     rank_emoji = {1: "🥇 第1位", 2: "🥈 第2位", 3: "🥉 第3位"}
     HEADER_NOTE_PATTERNS = [r"^※この占い", r"^※管理人"]
     SPOT_NOTE_PATTERNS = [r"^※ラッキースポット"]
-    END_NOTE_PATTERNS = [r"^明日も6時", r"^明日も[0-9０-９]+時"]
+    END_NOTE_PATTERNS = [r"^明日の朝も", r"^それでは", r"^明日も6時", r"^明日も[0-9０-９]+時"]
 
     def classify_notes(section):
         lines = section.split(chr(10))
