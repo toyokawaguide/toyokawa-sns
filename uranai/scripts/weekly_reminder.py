@@ -22,6 +22,21 @@ import requests
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# ローカル実行用：.env 読み込み（GHA は環境変数 export 済なので影響なし）
+# 探索順：toyokawa-sns側→豊川ガイド側（開発機ローカルにのみ存在）
+try:
+    from dotenv import load_dotenv
+    _env_paths = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),
+        r"C:\Users\Yoshida\Desktop\豊川ガイド\占い\scripts\.env",
+    ]
+    for _ep in _env_paths:
+        if os.path.exists(_ep):
+            load_dotenv(_ep, override=True)
+            break
+except ImportError:
+    pass
+
 JST = timezone(timedelta(hours=9))
 
 WEEKDAY_JP_FULL = ["月", "火", "水", "木", "金", "土", "日"]

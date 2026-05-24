@@ -3,7 +3,10 @@ name: 占い配信（毎朝6時 JST・05:00発火で遅延吸収）
 on:
   schedule:
     - cron: '0 20 * * *'  # 毎日 05:00 JST（UTC 20:00 前日）本配信・GHA遅延吸収版（実態は5:00〜6:30に動く）
-    - cron: '0 0 * * *'   # 保険 09:00 JST（UTC 0:00）失敗自動救済・既公開ならスキップ
+    # 🚨 2026-05-24 一時停止：5/24 配信で IG/Threads 二重投稿が発生したため保険cronを無効化
+    # check_already_published() は WP のみチェックする設計で、IG/Threads の重複は防げない
+    # 原因特定後に復活させる
+    # - cron: '0 0 * * *'   # 保険 09:00 JST（UTC 0:00）失敗自動救済・既公開ならスキップ
   workflow_dispatch:
     inputs:
       target_date:
