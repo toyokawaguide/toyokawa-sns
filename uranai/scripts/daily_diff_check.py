@@ -101,13 +101,18 @@ def save_snapshot(spots: dict[str, dict], today: date) -> None:
     print(f"[daily_diff] snapshot 保存: {SNAPSHOT_PATH.name} ({len(spots)}件)")
 
 
-def compute_diff(current: dict[str, dict], previous: dict[str, dict]) -> list[dict]:
-    """current vs previous の差分を返す
+def compute_diff(current: dict[str, dict], previous: dict[str, dict],
+                  today_iso: str) -> list[dict]:
+    """current vs previous の差分を返す（今日以降のみ）
+
+    snapshot が古い場合に過去日が previous に残っていると「削除」と誤判定するため、
+    today_iso（今日のISO日付）より前の日付は比較対象から除外する。
 
     各要素: {"date": "YYYY-MM-DD", "kind": "added/changed/removed", "from": str|None, "to": str|None}
     """
     diffs = []
-    all_dates = sorted(set(current) | set(previous))
+    # 今日以降の日付のみ比較対象
+    all_dates = sorted({d for d in (set(current) | set(previous)) if d >= today_iso})
     for d in all_dates:
         cur = current.get(d)
         prv = previous.get(d)
@@ -186,7 +191,7 @@ def main():
         return
 
     prev_spots = previous.get("spots", {})
-    diffs = compute_diff(current, prev_spots)
+    diffs = compute_diff(current, prev_spots, today.strftime("%Y-%m-%d"))
     print(f"[daily_diff] 差分: {len(diffs)}件")
 
     if diffs:
