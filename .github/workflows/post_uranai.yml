@@ -23,7 +23,7 @@ on:
 jobs:
   uranai:
     runs-on: ubuntu-latest
-    timeout-minutes: 20  # Reels動画のIG側処理待ち（最大3分ポーリング）に余裕を持たせる
+    timeout-minutes: 30  # Reels動画のIG側処理待ち（最大5分ポーリング×3回リトライ=18分）に余裕を持たせる
     defaults:
       run:
         working-directory: uranai/scripts

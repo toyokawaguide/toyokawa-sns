@@ -131,10 +131,11 @@ def post_instagram_uranai_reel(*, weekday_key: str, data: dict, spot, target_dat
                         "error": last_error, "attempts": retry_idx + 1}
             container_id = r1.json()["id"]
 
-            # Step2: 動画処理完了までポーリング（最大3分・5秒間隔）
+            # Step2: 動画処理完了までポーリング（最大5分・5秒間隔）
+            # 2026-05-24 3分→5分に延長。Meta側のReel処理が3分超えるケース多発のため
             polling_status = None
             polling_error_detail = None
-            for attempt in range(36):
+            for attempt in range(60):
                 time.sleep(5)
                 rs = requests.get(
                     f"{GRAPH_API}/{container_id}",
@@ -156,7 +157,7 @@ def post_instagram_uranai_reel(*, weekday_key: str, data: dict, spot, target_dat
                 if polling_status == "ERROR":
                     last_error = f"reel processing error: {polling_error_detail}"
                 else:
-                    last_error = "reel processing timeout (3 min)"
+                    last_error = "reel processing timeout (5 min)"
                 if retry_idx < MAX_RETRIES - 1:
                     print(f"     [retry {retry_idx+1}/{MAX_RETRIES}] {last_error[:100]}, wait {RETRY_WAIT}s")
                     time.sleep(RETRY_WAIT)
