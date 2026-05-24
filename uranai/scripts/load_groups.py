@@ -66,9 +66,12 @@ def get_week_number(target_date: date, *, weekday_kind: str) -> int:
 def _load_schedule(xlsx_path: Path, week_num: int, sheet_alias: str = "") -> list[dict]:
     """配信スケジュールシートから week_num の行を抽出
 
-    Sheets モード（URANAI_SHEETS_URL 設定時）優先・失敗時 xlsx フォールバック。
+    2026-05-25 案A：xlsx フォールバック完全削除。Sheets 必須。
+    GHA 本番で URANAI_SHEETS_URL/SECRET 未設定なら例外で停止。
+    ローカル CLI テスト時のみ、Sheets 無効時に xlsx を許可（明示的に環境変数 URANAI_ALLOW_XLSX=1）。
     sheet_alias: Sheets 側のシート名（"生まれ年配信スケジュール" / "町名配信スケジュール"）
     """
+    import os
     rows = None
     try:
         import load_sheets
@@ -77,6 +80,12 @@ def _load_schedule(xlsx_path: Path, week_num: int, sheet_alias: str = "") -> lis
     except ImportError:
         pass
     if rows is None:
+        if not os.getenv("URANAI_ALLOW_XLSX"):
+            raise RuntimeError(
+                f"Sheets から '{sheet_alias}' 取得失敗。xlsx フォールバックは無効化されています "
+                f"（GitHub Secrets URANAI_SHEETS_URL/SECRET を確認）。"
+                f"ローカルで xlsx を使う場合は URANAI_ALLOW_XLSX=1 を設定。"
+            )
         wb = openpyxl.load_workbook(xlsx_path, data_only=True)
         ws = wb[SHEET_NAME]
         rows = list(ws.iter_rows(values_only=True))

@@ -67,25 +67,25 @@ def _normalize_row_date(v):
 
 
 def fetch_input_sheet_rows():
-    """ラッキースポット入力シートを取得（Sheets優先・xlsxフォールバック）
+    """ラッキースポット入力シートを取得（Sheets のみ・xlsx 廃止）
 
-    Returns: (rows | None, source: "sheets"/"xlsx"/"none")
+    2026-05-25 案A：xlsx フォールバック完全削除。Sheets 取得失敗時は明確にエラー。
+
+    Returns: (rows | None, source: "sheets"/"none")
     """
     try:
         import load_sheets
-        if load_sheets.is_enabled():
-            rows = load_sheets.fetch_sheet_normalized("ラッキースポット入力")
-            if rows is not None:
-                return rows, "sheets"
-    except ImportError:
-        pass
-    try:
-        from select_lucky_spot import load_workbook_ro, INPUT_SHEET
-        wb = load_workbook_ro()
-        ws = wb[INPUT_SHEET]
-        return list(ws.iter_rows(values_only=True)), "xlsx"
+        if not load_sheets.is_enabled():
+            print("[error] URANAI_SHEETS_URL / URANAI_SHEETS_SECRET が未設定。"
+                  "GitHub Secrets と workflow.yml の env を確認してください。")
+            return None, "none"
+        rows = load_sheets.fetch_sheet_normalized("ラッキースポット入力")
+        if rows is None:
+            print("[error] Sheets から「ラッキースポット入力」取得失敗")
+            return None, "none"
+        return rows, "sheets"
     except Exception as e:
-        print(f"[warn] 入力シート取得失敗: {e}")
+        print(f"[error] 入力シート取得失敗: {e}")
         return None, "none"
 
 
@@ -263,10 +263,11 @@ def main():
     lines.append("【0】翌週ラッキースポット入力チェック（月〜土）")
     lines.append("-" * 40)
     lines.append(f"  対象: {next_monday}（月）〜 {next_saturday}（土） ※日曜は週まとめのため不要")
-    src_label = {"sheets": "Google Sheets", "xlsx": "xlsx（フォールバック・要注意）"}.get(src, "取得失敗")
+    src_label = {"sheets": "Google Sheets"}.get(src, "🚨 取得失敗（Sheets参照不可）")
     lines.append(f"  データソース: {src_label}")
     if src != "sheets":
-        lines.append("  ⚠️ Sheets未取得→xlsx参照中。weekly_reminder.yml の env / GitHub Secrets を確認")
+        lines.append("  🚨🚨 Sheets取得失敗。GitHub Secrets URANAI_SHEETS_URL / URANAI_SHEETS_SECRET と")
+        lines.append("       weekly_reminder.yml / daily_diff_check.yml の env: を確認")
     if missing:
         lines.append("")
         lines.append("  🚨🚨🚨 未入力あり！下記をSheetsに記入してください 🚨🚨🚨")

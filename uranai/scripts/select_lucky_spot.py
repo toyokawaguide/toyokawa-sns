@@ -78,18 +78,23 @@ def load_workbook_ro():
 
 
 def _get_rows(wb_or_none, sheet_name: str) -> list[tuple] | None:
-    """xlsx か Google Sheets からシートを取得（Sheets優先・xlsxフォールバック）"""
-    # Sheets 優先（環境変数あれば）
+    """Google Sheets からシートを取得（2026-05-25 案A：xlsx フォールバック完全削除）
+
+    GHA 本番運用は Sheets 必須。ローカル CLI で wb を渡された時のみ xlsx を許可。
+    """
+    # Sheets 優先（GHA 本番ルート）
     try:
         import load_sheets
         if load_sheets.is_enabled():
             rows = load_sheets.fetch_sheet_normalized(sheet_name)
             if rows is not None:
                 return rows
-            # Sheets 失敗時は xlsx にフォールバック
+            # Sheets 有効だが取得失敗 → エラー（xlsx には落ちない）
+            print(f"[error] Sheets から '{sheet_name}' 取得失敗。フォールバックなし")
+            return None
     except ImportError:
         pass
-    # xlsx フォールバック
+    # Sheets 無効（ローカル CLI など）：wb が明示的に渡された時のみ xlsx 使用
     if wb_or_none is None:
         return None
     ws = wb_or_none[sheet_name]
@@ -194,15 +199,9 @@ def select_lucky_spot(target_date, *, recent_used_extra: set[str] | None = None,
     target_date = to_date(target_date)
     if seed is not None:
         random.seed(seed)
-    # Sheets 優先だが、Sheets fetch 失敗時に xlsx フォールバックを必ず生かすため
-    # is_enabled でも xlsx を保険で常時ロードしておく。
-    # （2026-05-18 障害の真因：wb=None だと _get_rows が Sheets失敗時に
-    #  xlsx へ落ちられず入力シート空扱い→マスタrandom→誤スポット選定）
-    try:
-        import load_sheets  # noqa: F401
-    except ImportError:
-        pass
-    wb = wb or load_workbook_ro()
+    # 2026-05-25 案A：xlsx フォールバック完全削除。Sheets 必須。
+    # Sheets 取得失敗時は _get_rows() で None が返り、後段でエラー停止する。
+    # ローカル CLI でテストする時のみ、明示的に wb を渡せば xlsx も使える。
 
     # Step 1: 入力シート検索（社長指名・最優先）
     spot = lookup_input_sheet(wb, target_date)
