@@ -38,6 +38,7 @@ jobs:
 
       - name: Reels 自動チェック＋必要時再投稿
         env:
+          PYTHONUNBUFFERED: "1"  # 進捗ログをリアルタイム表示
           WP_URL: ${{ secrets.WP_URL }}
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
