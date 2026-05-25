@@ -115,7 +115,7 @@ def get_today_uranai_post(target_date: date) -> dict | None:
 
 
 def find_reel_video_url(target_date: date) -> str | None:
-    """WP メディアから 今日の Reel mp4 URL を取得"""
+    """WP メディアから 今日の Reel mp4 URL を取得（既存）"""
     fname = f"{target_date.strftime('%Y-%m-%d')}_{WD_KEY[target_date.weekday()]}_reel"
     r = requests.get(
         f"{os.environ['WP_URL']}/wp-json/wp/v2/media",
@@ -123,10 +123,68 @@ def find_reel_video_url(target_date: date) -> str | None:
         auth=(os.environ["WP_USERNAME"], os.environ["WP_PASSWORD"]),
         timeout=30,
     )
-    for m in r.json():
-        if "video" in m.get("mime_type", ""):
-            return m["source_url"]
-    return None
+    # ファイル名末尾に -数字が無い「元動画」を優先
+    candidates = [m for m in r.json() if "video" in m.get("mime_type", "")]
+    if not candidates:
+        return None
+    for m in candidates:
+        url = m["source_url"]
+        base = url.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+        if not re.search(r"-\d+$", base):
+            return url
+    return candidates[0]["source_url"]
+
+
+def reupload_video_to_wp(original_url: str) -> str | None:
+    """既存動画を新しいファイル名で WP に再アップロード（Meta キャッシュ回避）
+
+    Meta API は失敗した URL を一定時間 blacklist する仕様（推定）。
+    同じ動画を別ファイル名で再アップして、新URLで投稿し直すと成功する
+    （5/24 同パターンで実証済み）。
+
+    Returns: 新しい source_url（失敗時 None）
+    """
+    print(f"  → 元動画 DL: {original_url}")
+    r = requests.get(original_url, timeout=120)
+    if r.status_code != 200:
+        print(f"  ❌ 元動画 DL 失敗: {r.status_code}")
+        return None
+    video_bytes = r.content
+    print(f"  → 元動画 DL 成功: {len(video_bytes) / 1024 / 1024:.1f} MB")
+
+    # 新ファイル名（タイムスタンプ付きでユニーク化）
+    orig_name = original_url.rsplit("/", 1)[-1]  # 例: 2026-05-25_mon_reel.mp4
+    base, ext = orig_name.rsplit(".", 1)
+    # 既存に -数字 がある場合は剥がしてから付け直す
+    base_clean = re.sub(r"-\d+$", "", base)
+    ts_suffix = datetime.now(JST).strftime("%H%M")  # 例: 1130
+    new_name = f"{base_clean}-retry{ts_suffix}.{ext}"
+    print(f"  → 新ファイル名: {new_name}")
+
+    headers = {
+        "Authorization": _basic_auth_header(),
+        "Content-Disposition": f'attachment; filename="{new_name}"',
+        "Content-Type": "video/mp4",
+    }
+    r2 = requests.post(
+        f"{os.environ['WP_URL']}/wp-json/wp/v2/media",
+        headers=headers, data=video_bytes, timeout=300,
+    )
+    if r2.status_code not in (200, 201):
+        print(f"  ❌ WP メディア再アップ失敗: {r2.status_code} {r2.text[:300]}")
+        return None
+    new_url = r2.json().get("source_url")
+    print(f"  ✅ WP メディア再アップ成功: {new_url}")
+    return new_url
+
+
+def _basic_auth_header() -> str:
+    """Basic Auth ヘッダー生成"""
+    import base64
+    u = os.environ["WP_USERNAME"]
+    p = os.environ["WP_PASSWORD"]
+    token = base64.b64encode(f"{u}:{p}".encode()).decode()
+    return f"Basic {token}"
 
 
 def parse_wp_post_to_data(content_html: str) -> tuple[list[dict], str]:
@@ -156,8 +214,12 @@ def parse_wp_post_to_data(content_html: str) -> tuple[list[dict], str]:
     return items, spot_name
 
 
-def resend_reel(target_date: date) -> dict:
-    """Reels 単独再投稿実行"""
+def resend_reel(target_date: date, reupload: bool = True) -> dict:
+    """Reels 単独再投稿実行
+
+    Args:
+        reupload: True なら動画を新ファイル名で再アップロード（Meta キャッシュ回避）
+    """
     # 1. WP 記事取得
     post = get_today_uranai_post(target_date)
     if not post:
@@ -170,10 +232,18 @@ def resend_reel(target_date: date) -> dict:
     if len(items) < 4:
         return {"status": "error", "error": f"記事から items 抽出失敗 ({len(items)} 件)"}
 
-    # 3. 動画URL取得
-    video_url = find_reel_video_url(target_date)
-    if not video_url:
+    # 3. 動画URL取得（元動画）
+    original_url = find_reel_video_url(target_date)
+    if not original_url:
         return {"status": "error", "error": "WP に Reel mp4 が見つからない"}
+
+    # 3.5 動画 URL 決定（reupload=True なら別ファイル名で再アップロード→Meta キャッシュ回避）
+    if reupload:
+        print("\n[動画再アップロード] Meta キャッシュ回避のため新URL生成")
+        new_url = reupload_video_to_wp(original_url)
+        video_url = new_url if new_url else original_url
+    else:
+        video_url = original_url
 
     # 4. Spot, data 準備
     class Spot:
