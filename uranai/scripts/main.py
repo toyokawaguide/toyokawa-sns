@@ -226,9 +226,21 @@ def update_wp_post(post_id: int, title: str, content: str,
         # slug=uranai-YYYYMMDD から公開日を配信日に設定。
         # これが無いと draft作成日のまま公開され URL(/YYYY/MM/DD/)がズレ
         # X予約投稿リンク404＋トップ最新非表示になる（2026-05-19 障害の真因）
+        #
+        # 2026-05-25 修正：時刻部分を「現在時刻」に変更（旧: 06:00 固定）。
+        # 旧仕様だと cron 5:00 発火時に date=06:00（未来）となり、WPが
+        # status=publish 送っても future に強制→ WP_CRON 待ちになる。
+        # 06:00 前後にサイトアクセス無いと WP_CRON が動かず future 残留→
+        # 「予約投稿失敗」マーク。現在時刻にすれば必ず過去時刻＝即 publish。
         ymd = slug.split("uranai-")[-1]
         if len(ymd) == 8 and ymd.isdigit():
-            payload1["date"] = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:8]}T06:00:00"
+            from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+            _jst = _tz(_td(hours=9))
+            _now = _dt.now(_jst)
+            payload1["date"] = (
+                f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:8]}"
+                f"T{_now.strftime('%H:%M:%S')}"
+            )
     if wp_media_id:
         payload1["featured_media"] = wp_media_id
     body1 = json.dumps(payload1, ensure_ascii=False).encode("utf-8")

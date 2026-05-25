@@ -97,10 +97,11 @@ def post_instagram_uranai_reel(*, weekday_key: str, data: dict, spot, target_dat
         return {"status": "error", "post_id": None, "caption": caption,
                 "error": "META_ACCESS_TOKEN / INSTAGRAM_ACCOUNT_ID 未設定"}
 
-    # 関数内リトライ（最大3回試行）：error code 2207077 等の一時的失敗を救済
+    # 関数内リトライ：error code 2207077 等の一時的失敗を救済
     # フィード投稿/Threads/WP には触らず、Reels投稿だけ再試行する
-    MAX_RETRIES = 3
-    RETRY_WAIT = 60  # 失敗後の待機秒
+    # 2026-05-25 強化：3回→5回・60s→90s。間欠失敗多発（5/24 朝も失敗→13時手動復旧）
+    MAX_RETRIES = 5
+    RETRY_WAIT = 90  # 失敗後の待機秒
     last_error = None
 
     for retry_idx in range(MAX_RETRIES):

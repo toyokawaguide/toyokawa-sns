@@ -1,0 +1,77 @@
+name: 占い Reels 自動チェック＋再投稿（朝6:30 JST）
+
+on:
+  schedule:
+    - cron: '30 21 * * *'  # 毎日 21:30 UTC = 06:30 JST 翌日
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: '対象日 YYYY-MM-DD（空ならJSTの今日）'
+        required: false
+      force:
+        description: 'IG確認スキップして強制再投稿（true/false）'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+        default: 'false'
+
+jobs:
+  reel_check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # Reels の処理待ち＋リトライで最大25分想定
+    defaults:
+      run:
+        working-directory: uranai/scripts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: uranai/scripts/requirements.txt
+
+      - name: ライブラリインストール
+        run: pip install -r requirements.txt
+
+      - name: Reels 自動チェック＋必要時再投稿
+        env:
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          URANAI_SHEETS_URL: ${{ secrets.URANAI_SHEETS_URL }}
+          URANAI_SHEETS_SECRET: ${{ secrets.URANAI_SHEETS_SECRET }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            ARGS="$ARGS --date ${{ github.event.inputs.target_date }}"
+          fi
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          echo "実行: python reel_check_resend.py $ARGS"
+          python reel_check_resend.py $ARGS
+
+      - name: 失敗時通知（Gmail）
+        if: failure()
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          python -c "
+          import os, smtplib
+          from email.mime.text import MIMEText
+          msg = MIMEText('Reels 自動チェック workflow がエラー終了しました。\n\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}', 'plain', 'utf-8')
+          msg['Subject'] = '🚨【占い】Reels自動チェック workflow エラー'
+          msg['From'] = os.environ['GMAIL_USER']
+          msg['To'] = os.environ['GMAIL_USER']
+          with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
+              s.login(os.environ['GMAIL_USER'], os.environ['GMAIL_APP_PASSWORD'])
+              s.send_message(msg)
+          "
