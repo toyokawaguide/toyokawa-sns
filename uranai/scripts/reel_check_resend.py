@@ -215,11 +215,16 @@ def parse_wp_post_to_data(content_html: str) -> tuple[list[dict], str]:
 
 
 def resend_reel(target_date: date, reupload: bool = True) -> dict:
-    """Reels 単独再投稿実行
+    """Reels 単独再投稿実行（Resumable Upload 経由）
 
     Args:
-        reupload: True なら動画を新ファイル名で再アップロード（Meta キャッシュ回避）
+        reupload: 互換性のため引数残すが、Resumable Upload 採用以降は WP 再アップ不要
+
+    2026-05-25: External URL 方式が連続失敗 → Resumable Upload に切替。
+    WP から動画 DL → 一時パスに保存 → Resumable で Meta に直接 POST。
     """
+    import tempfile
+
     # 1. WP 記事取得
     post = get_today_uranai_post(target_date)
     if not post:
@@ -232,18 +237,21 @@ def resend_reel(target_date: date, reupload: bool = True) -> dict:
     if len(items) < 4:
         return {"status": "error", "error": f"記事から items 抽出失敗 ({len(items)} 件)"}
 
-    # 3. 動画URL取得（元動画）
+    # 3. 動画URL取得 → ローカルに DL（一時ファイル）
     original_url = find_reel_video_url(target_date)
     if not original_url:
         return {"status": "error", "error": "WP に Reel mp4 が見つからない"}
 
-    # 3.5 動画 URL 決定（reupload=True なら別ファイル名で再アップロード→Meta キャッシュ回避）
-    if reupload:
-        print("\n[動画再アップロード] Meta キャッシュ回避のため新URL生成")
-        new_url = reupload_video_to_wp(original_url)
-        video_url = new_url if new_url else original_url
-    else:
-        video_url = original_url
+    print(f"\n[動画DL] {original_url}")
+    r = requests.get(original_url, timeout=180)
+    if r.status_code != 200:
+        return {"status": "error", "error": f"動画DL失敗: {r.status_code}"}
+
+    tmp_dir = Path(tempfile.gettempdir()) / "uranai_reel_resend"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    tmp_path = tmp_dir / f"{target_date}_reel.mp4"
+    tmp_path.write_bytes(r.content)
+    print(f"  → 一時保存: {tmp_path} ({len(r.content) / 1024 / 1024:.1f} MB)")
 
     # 4. Spot, data 準備
     class Spot:
@@ -255,18 +263,25 @@ def resend_reel(target_date: date, reupload: bool = True) -> dict:
     article_data = {"items": items}
     weekday_key = WD_KEY[target_date.weekday()]
 
-    # 5. Reels 投稿
-    from post_instagram_uranai import post_instagram_uranai_reel
-    print(f"  → Reels 投稿開始: {video_url}")
-    result = post_instagram_uranai_reel(
+    # 5. Reels 投稿（Resumable Upload）
+    from post_instagram_uranai import post_instagram_uranai_reel_resumable
+    print(f"  → Reels 投稿開始（Resumable Upload）")
+    result = post_instagram_uranai_reel_resumable(
         weekday_key=weekday_key,
         data=article_data,
         spot=spot,
         target_date=target_date,
-        video_url=video_url,
-        cover_url=None,
+        video_path=tmp_path,
+        cover_path=None,
         dry=False,
     )
+
+    # 一時ファイル削除
+    try:
+        tmp_path.unlink()
+    except Exception:
+        pass
+
     return result
 
 

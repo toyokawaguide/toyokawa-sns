@@ -467,17 +467,18 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
             print(f"     status={ig_res['status']}  post_id={ig_res.get('post_id')}")
             sns_results["instagram"] = ig_res
 
-        # Reels 投稿（動画URL取得済みなら追加）
-        print("  [Instagram Reels]")
-        if not reel_video_url:
-            print("     [skip] Reel動画URL未取得（生成失敗 or WP アップ失敗）")
-            sns_results["instagram_reel"] = {"status": "skipped", "reason": "no_reel_url"}
+        # Reels 投稿（ローカル動画を Resumable Upload で直接 Meta へ）
+        # 2026-05-25: External URL 方式（video_url=WP URL）が5/24-25連続失敗→Resumable に切替
+        print("  [Instagram Reels（Resumable Upload）]")
+        if not reel_video.exists():
+            print(f"     [skip] Reel動画ファイル未生成: {reel_video}")
+            sns_results["instagram_reel"] = {"status": "skipped", "reason": "no_reel_file"}
         else:
-            from post_instagram_uranai import post_instagram_uranai_reel
-            ig_reel_res = post_instagram_uranai_reel(
+            from post_instagram_uranai import post_instagram_uranai_reel_resumable
+            ig_reel_res = post_instagram_uranai_reel_resumable(
                 weekday_key=weekday_key, data=article.get("data", {}), spot=spot,
-                target_date=target_date, video_url=reel_video_url,
-                cover_url=None,  # Instagramが動画の1フレーム目を自動サムネ化（再生時の切替が自然・グリッドでもフィード画像と差別化）
+                target_date=target_date, video_path=reel_video,
+                cover_path=None,
                 dry=False,
             )
             print(f"     status={ig_reel_res['status']}  post_id={ig_reel_res.get('post_id')}")
