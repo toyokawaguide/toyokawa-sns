@@ -65,9 +65,10 @@ def gmail_notify(subject: str, body: str) -> bool:
 
 
 def check_ig_has_reel_today(target_date: date) -> tuple[bool, str]:
-    """IG 最新投稿25件のうち、target_date（JST）以降に VIDEO/REELS 投稿があるか判定
+    """IG 最新25投稿のうち、target_date 表記を caption に含む VIDEO/REELS があるか判定
 
-    Returns: (exists, info_msg)
+    タイムスタンプベースの判定は Meta の UTC タイムゾーン解釈で誤検出するため、
+    caption に「YYYY年M月D日」または「YYYY-MM-DD」が含まれているかで厳密判定する。
     """
     token = os.environ["META_ACCESS_TOKEN"]
     ig_id = os.getenv("INSTAGRAM_ACCOUNT_ID") or "17841467629335560"
@@ -75,7 +76,7 @@ def check_ig_has_reel_today(target_date: date) -> tuple[bool, str]:
     r = requests.get(
         f"https://graph.facebook.com/v19.0/{ig_id}/media",
         params={
-            "fields": "id,media_type,timestamp,permalink",
+            "fields": "id,media_type,timestamp,permalink,caption",
             "limit": 25,
             "access_token": token,
         },
@@ -84,21 +85,18 @@ def check_ig_has_reel_today(target_date: date) -> tuple[bool, str]:
     if r.status_code != 200:
         return False, f"IG API エラー: {r.status_code} {r.text[:200]}"
 
-    target_start = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=JST)
-    target_end = target_start + timedelta(days=1)
+    # 日付文字列パターン（caption内検索用）
+    date_str_jp = f"{target_date.year}年{target_date.month}月{target_date.day}日"
+    date_str_iso = target_date.strftime("%Y-%m-%d")
 
     for m in r.json().get("data", []):
-        ts = m.get("timestamp", "")  # ISO8601
-        try:
-            t = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-        except ValueError:
+        if m.get("media_type") not in ("VIDEO", "REELS"):
             continue
-        if t < target_start:
-            break  # 古いので終了
-        if target_start <= t < target_end and m.get("media_type") in ("VIDEO", "REELS"):
-            return True, f"検出: {m['permalink']} ({t.isoformat()})"
+        cap = m.get("caption") or ""
+        if date_str_jp in cap or date_str_iso in cap:
+            return True, f"検出: {m['permalink']} (caption内に {date_str_jp})"
 
-    return False, "今日の Reel 未投稿"
+    return False, f"今日の Reel 未投稿（caption内に '{date_str_jp}' を持つ Reel/Video なし）"
 
 
 def get_today_uranai_post(target_date: date) -> dict | None:
