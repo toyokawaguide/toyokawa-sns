@@ -194,8 +194,9 @@ def parse_wp_post_to_data(content_html: str) -> tuple[list[dict], str]:
     """
     content = html_mod.unescape(content_html)
     # ランキング項目：## 🥇/🥈/🥉/N位 ：【XX】<br/>★...★ N/10<br/>コメント
+    # 火曜(血液型)版は順位プレフィックスなしの「## 【A型】」形式なので任意化
     pattern = re.compile(
-        r"##\s*(?:🥇 第\d位|🥈 第\d位|🥉 第\d位|\d+位)[：:]?\s*"
+        r"##\s*(?:(?:🥇 第\d位|🥈 第\d位|🥉 第\d位|\d+位)[：:]?\s*)?"
         r"【([^】]+)】\s*<br\s*/?>\s*"
         r"[★☆]+\s*(\d+)/10\s*<br\s*/?>\s*"
         r"([^<\n]+?)(?=</p>|<br)",
