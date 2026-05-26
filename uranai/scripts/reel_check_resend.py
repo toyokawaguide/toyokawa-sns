@@ -266,6 +266,16 @@ def resend_reel(target_date: date, reupload: bool = True) -> dict:
     article_data = {"items": items}
     weekday_key = WD_KEY[target_date.weekday()]
 
+    # 火曜（血液型版）：caption.py は data["blood"] を参照するため items から再構築
+    if weekday_key == "tue":
+        blood = {}
+        for item in items:
+            label = item.get("label", "")
+            k = label.replace("型", "").strip()  # "A型" → "A"
+            if k in ("A", "B", "O", "AB"):
+                blood[k] = {"stars": item["stars"], "comment": item["comment"]}
+        article_data["blood"] = blood
+
     # 5. Reels 投稿（Resumable Upload）
     from post_instagram_uranai import post_instagram_uranai_reel_resumable
     print(f"  → Reels 投稿開始（Resumable Upload）")
