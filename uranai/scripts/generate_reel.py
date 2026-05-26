@@ -774,9 +774,23 @@ def generate_reel(*, target_date: date, weekday_key: str,
 
 
 def _render_scenes_to_mp4(scenes: list, output_path: Path) -> Path:
-    """scenes リスト[(name, PIL.Image, duration_sec), ...] を mp4 にレンダリング"""
+    """scenes リスト[(name, PIL.Image, duration_sec), ...] を mp4 にレンダリング
+
+    ★ Instagram Reels 最低時間ガード（15秒未満だと Meta 内部処理で stuck → ポーリング timeout）
+    2026-05-24 以降の連続失敗の真因：火曜(血液型・2シーン×5秒=10秒)・日曜(週まとめ・1シーン×10秒)
+    の動画長10秒が Meta Reels の処理アルゴリズムで FINISHED にならず、ポーリングが永久timeout。
+    通常曜日(3シーン×5秒=15秒)は影響なし。
+    """
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # 15秒未満なら最後のシーンを延長して 15秒に揃える
+    cur_dur = sum(s[2] for s in scenes)
+    if cur_dur < 15.0:
+        last_name, last_img, last_dur = scenes[-1]
+        scenes = scenes[:-1] + [(last_name, last_img, last_dur + (15.0 - cur_dur))]
+        print(f"  [reel] 最小時間ガード: {cur_dur:.1f}s → 15.0s（最後のシーン '{last_name}' を {last_dur:.1f}s → {last_dur + (15.0 - cur_dur):.1f}s に延長）")
+
     total_dur = sum(s[2] for s in scenes)
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
