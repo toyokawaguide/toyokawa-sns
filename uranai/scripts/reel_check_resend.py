@@ -193,17 +193,19 @@ def parse_wp_post_to_data(content_html: str) -> tuple[list[dict], str]:
     Returns: (items, spot_name)
     """
     content = html_mod.unescape(content_html)
-    # ランキング項目：## 🥇/🥈/🥉/N位 ：【XX】<br/>★...★ N/10<br/>コメント
-    # 火曜(血液型)版は順位プレフィックスなしの「## 【A型】」形式なので任意化
+    # ランキング項目フォーマット：曜日ごとに3パターン
+    #   月・火・水：「## 🥇/🥈/🥉/N位：【XX】<br/>★...☆ N/10<br/>コメント」
+    #   火（血液型）：「## 【A型】<br/>★...☆ N/10<br/>コメント」（順位プレフィックスなし）
+    #   金・土：「## 🥇 第1位：【XX】<br/>★N<br/>...」（/10 なし・小数点ありの可能性）
     pattern = re.compile(
         r"##\s*(?:(?:🥇 第\d位|🥈 第\d位|🥉 第\d位|\d+位)[：:]?\s*)?"
         r"【([^】]+)】\s*<br\s*/?>\s*"
-        r"[★☆]+\s*(\d+)/10\s*<br\s*/?>\s*"
+        r"[★☆]+\s*(\d+(?:\.\d+)?)(?:/10)?\s*<br\s*/?>\s*"
         r"([^<\n]+?)(?=</p>|<br)",
     )
     matches = pattern.findall(content)
     items = [
-        {"label": label.strip(), "stars": int(stars), "comment": comment.strip()}
+        {"label": label.strip(), "stars": int(float(stars)), "comment": comment.strip()}
         for label, stars, comment in matches
     ]
     # ラッキースポット
