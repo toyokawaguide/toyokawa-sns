@@ -88,8 +88,9 @@ def build_content(row: dict, eyecatch_id: int = None,
 
     # === リード文 ===
     if has_original:
+        _, wp_predicate = _detect_zokuhou_lead(row)
         parts.append(f"<!-- wp:paragraph -->")
-        parts.append(f"<p>以前ご紹介した<strong>{place}</strong>の、その後が分かりました。</p>")
+        parts.append(f"<p>以前ご紹介した<strong>{place}</strong>の、{wp_predicate}</p>")
         parts.append(f"<!-- /wp:paragraph -->")
         parts.append("")
 
@@ -236,6 +237,35 @@ def _tsubuyaki_block(row: dict) -> list[str]:
     return ["▶ 管理人のつぶやき", tsubuyaki]
 
 
+def _detect_zokuhou_lead(row: dict) -> tuple[str, str]:
+    """続報モードのリード文をその後の内容から自動判定
+
+    戻り値: (caption_lead, wp_predicate)
+    - caption_lead: SNSキャプション用フル文（絵文字あり）
+    - wp_predicate: WP本文用述語（場所名の後に続く・絵文字なし）
+    """
+    sub1 = row.get("その後（1段目）", "").strip()
+    sub2 = row.get("その後（2段目）", "").strip()
+    combined = f"{sub1} {sub2}"
+
+    if any(k in combined for k in ["オープン予定", "オープン日", "新規オープン",
+                                     "開店", "新店", "オープンします"]):
+        return ("以前ご紹介したあの場所のオープン日が分かりました🎉",
+                "オープン日が分かりました。")
+    if "閉店" in combined or "閉業" in combined:
+        return ("以前ご紹介したあの場所、閉店情報が入りました…😢",
+                "閉店情報が入りました。")
+    if "リニューアル" in combined or "改装オープン" in combined:
+        return ("以前ご紹介したあの場所のリニューアル情報をお届け🤝",
+                "リニューアル情報が分かりました。")
+    if "移転" in combined:
+        return ("以前ご紹介したあの場所、移転先が分かりました🤝",
+                "移転情報が分かりました。")
+    # デフォルト
+    return ("以前ご紹介したあの場所の、その後が分かりました🤝",
+            "その後が分かりました。")
+
+
 def _x_weight(text: str) -> int:
     """X の文字数カウント（CJK は 2 weight）。URL の自動短縮は概算 23 weight"""
     import re
@@ -264,7 +294,7 @@ def build_x_caption(row: dict, wp_url: str) -> str:
 
     if has_original:
         title = f"【さくっとお知らせ】{place} → {sub}"
-        lead = "以前ご紹介したあの場所の、その後が分かりました🤝"
+        lead, _ = _detect_zokuhou_lead(row)
     else:
         title = f"【さくっとお知らせ】{place}"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
@@ -294,7 +324,7 @@ def build_threads_caption(row: dict, wp_url: str) -> str:
 
     if has_original:
         title = f"【さくっとお知らせ】{place} → {sub}"
-        lead = "以前ご紹介したあの場所の、その後が分かりました🤝"
+        lead, _ = _detect_zokuhou_lead(row)
     else:
         title = f"【さくっとお知らせ】{place}"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
@@ -322,7 +352,7 @@ def build_instagram_caption(row: dict, wp_url: str) -> str:
 
     if has_original:
         title = f"【さくっとお知らせ】{place} → {sub}"
-        lead = "以前ご紹介したあの場所の、その後が分かりました🤝"
+        lead, _ = _detect_zokuhou_lead(row)
     else:
         title = f"【さくっとお知らせ】{place}（{sub}）"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
