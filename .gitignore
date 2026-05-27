@@ -13,6 +13,14 @@ uranai/scripts/preview_*.png
 uranai/scripts/test_*.mp4
 uranai/scripts/test_*.png
 
+# ライト記事：認証ファイル（GHA で Secrets 経由で復元）と一時ファイル
+light_articles/scripts/credentials.json
+light_articles/scripts/_assets/sheets_token.json
+light_articles/scripts/_assets/sheets_token.json.bak
+light_articles/scripts/_drive_cache/
+light_articles/scripts/_sample/
+light_articles/scripts/__pycache__/
+
 # 一時ファイル
 *.bak
 *.tmp

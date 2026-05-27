@@ -1,0 +1,16 @@
+# ライト記事 自動投稿プロジェクト 依存パッケージ
+# 最終更新: 2026-05-27
+
+# 環境変数
+python-dotenv>=1.0.0
+
+# HTTP（WP / Threads / Instagram / Meta / X）
+requests>=2.31.0
+
+# 画像生成（Pillow）
+Pillow>=10.0.0
+
+# Google API（Sheets + Drive）
+google-api-python-client>=2.0.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
