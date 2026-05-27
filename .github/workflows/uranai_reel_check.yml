@@ -1,8 +1,14 @@
 name: 占い Reels 自動チェック＋再投稿（朝6:30 JST）
 
 on:
-  schedule:
-    - cron: '30 21 * * *'  # 毎日 21:30 UTC = 06:30 JST 翌日
+  # 🚨 2026-05-27 一時停止：5/27 配信で IG Reels 二重投稿が再発したため自動cronを無効化
+  # 原因推定：05:00 cron で投稿した Reel が IG API processing 中で最新25件に表示されず、
+  # check_ig_has_reel_today() が「未投稿」と誤判定して再投稿してしまった。
+  # 5/24 にも同種の問題で post_uranai.yml の保険cronは無効化済み。
+  # 復活させるには、IG processing 完了を確実に検知する判定強化が必要（要設計見直し）。
+  # 当面は workflow_dispatch（手動実行）のみ使用可能。
+  # schedule:
+  #   - cron: '30 21 * * *'  # 毎日 21:30 UTC = 06:30 JST 翌日
   workflow_dispatch:
     inputs:
       target_date:
