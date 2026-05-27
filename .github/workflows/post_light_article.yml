@@ -78,7 +78,8 @@ jobs:
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          THREADS_ACCOUNT_ID: ${{ secrets.THREADS_ACCOUNT_ID }}
+          # 占い側の THREADS_USER_ID と同じ値（Threads アカウント ID）を流用
+          THREADS_ACCOUNT_ID: ${{ secrets.THREADS_USER_ID }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           # LIGHT_FONT_DIR は前ステップで $GITHUB_ENV に動的設定済み
