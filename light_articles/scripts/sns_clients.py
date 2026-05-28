@@ -68,14 +68,22 @@ def post_instagram_feed(caption: str, image_url: str, dry: bool = True) -> dict:
         print(f"[DRY][IG Feed] image: {image_url}")
         return {"dry": True}
 
-    if not META_TOKEN or not IG_ACCOUNT_ID:
-        return {"error": "META_ACCESS_TOKEN / INSTAGRAM_ACCOUNT_ID 未設定"}
+    # 関数内で os.environ を再取得（module global での取り違え防止・占い実装と同じパターン）
+    token = os.environ.get("META_ACCESS_TOKEN") or META_TOKEN
+    ig_id = (os.environ.get("INSTAGRAM_ACCOUNT_ID")
+              or os.environ.get("IG_USER_ID")
+              or DEFAULT_IG_ACCOUNT_ID)
+
+    if not token:
+        return {"error": f"META_ACCESS_TOKEN 未設定（os.environ len={len(os.environ.get('META_ACCESS_TOKEN') or '')}）"}
+    if not ig_id:
+        return {"error": "INSTAGRAM_ACCOUNT_ID 未設定（DEFAULTフォールバックも失敗）"}
 
     try:
         # Step 1: コンテナ作成
-        r1 = requests.post(f"{GRAPH_API}/{IG_ACCOUNT_ID}/media",
+        r1 = requests.post(f"{GRAPH_API}/{ig_id}/media",
                             data={"image_url": image_url, "caption": caption,
-                                  "access_token": META_TOKEN}, timeout=60)
+                                  "access_token": token}, timeout=60)
         if r1.status_code != 200:
             return {"error": f"container failed: {r1.status_code} {r1.text[:300]}",
                     "image_url": image_url}
@@ -83,9 +91,9 @@ def post_instagram_feed(caption: str, image_url: str, dry: bool = True) -> dict:
 
         # Step 2: 公開
         time.sleep(3)
-        r2 = requests.post(f"{GRAPH_API}/{IG_ACCOUNT_ID}/media_publish",
+        r2 = requests.post(f"{GRAPH_API}/{ig_id}/media_publish",
                             data={"creation_id": container_id,
-                                  "access_token": META_TOKEN}, timeout=60)
+                                  "access_token": token}, timeout=60)
         if r2.status_code != 200:
             return {"error": f"publish failed: {r2.status_code} {r2.text[:300]}"}
         return {"post_id": r2.json().get("id"), "dry": False}
@@ -113,9 +121,18 @@ def post_instagram_reel_resumable(caption: str, video_path: Path,
         return {"status": "error", "post_id": None,
                 "error": f"video file not found: {video_path}"}
 
-    if not META_TOKEN or not IG_ACCOUNT_ID:
+    # 関数内で os.environ を再取得（占い実装と同じパターン）
+    token = os.environ.get("META_ACCESS_TOKEN") or META_TOKEN
+    ig_id = (os.environ.get("INSTAGRAM_ACCOUNT_ID")
+              or os.environ.get("IG_USER_ID")
+              or DEFAULT_IG_ACCOUNT_ID)
+
+    if not token:
         return {"status": "error", "post_id": None,
-                "error": "META_ACCESS_TOKEN / INSTAGRAM_ACCOUNT_ID 未設定"}
+                "error": f"META_ACCESS_TOKEN 未設定（os.environ len={len(os.environ.get('META_ACCESS_TOKEN') or '')}）"}
+    if not ig_id:
+        return {"status": "error", "post_id": None,
+                "error": "INSTAGRAM_ACCOUNT_ID 未設定（DEFAULTフォールバックも失敗）"}
 
     file_size = video_path.stat().st_size
     MAX_RETRIES = 5
@@ -126,12 +143,12 @@ def post_instagram_reel_resumable(caption: str, video_path: Path,
         try:
             # Step1: Resumable container 作成
             r1 = requests.post(
-                f"{GRAPH_API}/{IG_ACCOUNT_ID}/media",
+                f"{GRAPH_API}/{ig_id}/media",
                 data={
                     "media_type": "REELS",
                     "upload_type": "resumable",
                     "caption": caption,
-                    "access_token": META_TOKEN,
+                    "access_token": token,
                     "share_to_feed": "true",
                 },
                 timeout=60,
@@ -153,7 +170,7 @@ def post_instagram_reel_resumable(caption: str, video_path: Path,
                 video_bytes = f.read()
             ru = requests.post(
                 upload_uri,
-                headers={"Authorization": f"OAuth {META_TOKEN}",
+                headers={"Authorization": f"OAuth {token}",
                          "offset": "0", "file_size": str(file_size)},
                 data=video_bytes,
                 timeout=300,
@@ -172,7 +189,7 @@ def post_instagram_reel_resumable(caption: str, video_path: Path,
                 time.sleep(5)
                 rs = requests.get(
                     f"{GRAPH_API}/{container_id}",
-                    params={"fields": "status_code,status", "access_token": META_TOKEN},
+                    params={"fields": "status_code,status", "access_token": token},
                     timeout=30,
                 )
                 if rs.status_code == 200:
@@ -195,8 +212,8 @@ def post_instagram_reel_resumable(caption: str, video_path: Path,
 
             # Step4: 公開
             r2 = requests.post(
-                f"{GRAPH_API}/{IG_ACCOUNT_ID}/media_publish",
-                data={"creation_id": container_id, "access_token": META_TOKEN},
+                f"{GRAPH_API}/{ig_id}/media_publish",
+                data={"creation_id": container_id, "access_token": token},
                 timeout=60,
             )
             if r2.status_code != 200:
