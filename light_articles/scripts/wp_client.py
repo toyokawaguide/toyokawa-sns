@@ -128,6 +128,30 @@ def create_scheduled_post(*, title: str, content: str, featured_media_id: int,
     return r.json()
 
 
+def find_published_post_by_slug(slug: str) -> dict | None:
+    """slug で publish 済の WP 投稿を検索（重複公開防止用）
+
+    戻り値: {"id": post_id, "link": url, "title": ...} or None
+    """
+    r = requests.get(
+        f"{WP_URL}/wp-json/wp/v2/posts",
+        params={"slug": slug, "status": "publish"},
+        auth=get_auth(),
+        timeout=30,
+    )
+    r.raise_for_status()
+    posts = r.json()
+    if not posts:
+        return None
+    p = posts[0]
+    return {
+        "id": p["id"],
+        "link": p.get("link", ""),
+        "title": p.get("title", {}).get("rendered", ""),
+        "date": p.get("date", ""),
+    }
+
+
 def create_draft_post(*, title: str, content: str, featured_media_id: int,
                        slug: str = None) -> dict:
     """draft（下書き）で投稿を作成（テスト用）"""

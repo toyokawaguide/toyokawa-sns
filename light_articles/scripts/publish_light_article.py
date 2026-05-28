@@ -38,7 +38,7 @@ from notify import send_x_caption_mail, send_skip_notification
 
 import os
 
-# ローカルWindowsの G:\マイドライブ\ライト記事\ を見るが、GHA Linuxでは存在しない→Drive APIへ自動フォールバック
+# ローカルWindows の G:\マイドライブ\ライト記事\ を見るが、GHA Linuxでは存在しない→Drive API へ自動フォールバック
 LIGHT_BASE = Path(os.environ.get("LIGHT_BASE", "G:/マイドライブ/ライト記事"))
 JST = timezone(timedelta(hours=9))
 
@@ -168,7 +168,8 @@ def get_photo_paths(folder: Path) -> list[Path]:
 def process_one(row_index: int, row: dict, dry_run: bool = True,
                 use_draft: bool = False,
                 target_date: date = None,
-                x_only: bool = False) -> dict:
+                x_only: bool = False,
+                skip_if_published: bool = False) -> dict:
     """1記事を処理
 
     x_only=True の場合：
@@ -325,39 +326,61 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         ig_feed_url = None
     else:
         from wp_client import (check_manual_post_scheduled, upload_media,
-                                create_scheduled_post, create_draft_post)
-
-        # 翌日19時 手動投稿チェック（draft時はスキップしない）
-        if not use_draft:
-            if check_manual_post_scheduled(target_date):
-                log(f"⏭️ 翌日19時に手動投稿あり・スキップ", 1)
-                return {"skipped": True, "reason": "manual_post_scheduled"}
-
-        # 写真アップロード
-        photo_urls = []
-        for p in photos:
-            media = upload_media(p)
-            photo_urls.append(media["source_url"])
-            log(f"  📤 写真アップ: {p.name} → {media['id']}", 2)
-
-        # アイキャッチアップロード
-        eyecatch_media = upload_media(eyecatch_path)
-        log(f"🖼️ アイキャッチアップ: {eyecatch_media['id']}", 1)
-
-        # IG Feed 画像アップロード（WP記事には埋め込まないが、IGに渡すURLとして必要）
-        ig_feed_media = upload_media(ig_feed_path)
-        ig_feed_url = ig_feed_media["source_url"]
-        log(f"📷 IG Feed画像アップ: {ig_feed_media['id']}", 1)
-
-        # 本文構築
-        photo_html = build_photo_html(photo_urls)
-        content = build_content(row, eyecatch_id=eyecatch_media["id"],
-                                 photo_html=photo_html)
+                                create_scheduled_post, create_draft_post,
+                                find_published_post_by_slug)
 
         # WP投稿（slug：{ID 小文字}・URL末尾を lr001 形式に統一）
         slug = article_id.lower()
 
-        if use_draft:
+        # === 重複公開防止チェック（占いと同じ保険cron救済パターン用） ===
+        existing_wp = None
+        if skip_if_published and not use_draft:
+            existing_wp = find_published_post_by_slug(slug)
+            if existing_wp:
+                log(f"⏭️ WP既存（post_id={existing_wp['id']}）・WP工程スキップ→SNS だけ実行", 1)
+
+        # 翌日19時 手動投稿チェック（draft時はスキップしない・WP既存時もスキップ）
+        if not use_draft and not existing_wp:
+            if check_manual_post_scheduled(target_date):
+                log(f"⏭️ 翌日19時に手動投稿あり・スキップ", 1)
+                return {"skipped": True, "reason": "manual_post_scheduled"}
+
+        if existing_wp:
+            # WP は既に publish 済み → 写真・本文アップ・WP投稿は全部スキップ
+            # IG Feed 画像だけは必要なのでアップする（WP メディアにあるかも知れないが念のため再アップ）
+            ig_feed_media = upload_media(ig_feed_path)
+            ig_feed_url = ig_feed_media["source_url"]
+            log(f"📷 IG Feed画像アップ（SNS用）: {ig_feed_media['id']}", 1)
+            wp_result = {
+                "id": existing_wp["id"],
+                "link": existing_wp["link"],
+            }
+            log(f"✅ WP既存利用: post_id={wp_result['id']} {wp_result['link']}", 1)
+        else:
+            # 写真アップロード
+            photo_urls = []
+            for p in photos:
+                media = upload_media(p)
+                photo_urls.append(media["source_url"])
+                log(f"  📤 写真アップ: {p.name} → {media['id']}", 2)
+
+            # アイキャッチアップロード
+            eyecatch_media = upload_media(eyecatch_path)
+            log(f"🖼️ アイキャッチアップ: {eyecatch_media['id']}", 1)
+
+            # IG Feed 画像アップロード（WP記事には埋め込まないが、IGに渡すURLとして必要）
+            ig_feed_media = upload_media(ig_feed_path)
+            ig_feed_url = ig_feed_media["source_url"]
+            log(f"📷 IG Feed画像アップ: {ig_feed_media['id']}", 1)
+
+            # 本文構築
+            photo_html = build_photo_html(photo_urls)
+            content = build_content(row, eyecatch_id=eyecatch_media["id"],
+                                     photo_html=photo_html)
+
+        if existing_wp:
+            pass  # WP投稿スキップ（既に上で wp_result セット済み）
+        elif use_draft:
             wp_result = create_draft_post(
                 title=title, content=content,
                 featured_media_id=eyecatch_media["id"], slug=slug)
@@ -380,10 +403,8 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
             "ig_feed_url": ig_feed_url,
         }
 
-        # Sheets 状態更新
-        new_status = "予約済" if not use_draft else "draft_test"
-        update_status(row_index, new_status)
-        log(f"📊 Sheets 状態更新: {row_index} 行目 → {new_status}", 1)
+        # Sheets 状態更新は SNS結果を見てから後ろで実行
+        # （存在しないトークン等で SNS失敗→draft のまま保持できるように）
 
     # === Step 5: SNS連携（dry-run時 OR draft時はログのみ・公開記事の時のみ本番投稿） ===
     # draft（下書き）状態の記事はSNS本番投稿しない（公開してない記事へのリンクが死ぬため）
@@ -397,13 +418,42 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     x_text = build_x_caption(row, wp_url)
 
     log(f"🧵 Threads 投稿（dry={sns_dry}）", 1)
-    post_threads(threads_caption, dry=sns_dry)
+    threads_result = post_threads(threads_caption, dry=sns_dry)
+    log(f"  → {threads_result}", 2)
 
     log(f"📷 Instagram Feed 投稿（1080×1350・dry={sns_dry}）", 1)
-    post_instagram_feed(ig_caption, ig_post_image_url, dry=sns_dry)
+    ig_feed_result = post_instagram_feed(ig_caption, ig_post_image_url, dry=sns_dry)
+    log(f"  → {ig_feed_result}", 2)
 
     log(f"🎬 Instagram Reels 投稿（1080×1920・dry={sns_dry}）", 1)
-    post_instagram_reel_resumable(ig_caption, reel_path, dry=sns_dry)
+    reel_result = post_instagram_reel_resumable(ig_caption, reel_path, dry=sns_dry)
+    log(f"  → {reel_result}", 2)
+
+    # === SNS 結果判定 → 状態更新 ===
+    sns_failures = []
+    if not sns_dry:
+        if threads_result.get("error"):
+            sns_failures.append(f"Threads: {threads_result['error']}")
+        if ig_feed_result.get("error"):
+            sns_failures.append(f"IG Feed: {ig_feed_result['error']}")
+        if reel_result.get("status") == "error":
+            sns_failures.append(f"IG Reels: {reel_result.get('error', 'unknown')}")
+
+    # Sheets 状態更新
+    # - 完全成功 → 「予約済」
+    # - SNS失敗 → 「draft」のまま保持（保険cronで自動再試行可能）
+    # - draft投稿 → 「draft_test」
+    if not dry_run:
+        if use_draft:
+            update_status(row_index, "draft_test")
+            log(f"📊 Sheets 状態更新: {row_index} 行目 → draft_test", 1)
+        elif sns_failures:
+            log(f"⚠ SNS失敗あり・状態 'draft' のまま保持（次回cronで再試行可）", 1)
+            for f in sns_failures:
+                log(f"  ❌ {f}", 2)
+        else:
+            update_status(row_index, "予約済")
+            log(f"📊 Sheets 状態更新: {row_index} 行目 → 予約済", 1)
 
     # === Step 6: Gmail通知（X予約用テキスト） ===
     # draft時は X通知も送らない（公開予定が確定してないため）
@@ -428,6 +478,8 @@ def main():
                     help="WP draft 投稿（テスト用・公開されない）")
     ap.add_argument("--x-only", action="store_true",
                     help="X予約用テキストだけGmail通知（WP/SNSは投稿しない）")
+    ap.add_argument("--skip-if-published", action="store_true",
+                    help="WPに同slug の publish 記事が既にあれば WP工程スキップ→SNSだけ実行（保険cron救済用）")
     ap.add_argument("--date", help="target date (YYYY-MM-DD・指定なら翌日以外)")
     ap.add_argument("--max", type=int, default=1,
                     help="最大処理件数（デフォルト1）")
@@ -435,6 +487,7 @@ def main():
     args = ap.parse_args()
 
     x_only = getattr(args, "x_only", False)
+    skip_if_published = getattr(args, "skip_if_published", False)
     dry_run = not (args.publish or args.draft or x_only)
     use_draft = args.draft
 
@@ -463,36 +516,21 @@ def main():
         targets = [found]
         log(f"🎯 強制処理: ID={args.id} (行{found[0]}) 状態={found[1].get('状態','')}")
     else:
-        # 通常：状態=draft かつ 公開希望日 == 今日（JST）
-        # GHA cron で毎日19時に走るので「今日が公開日のdraft」だけ拾う
+        # 通常：状態=draft を古い順
         drafts = get_draft_rows()
-        log(f"📋 Sheets draft（全件）: {len(drafts)} 件")
-        today_jst = datetime.now(JST).date()
-        if target_date:
-            today_jst = target_date
-        log(f"📅 対象日: {today_jst}")
-
-        filtered = []
-        for row_idx, row in drafts:
-            sheet_date_str = row.get("公開希望日", "").strip()
-            if not sheet_date_str:
-                continue
-            d = parse_publish_date(sheet_date_str)
-            if d == today_jst:
-                filtered.append((row_idx, row))
-
-        log(f"✅ 今日が公開希望日のdraft: {len(filtered)} 件")
-        if not filtered:
-            log("⚠ 今日公開予定の記事なし・終了")
+        log(f"📋 Sheets draft: {len(drafts)} 件")
+        if not drafts:
+            log("⚠ ストック切れ・処理する記事なし")
             return
-        targets = filtered[:args.max]
+        targets = drafts[:args.max]
     results = []
     for row_idx, row in targets:
         print()
         result = process_one(row_idx, row, dry_run=dry_run,
                               use_draft=use_draft,
                               target_date=target_date,
-                              x_only=x_only)
+                              x_only=x_only,
+                              skip_if_published=skip_if_published)
         results.append(result)
 
     print()
