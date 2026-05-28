@@ -516,13 +516,29 @@ def main():
         targets = [found]
         log(f"🎯 強制処理: ID={args.id} (行{found[0]}) 状態={found[1].get('状態','')}")
     else:
-        # 通常：状態=draft を古い順
+        # 通常：状態=draft かつ 公開希望日 == 今日（JST）のみ
+        # cron が毎日19:00 + 19:30 + 20:00 に走るので「今日が公開日のdraft」だけ拾う
         drafts = get_draft_rows()
-        log(f"📋 Sheets draft: {len(drafts)} 件")
-        if not drafts:
-            log("⚠ ストック切れ・処理する記事なし")
+        log(f"📋 Sheets draft（全件）: {len(drafts)} 件")
+        today_jst = datetime.now(JST).date()
+        if target_date:
+            today_jst = target_date
+        log(f"📅 対象日: {today_jst}")
+
+        filtered = []
+        for row_idx, row in drafts:
+            sheet_date_str = row.get("公開希望日", "").strip()
+            if not sheet_date_str:
+                continue
+            d = parse_publish_date(sheet_date_str)
+            if d == today_jst:
+                filtered.append((row_idx, row))
+
+        log(f"✅ 今日が公開希望日のdraft: {len(filtered)} 件")
+        if not filtered:
+            log("⚠ 今日公開予定の記事なし・終了")
             return
-        targets = drafts[:args.max]
+        targets = filtered[:args.max]
     results = []
     for row_idx, row in targets:
         print()

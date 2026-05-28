@@ -129,13 +129,16 @@ def create_scheduled_post(*, title: str, content: str, featured_media_id: int,
 
 
 def find_published_post_by_slug(slug: str) -> dict | None:
-    """slug で publish 済の WP 投稿を検索（重複公開防止用）
+    """slug で publish/future の WP 投稿を検索（重複公開防止用）
+
+    publish だけでなく future（予約投稿）も検知することで、
+    WP自動公開とcronのタイミングずれによる重複リスクをゼロにする。
 
     戻り値: {"id": post_id, "link": url, "title": ...} or None
     """
     r = requests.get(
         f"{WP_URL}/wp-json/wp/v2/posts",
-        params={"slug": slug, "status": "publish"},
+        params={"slug": slug, "status": "publish,future"},
         auth=get_auth(),
         timeout=30,
     )
@@ -149,6 +152,7 @@ def find_published_post_by_slug(slug: str) -> dict | None:
         "link": p.get("link", ""),
         "title": p.get("title", {}).get("rendered", ""),
         "date": p.get("date", ""),
+        "status": p.get("status", ""),
     }
 
 
