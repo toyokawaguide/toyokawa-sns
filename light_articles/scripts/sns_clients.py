@@ -16,7 +16,10 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
 META_TOKEN = os.environ.get("META_ACCESS_TOKEN")
-IG_ACCOUNT_ID = os.environ.get("INSTAGRAM_ACCOUNT_ID")
+DEFAULT_IG_ACCOUNT_ID = "17841467629335560"  # toyokawaguide 既存（占いと同じフォールバック）
+IG_ACCOUNT_ID = (os.environ.get("INSTAGRAM_ACCOUNT_ID")
+                  or os.environ.get("IG_USER_ID")
+                  or DEFAULT_IG_ACCOUNT_ID)
 # Threads は独自APIを使う（占いと同じ仕組み）
 THREADS_TOKEN = os.environ.get("THREADS_ACCESS_TOKEN")
 THREADS_USER_ID = (os.environ.get("THREADS_USER_ID")
@@ -59,7 +62,7 @@ def post_threads(caption: str, image_url: str = None, dry: bool = True) -> dict:
 
 
 def post_instagram_feed(caption: str, image_url: str, dry: bool = True) -> dict:
-    """Instagram Feed 投稿"""
+    """Instagram Feed 投稿（占い post_instagram_uranai と同じ実装）"""
     if dry:
         print(f"[DRY][IG Feed] caption preview:\n{'-'*40}\n{caption[:200]}...\n{'-'*40}")
         print(f"[DRY][IG Feed] image: {image_url}")
@@ -68,20 +71,26 @@ def post_instagram_feed(caption: str, image_url: str, dry: bool = True) -> dict:
     if not META_TOKEN or not IG_ACCOUNT_ID:
         return {"error": "META_ACCESS_TOKEN / INSTAGRAM_ACCOUNT_ID 未設定"}
 
-    # Step 1: コンテナ作成
-    r1 = requests.post(f"{GRAPH_API}/{IG_ACCOUNT_ID}/media",
-                       data={"image_url": image_url, "caption": caption,
-                             "access_token": META_TOKEN}, timeout=60)
-    r1.raise_for_status()
-    container_id = r1.json()["id"]
+    try:
+        # Step 1: コンテナ作成
+        r1 = requests.post(f"{GRAPH_API}/{IG_ACCOUNT_ID}/media",
+                            data={"image_url": image_url, "caption": caption,
+                                  "access_token": META_TOKEN}, timeout=60)
+        if r1.status_code != 200:
+            return {"error": f"container failed: {r1.status_code} {r1.text[:300]}",
+                    "image_url": image_url}
+        container_id = r1.json()["id"]
 
-    # Step 2: 公開
-    time.sleep(3)
-    r2 = requests.post(f"{GRAPH_API}/{IG_ACCOUNT_ID}/media_publish",
-                       data={"creation_id": container_id,
-                             "access_token": META_TOKEN}, timeout=60)
-    r2.raise_for_status()
-    return {"post_id": r2.json().get("id"), "dry": False}
+        # Step 2: 公開
+        time.sleep(3)
+        r2 = requests.post(f"{GRAPH_API}/{IG_ACCOUNT_ID}/media_publish",
+                            data={"creation_id": container_id,
+                                  "access_token": META_TOKEN}, timeout=60)
+        if r2.status_code != 200:
+            return {"error": f"publish failed: {r2.status_code} {r2.text[:300]}"}
+        return {"post_id": r2.json().get("id"), "dry": False}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 def post_instagram_reel_resumable(caption: str, video_path: Path,
