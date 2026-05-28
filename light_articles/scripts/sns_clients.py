@@ -17,38 +17,44 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
 META_TOKEN = os.environ.get("META_ACCESS_TOKEN")
 IG_ACCOUNT_ID = os.environ.get("INSTAGRAM_ACCOUNT_ID")
-THREADS_ACCOUNT_ID = os.environ.get("THREADS_ACCOUNT_ID")
-GRAPH_API = "https://graph.facebook.com/v19.0"
+# Threads は独自APIを使う（占いと同じ仕組み）
+THREADS_TOKEN = os.environ.get("THREADS_ACCESS_TOKEN")
+THREADS_USER_ID = (os.environ.get("THREADS_USER_ID")
+                    or os.environ.get("THREADS_ACCOUNT_ID"))  # 後方互換
+GRAPH_API = "https://graph.facebook.com/v19.0"      # IG用
+THREADS_API = "https://graph.threads.net/v1.0"       # Threads用（占いと同じ）
 
 
 def post_threads(caption: str, image_url: str = None, dry: bool = True) -> dict:
-    """Threads 投稿"""
+    """Threads 投稿（占い post_threads_uranai.py と同じ実装）"""
     if dry:
         print(f"[DRY][Threads] caption preview:\n{'-'*40}\n{caption}\n{'-'*40}")
         if image_url:
             print(f"[DRY][Threads] image: {image_url}")
         return {"dry": True}
 
-    if not META_TOKEN or not THREADS_ACCOUNT_ID:
-        return {"error": "META_ACCESS_TOKEN / THREADS_ACCOUNT_ID 未設定"}
+    if not THREADS_TOKEN or not THREADS_USER_ID:
+        return {"error": "THREADS_ACCESS_TOKEN / THREADS_USER_ID 未設定"}
 
-    # Step 1: コンテナ作成
+    # Step 1: コンテナ作成（Threads専用API使用）
     params = {"media_type": "IMAGE" if image_url else "TEXT",
               "text": caption,
-              "access_token": META_TOKEN}
+              "access_token": THREADS_TOKEN}
     if image_url:
         params["image_url"] = image_url
-    r1 = requests.post(f"{GRAPH_API}/{THREADS_ACCOUNT_ID}/threads",
-                       data=params, timeout=60)
-    r1.raise_for_status()
+    r1 = requests.post(f"{THREADS_API}/{THREADS_USER_ID}/threads",
+                       params=params, timeout=60)
+    if r1.status_code != 200:
+        return {"error": f"container failed: {r1.status_code} {r1.text[:200]}"}
     container_id = r1.json()["id"]
 
     # Step 2: 公開
     time.sleep(2)
-    r2 = requests.post(f"{GRAPH_API}/{THREADS_ACCOUNT_ID}/threads_publish",
-                       data={"creation_id": container_id,
-                             "access_token": META_TOKEN}, timeout=60)
-    r2.raise_for_status()
+    r2 = requests.post(f"{THREADS_API}/{THREADS_USER_ID}/threads_publish",
+                       params={"creation_id": container_id,
+                                "access_token": THREADS_TOKEN}, timeout=60)
+    if r2.status_code != 200:
+        return {"error": f"publish failed: {r2.status_code} {r2.text[:200]}"}
     return {"post_id": r2.json().get("id"), "dry": False}
 
 

@@ -81,8 +81,9 @@ jobs:
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          # 占い側の THREADS_USER_ID と同じ値（Threads アカウント ID）を流用
-          THREADS_ACCOUNT_ID: ${{ secrets.THREADS_USER_ID }}
+          # Threads は独自API（graph.threads.net）を使う・占いと同じ Secrets を流用
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           # LIGHT_FONT_DIR は前ステップで $GITHUB_ENV に動的設定済み
@@ -95,13 +96,10 @@ jobs:
           fi
           MODE_FLAGS=""
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            # メインcron（19:00）= 通常publish
-            # 保険cron（19:30 / 20:00）= --skip-if-published（WP既存ならSNSだけ救済）
-            if [ "${{ github.event.schedule }}" = "0 10 * * *" ]; then
-              MODE_FLAGS="--publish"
-            else
-              MODE_FLAGS="--publish --skip-if-published"
-            fi
+            # 全schedule（19:00 / 19:30 / 20:00）で --skip-if-published 付与
+            # 新規 → 通常公開 / 既存（前回失敗の残り）→ SNS だけ救済
+            # 占いと同じ重複防止パターン
+            MODE_FLAGS="--publish --skip-if-published"
           elif [ "${{ github.event.inputs.mode }}" = "publish" ]; then
             MODE_FLAGS="--publish"
           elif [ "${{ github.event.inputs.mode }}" = "publish-skip-if-published" ]; then
