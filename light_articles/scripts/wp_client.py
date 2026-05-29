@@ -27,6 +27,9 @@ JST = timezone(timedelta(hours=9))
 # 「お知らせ」カテゴリ slug = news（既存・グノシー告知時に使用）
 NEWS_CATEGORY_SLUG = "news"
 
+# ライト記事専用タグ（手動投稿のお知らせと識別するため自動付与）
+SAKUTTO_TAG_ID = 720  # slug=sakutto / name=さくっと
+
 
 def get_auth():
     if not WP_USER or not WP_PASS:
@@ -105,13 +108,14 @@ def create_scheduled_post(*, title: str, content: str, featured_media_id: int,
                           publish_at_jst: datetime,
                           status: str = "future",
                           slug: str = None) -> dict:
-    """お知らせカテゴリで予約投稿を作成"""
+    """お知らせカテゴリで予約投稿を作成・「さくっと」タグ自動付与"""
     cat_id = get_news_category_id()
     payload = {
         "title": title,
         "content": content,
         "status": status,  # "future" で予約 / "draft" で下書き
         "categories": [cat_id],
+        "tags": [SAKUTTO_TAG_ID],  # ライト記事専用タグ
         "featured_media": featured_media_id,
         "date": publish_at_jst.isoformat(),
     }
@@ -158,13 +162,14 @@ def find_published_post_by_slug(slug: str) -> dict | None:
 
 def create_draft_post(*, title: str, content: str, featured_media_id: int,
                        slug: str = None) -> dict:
-    """draft（下書き）で投稿を作成（テスト用）"""
+    """draft（下書き）で投稿を作成（テスト用）・「さくっと」タグ自動付与"""
     cat_id = get_news_category_id()
     payload = {
         "title": title,
         "content": content,
         "status": "draft",
         "categories": [cat_id],
+        "tags": [SAKUTTO_TAG_ID],  # ライト記事専用タグ
         "featured_media": featured_media_id,
     }
     if slug:
