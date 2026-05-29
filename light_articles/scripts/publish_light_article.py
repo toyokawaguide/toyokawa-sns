@@ -117,6 +117,31 @@ def get_article_photos(article_id: str, place: str) -> list[Path]:
         return []
 
 
+def ensure_batch_watermarked(folder: Path) -> None:
+    """番号付き原本 [0-9]*.jpg があって batch_*.jpg が未生成なら、
+    自動で add_date_watermark を呼んで日付＋ロゴを焼き込む。
+    既処理ファイルはスキップ（add_date_watermark 側で重複防止）。
+
+    社長が watermark スクリプト実行を忘れても事故らない安全網。
+    """
+    if not folder.exists():
+        return
+    exts = ("jpg", "jpeg", "png")
+    has_raw_numbered = False
+    for ext in exts:
+        if any(folder.glob(f"[0-9]*.{ext}")) or any(folder.glob(f"[0-9]*.{ext.upper()}")):
+            has_raw_numbered = True
+            break
+    if not has_raw_numbered:
+        return
+    try:
+        from add_date_watermark import run as watermark_run
+        log(f"🏷️ 日付＋ロゴ自動焼込み実行: {folder.name}", 1)
+        watermark_run(str(folder), test_limit=None, with_logo=True)
+    except Exception as e:
+        log(f"⚠ 自動焼込み失敗（原本でアップ継続）: {e}", 1)
+
+
 def get_photo_paths(folder: Path) -> list[Path]:
     """フォルダから写真を取得（番号付き＋日付焼き込み版を優先）
 
@@ -126,7 +151,11 @@ def get_photo_paths(folder: Path) -> list[Path]:
     3. それ以外は無視（参考写真として置いてあるだけと判断）
 
     社長運用：使いたい写真に「1, 2, 3」と番号を振る → そのファイルが対象。
+    batch_*.jpg が未生成なら自動で焼込み実行（事故防止）。
     """
+    # 自動焼込み（番号付き原本が batch_*.jpg 未生成なら焼く）
+    ensure_batch_watermarked(folder)
+
     if not folder.exists():
         return []
 
