@@ -9,7 +9,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
+# .env は claude/.env にある（parents[1]）。
+# 旧コードは parents[2] (= 豊川ガイド/.env) を見ていたためローカル実行で Gmail送信失敗した。
+# 2026-05-30 修正。
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 GMAIL_USER = os.environ.get("GMAIL_USER")
 GMAIL_PASS = os.environ.get("GMAIL_APP_PASSWORD")
