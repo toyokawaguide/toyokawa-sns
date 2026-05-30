@@ -5,6 +5,7 @@ on:
     - cron: '0 10 * * *'   # 毎日 19:00 JST（UTC 10:00）メイン配信
     - cron: '30 10 * * *'  # 毎日 19:30 JST（UTC 10:30）保険cron・WP既存ならSNSだけ救済
     - cron: '0 11 * * *'   # 毎日 20:00 JST（UTC 11:00）最終保険・WP既存ならSNSだけ救済
+    - cron: '0 13 * * *'   # 毎日 22:00 JST（UTC 13:00）late safety net・19/19:30/20時全部不発時の救済
   workflow_dispatch:
     inputs:
       target_id:
