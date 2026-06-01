@@ -151,9 +151,58 @@ jobs:
               s.send_message(msg)
           "
 
-      # ライト記事保険発火は 22:00 JST の遅い cron（post_light_article.yml 側）に移動。
-      # 朝6時から保険発火していたが、朝に「今日の記事が WP 未公開」と判定されて
-      # 即朝に publish されるバグが発生（2026-05-31 発覚）。
-      # 朝の保険発火はそもそも構造的に間違いだったので削除。
-      # GHA schedule 不発対策は post_light_article.yml の 19:00/19:30/20:00/22:00 の
-      # 4回 cron retry に集約（最後の 22:00 cron が late safety net）。
+      # ─────────────────────────────────────
+      # ライト記事 WP予約投稿（朝5時 cron で確実実行）
+      # ─────────────────────────────────────
+      # 2026-06-01 設計：占いの cron（朝5時・99%安定）を使ってライト記事の WP予約投稿だけ作成。
+      # WP 内部の予約投稿機能（status=future）で 19:00 に自動 publish される。
+      # SNS は別途 post_light_article.yml の cron（19/19:30/20/22時）で投稿。
+      #
+      # メリット：
+      # - 19:00 cron が不発でも WP記事は確実に19時公開（WP内部cronで動く）
+      # - 朝公開バグは再発しない（status=future なので朝5時にpublishされない）
+      # - SNS失敗時は WP記事だけ公開・後で社長手動 SNS でリカバー可能
+      - name: ライト記事 セットアップ
+        if: success()
+        working-directory: light_articles/scripts
+        run: |
+          pip install -r requirements.txt
+          # 日本語フォント・OAuth credentials は post_light_article.yml と共通だが
+          # ここでは Sheets と WP しか使わないので Drive API token / Sheets token のみ
+          echo "${{ secrets.LIGHT_GOOGLE_CREDENTIALS_B64 }}" | base64 -d > credentials.json
+          mkdir -p _assets
+          echo "${{ secrets.LIGHT_GOOGLE_TOKEN_B64 }}" | base64 -d > _assets/sheets_token.json
+
+      - name: ライト記事 ffmpeg（Reel生成に必要）
+        if: success()
+        run: |
+          if command -v ffmpeg > /dev/null; then
+            echo "ffmpeg プリインストール済み"
+          else
+            sudo apt-get update && sudo apt-get install -y ffmpeg
+          fi
+
+      - name: ライト記事 日本語フォント
+        if: success()
+        run: |
+          FONT_DIR=/tmp/light_fonts
+          mkdir -p "$FONT_DIR"
+          BASE_URL="https://github.com/notofonts/noto-cjk/raw/main/Sans/OTC"
+          curl -fsSL --retry 3 --max-time 180 -o "$FONT_DIR/NotoSansCJK-Bold.ttc" "$BASE_URL/NotoSansCJK-Bold.ttc"
+          curl -fsSL --retry 3 --max-time 180 -o "$FONT_DIR/NotoSansCJK-Regular.ttc" "$BASE_URL/NotoSansCJK-Regular.ttc"
+          echo "LIGHT_FONT_DIR=$FONT_DIR" >> $GITHUB_ENV
+
+      - name: ライト記事 WP予約投稿（SNSスキップ）
+        if: success()
+        working-directory: light_articles/scripts
+        env:
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
+          PYTHONIOENCODING: utf-8
+        run: |
+          echo "▶ ライト記事 WP予約投稿（朝5時・占い cron 内で実行）"
+          # --wp-only モード：WP予約投稿のみ作成・SNS投稿はスキップ
+          # WP内部の予約投稿機能で19時に自動 publish
+          # SNS投稿は post_light_article.yml の 19時 cron で実行される
+          python publish_light_article.py --wp-only || echo "⚠ ライト記事 WP予約投稿失敗（致命的ではない・19時 cron で再試行）"

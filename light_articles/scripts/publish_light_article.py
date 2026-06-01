@@ -36,10 +36,7 @@ from sns_clients import (post_threads, post_instagram_feed,
                           post_instagram_reel_resumable)
 from notify import send_x_caption_mail, send_skip_notification
 
-import os
-
-# ローカルWindows の G:\マイドライブ\ライト記事\ を見るが、GHA Linuxでは存在しない→Drive API へ自動フォールバック
-LIGHT_BASE = Path(os.environ.get("LIGHT_BASE", "G:/マイドライブ/ライト記事"))
+LIGHT_BASE = Path("G:/マイドライブ/ライト記事")
 JST = timezone(timedelta(hours=9))
 
 
@@ -120,21 +117,31 @@ def get_article_photos(article_id: str, place: str) -> list[Path]:
 def ensure_batch_watermarked(folder: Path) -> None:
     """番号付き原本 [0-9]*.jpg があって batch_*.jpg が未生成なら、
     自動で add_date_watermark を呼んで日付＋ロゴを焼き込む。
-    既処理ファイルはスキップ（add_date_watermark 側で重複防止）。
+    既に batch_*.jpg があるファイルはスキップ（add_date_watermark側の重複防止）。
 
-    社長が watermark スクリプト実行を忘れても事故らない安全網。
+    社長が watermark スクリプト実行を忘れても事故らないための安全網。
     """
     if not folder.exists():
         return
+
     exts = ("jpg", "jpeg", "png")
+
+    # 番号付き原本が存在するか
     has_raw_numbered = False
     for ext in exts:
         if any(folder.glob(f"[0-9]*.{ext}")) or any(folder.glob(f"[0-9]*.{ext.upper()}")):
             has_raw_numbered = True
             break
+
     if not has_raw_numbered:
-        return
+        return  # 番号付き原本がない＝焼込対象なし
+
+    # 番号付き原本が存在 → add_date_watermark を実行（既処理ファイルは自動スキップ）
     try:
+        import sys as _sys
+        wp_upload_dir = Path("C:/Users/Yoshida/Desktop/豊川ガイド/wordpress_upload")
+        if str(wp_upload_dir) not in _sys.path:
+            _sys.path.insert(0, str(wp_upload_dir))
         from add_date_watermark import run as watermark_run
         log(f"🏷️ 日付＋ロゴ自動焼込み実行: {folder.name}", 1)
         watermark_run(str(folder), test_limit=None, with_logo=True)
@@ -198,7 +205,8 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
                 use_draft: bool = False,
                 target_date: date = None,
                 x_only: bool = False,
-                skip_if_published: bool = False) -> dict:
+                skip_if_published: bool = False,
+                wp_only: bool = False) -> dict:
     """1記事を処理
 
     x_only=True の場合：
@@ -435,6 +443,19 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         # Sheets 状態更新は SNS結果を見てから後ろで実行
         # （存在しないトークン等で SNS失敗→draft のまま保持できるように）
 
+    # === wp_only モード：WP予約投稿のみ実施・SNS スキップ ===
+    # 朝5時 cron 用：WP予約投稿（status=future, post_date=19:00）だけ作成
+    # WPが内部の予約投稿機能で19時に自動 publish
+    # SNS は後で別 cron（19時）で実行
+    if wp_only:
+        log(f"📌 wp-only モード：SNS投稿はスキップ（WP予約投稿のみ完了）", 1)
+        log(f"   WP公開予定：{publish_dt.isoformat()}（WP内部cronで自動publish）", 2)
+        log(f"   SNS投稿は post_light_article.yml の19時 cron で実行されます", 2)
+        # Sheets 状態は「予約済」に更新（SNSはまだだが WP予約は完了）
+        update_status(row_index, "予約済")
+        log(f"📊 Sheets 状態更新: {row_index} 行目 → 予約済（WP予約のみ）", 1)
+        return result
+
     # === Step 5: SNS連携（dry-run時 OR draft時はログのみ・公開記事の時のみ本番投稿） ===
     # draft（下書き）状態の記事はSNS本番投稿しない（公開してない記事へのリンクが死ぬため）
     sns_dry = dry_run or use_draft
@@ -509,6 +530,8 @@ def main():
                     help="X予約用テキストだけGmail通知（WP/SNSは投稿しない）")
     ap.add_argument("--skip-if-published", action="store_true",
                     help="WPに同slug の publish 記事が既にあれば WP工程スキップ→SNSだけ実行（保険cron救済用）")
+    ap.add_argument("--wp-only", action="store_true",
+                    help="WP予約投稿のみ作成・SNS投稿はスキップ（朝5時 cron 用・WP内部で19時公開）")
     ap.add_argument("--date", help="target date (YYYY-MM-DD・指定なら翌日以外)")
     ap.add_argument("--max", type=int, default=1,
                     help="最大処理件数（デフォルト1）")
@@ -517,7 +540,9 @@ def main():
 
     x_only = getattr(args, "x_only", False)
     skip_if_published = getattr(args, "skip_if_published", False)
-    dry_run = not (args.publish or args.draft or x_only)
+    wp_only = getattr(args, "wp_only", False)
+    # wp_only も実投稿モード扱い
+    dry_run = not (args.publish or args.draft or x_only or wp_only)
     use_draft = args.draft
 
     target_date = None
@@ -531,6 +556,8 @@ def main():
         print(" ライト記事 投稿パイプライン（DRY-RUN・公開なし）")
     elif use_draft:
         print(" ライト記事 投稿パイプライン（WP draft 投稿・公開なし）")
+    elif wp_only:
+        print(" ライト記事 投稿パイプライン（WP予約投稿のみ・SNSスキップ・朝5時 cron 用）")
     else:
         print(" ライト記事 投稿パイプライン（本番予約投稿）")
     print("=" * 60)
@@ -575,7 +602,8 @@ def main():
                               use_draft=use_draft,
                               target_date=target_date,
                               x_only=x_only,
-                              skip_if_published=skip_if_published)
+                              skip_if_published=skip_if_published,
+                              wp_only=wp_only)
         results.append(result)
 
     print()
