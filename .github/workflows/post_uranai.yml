@@ -162,12 +162,11 @@ jobs:
       # - 19:00 cron が不発でも WP記事は確実に19時公開（WP内部cronで動く）
       # - 朝公開バグは再発しない（status=future なので朝5時にpublishされない）
       # - SNS失敗時は WP記事だけ公開・後で社長手動 SNS でリカバー可能
-      # 🚨 2026-06-02 朝公開バグ再発（IG/Threadsに朝5時頃公開された）→ 全step 緊急無効化
-      # 根本原因 調査中（GHAログ確認＋wp-only モードのSNSスキップが効いてない理由）
-      # 19時の post_light_article.yml cron で当日記事は publish モードで投稿される（朝5時 wp-only に依存しない）
-      # 原因特定＆修正後に再開する
+      # 朝5時 占い cron 内でライト記事の WP予約投稿のみ作成（SNS は別cron）
+      # 2026-06-02 朝公開バグ対策：publish_light_article.py に時刻ガード追加（18:30-23:00以外はskip）
+      # → 朝5時 wp-only モードは時刻ガード対象外（SNS出ないので朝公開バグ起きない）
       - name: ライト記事 セットアップ
-        if: false  # 🚨 朝公開バグ再発で緊急無効化（2026-06-02）
+        if: success()
         working-directory: light_articles/scripts
         run: |
           pip install -r requirements.txt
@@ -176,7 +175,7 @@ jobs:
           echo "${{ secrets.LIGHT_GOOGLE_TOKEN_B64 }}" | base64 -d > _assets/sheets_token.json
 
       - name: ライト記事 ffmpeg（Reel生成に必要）
-        if: false  # 🚨 朝公開バグ再発で緊急無効化（2026-06-02）
+        if: success()
         run: |
           if command -v ffmpeg > /dev/null; then
             echo "ffmpeg プリインストール済み"
@@ -185,7 +184,7 @@ jobs:
           fi
 
       - name: ライト記事 日本語フォント
-        if: false  # 🚨 朝公開バグ再発で緊急無効化（2026-06-02）
+        if: success()
         run: |
           FONT_DIR=/tmp/light_fonts
           mkdir -p "$FONT_DIR"
@@ -195,7 +194,7 @@ jobs:
           echo "LIGHT_FONT_DIR=$FONT_DIR" >> $GITHUB_ENV
 
       - name: ライト記事 WP予約投稿（SNSスキップ）
-        if: false  # 🚨 朝公開バグ再発で緊急無効化（2026-06-02）・19時 post_light_article.yml で当日記事はpublishされる
+        if: success()
         working-directory: light_articles/scripts
         env:
           WP_URL: ${{ secrets.WP_URL }}
@@ -204,4 +203,4 @@ jobs:
           PYTHONIOENCODING: utf-8
         run: |
           echo "▶ ライト記事 WP予約投稿（朝5時・占い cron 内で実行）"
-          python publish_light_article.py --wp-only || echo "⚠ ライト記事 WP予約投稿失敗"
+          python publish_light_article.py --wp-only || echo "⚠ ライト記事 WP予約投稿失敗（19時 cron で再試行）"
