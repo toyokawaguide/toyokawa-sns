@@ -27,7 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from sheets_client import get_draft_rows, update_status, SPREADSHEET_ID, get_row_by_id
+from sheets_client import get_draft_rows, get_pending_rows, update_status, SPREADSHEET_ID, get_row_by_id
 from content_builder import (build_title, build_content, build_photo_html,
                               build_x_caption, build_threads_caption,
                               build_instagram_caption, get_sub)
@@ -596,10 +596,15 @@ def main():
         targets = [found]
         log(f"🎯 強制処理: ID={args.id} (行{found[0]}) 状態={found[1].get('状態','')}")
     else:
-        # 通常：状態=draft かつ 公開希望日 == 今日（JST）のみ
-        # cron が毎日19:00 + 19:30 + 20:00 に走るので「今日が公開日のdraft」だけ拾う
-        drafts = get_draft_rows()
-        log(f"📋 Sheets draft（全件）: {len(drafts)} 件")
+        # 通常：公開希望日 == 今日（JST）の記事を拾う
+        # - wp_only モード（朝5時 cron）→ 「draft」のみ（予約済は再登録不要）
+        # - 19時 cron 等 → 「draft + 予約済」両方（朝5時で予約済になった記事もSNS投稿対象）
+        if wp_only:
+            drafts = get_draft_rows()
+            log(f"📋 Sheets draft（全件・朝5時cron用）: {len(drafts)} 件")
+        else:
+            drafts = get_pending_rows()
+            log(f"📋 Sheets draft+予約済（全件・19時cron用）: {len(drafts)} 件")
         today_jst = datetime.now(JST).date()
         if target_date:
             today_jst = target_date
@@ -614,7 +619,7 @@ def main():
             if d == today_jst:
                 filtered.append((row_idx, row))
 
-        log(f"✅ 今日が公開希望日のdraft: {len(filtered)} 件")
+        log(f"✅ 今日が公開希望日: {len(filtered)} 件")
         if not filtered:
             log("⚠ 今日公開予定の記事なし・終了")
             return

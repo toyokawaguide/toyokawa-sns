@@ -140,6 +140,7 @@ def update_status(row_index: int, new_status: str):
 
 def get_draft_rows() -> list[tuple[int, dict]]:
     """状態=draft の行を取得（古い順＝行番号昇順）
+    朝5時 wp_only cron 用：未処理の draft のみ拾う（予約済は再登録不要）
     戻り値: [(行番号, データ辞書), ...]
     """
     all_rows = read_all_rows()
@@ -148,6 +149,20 @@ def get_draft_rows() -> list[tuple[int, dict]]:
         if row.get("状態", "").strip() == "draft":
             drafts.append((i, row))
     return drafts
+
+
+def get_pending_rows() -> list[tuple[int, dict]]:
+    """状態=draft または 予約済 の行を取得（古い順＝行番号昇順）
+    19時 cron 用：朝5時で予約済になった記事も拾えるように
+    戻り値: [(行番号, データ辞書), ...]
+    """
+    all_rows = read_all_rows()
+    pending = []
+    for i, row in enumerate(all_rows, start=2):
+        status = row.get("状態", "").strip()
+        if status in ("draft", "予約済"):
+            pending.append((i, row))
+    return pending
 
 
 def get_row_by_id(article_id: str) -> tuple[int, dict] | None:
