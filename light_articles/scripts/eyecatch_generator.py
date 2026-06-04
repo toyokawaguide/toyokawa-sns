@@ -7,27 +7,15 @@ import argparse
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-import os
-import platform
-
 ROOT = Path(__file__).resolve().parent
-# scripts/ の1階層上に _assets/ を置く（toyokawa-sns/light_articles/_assets/）
-ASSETS = ROOT.parent / "_assets" if (ROOT.parent / "_assets").exists() else ROOT / "_assets"
+ASSETS = ROOT / "_assets"
 LOGO_PATH = ASSETS / "logo.png"
 LOGO_WHITE_PATH = ASSETS / "toyokawaguide-logo white.png"
-LIGHT_BASE = Path(os.environ.get("LIGHT_BASE", "G:/マイドライブ/ライト記事"))
+LIGHT_BASE = Path("G:/マイドライブ/ライト記事")
 
-# フォント：ローカル(Windows)とGHA(Linux)で切替
-if platform.system() == "Windows":
-    FONT_BOLD = "C:/Windows/Fonts/yugothb.ttc"
-    FONT_REG = "C:/Windows/Fonts/yugothm.ttc"
-    FONT_FALLBACK = "C:/Windows/Fonts/msgothic.ttc"
-else:
-    # GHA Linux - workflow が Noto Sans CJK を /tmp/light_fonts に配置
-    _font_dir = os.environ.get("LIGHT_FONT_DIR", "/tmp/light_fonts")
-    FONT_BOLD = f"{_font_dir}/NotoSansCJK-Bold.ttc"
-    FONT_REG = f"{_font_dir}/NotoSansCJK-Regular.ttc"
-    FONT_FALLBACK = FONT_BOLD
+FONT_BOLD = "C:/Windows/Fonts/yugothb.ttc"
+FONT_REG = "C:/Windows/Fonts/yugothm.ttc"
+FONT_FALLBACK = "C:/Windows/Fonts/msgothic.ttc"
 
 COLOR_BG = (26, 58, 138)             # 深い紺
 COLOR_BEIGE = (252, 245, 230)        # ベージュ（帯用）
@@ -125,8 +113,17 @@ def generate_eyecatch(place_name: str,
                       landmark: str = "",
                       original_title: str = "",
                       lead_catch: str = None,
+                      sub_heading: str = None,
+                      label_text: str = None,
+                      title_label: str = None,
                       output_path: Path = None) -> Path:
-    """ライト記事アイキャッチ v6：ベージュ帯拡張＋過去記事太字2段＋場所カードに目印追加"""
+    """ライト記事アイキャッチ v6：ベージュ帯拡張＋過去記事太字2段＋場所カードに目印追加
+
+    lead_catch: E列「見出し1」上書き（上の赤枠キャッチ：続報なら「あの記事の、答え合わせ」デフォ）
+    sub_heading: X列「見出し2」上書き（下の赤枠：「その後、どうなった？」デフォ）
+    label_text: D列「ラベル」上書き（左上黄色バッジ：「【続報】」デフォ）
+    title_label: F列「過去記事ラベル」上書き（過去記事カード上の「▼ 過去記事」デフォ）
+    """
     W, H = 1280, 720
     img = Image.new("RGB", (W, H), color=COLOR_BG)
     draw = ImageDraw.Draw(img)
@@ -191,7 +188,7 @@ def generate_eyecatch(place_name: str,
     mode = MODE_ZOKUHOU if has_original else MODE_OSHIRASE
 
     # ============ ラベル帯＋キャッチ（275-315） ============
-    label_text = mode["label"]
+    label_text = label_text or mode["label"]
     label_font = load_font(FONT_BOLD, 22)
     lbl_bbox = draw.textbbox((0, 0), label_text, font=label_font)
     lbl_w = lbl_bbox[2] - lbl_bbox[0]
@@ -226,15 +223,25 @@ def generate_eyecatch(place_name: str,
                             radius=8, outline=COLOR_TEXT_SUB, width=2)
 
     ptag_font = load_font(FONT_BOLD, 14)
-    ptag_text = mode["title_label"]
+    ptag_text = title_label or mode["title_label"]
     draw.text((title_x + 14, title_y + 8), ptag_text,
               font=ptag_font, fill=COLOR_TEXT_SUB)
 
     # 本文（太字・2段まで・縦中央揃え）
+    # 過去記事タイトル：2行に確実に収まる最大フォントサイズを自動探索（18→12pt）
     if True:
-        title_font = load_font(FONT_BOLD, 18)
+        title_max_w = title_w - 28
+        title_font = None
+        for size in range(18, 11, -1):
+            f_try = load_font(FONT_BOLD, size)
+            lines_try = wrap_text(title_to_show, f_try, title_max_w, draw)
+            if len(lines_try) <= 2:
+                title_font = f_try
+                break
+        if title_font is None:
+            title_font = load_font(FONT_BOLD, 12)
         truncated = truncate_text(title_to_show, title_font,
-                                   title_w - 28, draw, max_lines=2)
+                                   title_max_w, draw, max_lines=2)
 
         # multiline_text 全体の高さを計測して縦中央配置
         ml_bbox = draw.multiline_textbbox((0, 0), truncated,
@@ -286,7 +293,7 @@ def generate_eyecatch(place_name: str,
                    fill=COLOR_ACCENT)
 
     end_label_font = load_font(FONT_BOLD, 14)
-    end_label = "▼ その後、どうなった？"
+    end_label = "▼ " + (sub_heading or "その後、どうなった？")
     bbox = draw.textbbox((0, 0), end_label, font=end_label_font)
     elw = bbox[2] - bbox[0]
     draw.text((left_x + (card_w - elw) // 2, line_y + 12),
@@ -382,7 +389,7 @@ def generate_eyecatch(place_name: str,
     # === 保存 ===
     if output_path is None:
         output_path = ROOT / "_sample" / "eyecatch_sample.png"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
     img.save(output_path, "PNG")
     return output_path
@@ -394,9 +401,17 @@ def generate_ig_feed(place_name: str,
                       landmark: str = "",
                       original_title: str = "",
                       lead_catch: str = None,
+                      sub_heading: str = None,
+                      label_text: str = None,
+                      title_label: str = None,
                       output_path: Path = None) -> Path:
     """Instagram Feed 用画像 1080×1350（4:5 縦長）
     リールと同じ縦積み構造（ブランドヘッダー＋ベージュ帯＋【続報】＋過去記事＋2カード縦積み）
+
+    lead_catch: E列「見出し1」上書き（上の赤枠キャッチ）
+    sub_heading: X列「見出し2」上書き（下の赤枠）
+    label_text: D列「ラベル」上書き（左上黄色バッジ）
+    title_label: F列「過去記事ラベル」上書き（過去記事カード上）
     """
     W, H = 1080, 1350
     img = Image.new("RGB", (W, H), color=COLOR_BG)
@@ -460,7 +475,7 @@ def generate_ig_feed(place_name: str,
 
     # ============ ラベル帯＋キャッチ ============
     y = band_y_bottom + 30
-    label_text = mode["label"]
+    label_text = label_text or mode["label"]
     label_font = load_font(FONT_BOLD, 30)
     lbl_bbox = draw.textbbox((0, 0), label_text, font=label_font)
     lbl_w = lbl_bbox[2] - lbl_bbox[0]
@@ -484,7 +499,7 @@ def generate_ig_feed(place_name: str,
 
     # ============ 過去記事タイトル枠 ============
     title_to_show = original_title if has_original else f"管理人が気になった、{place_name}の話"
-    ptag_text = mode["title_label"]
+    ptag_text = title_label or mode["title_label"]
 
     title_x = margin_x
     title_w = content_w
@@ -496,9 +511,20 @@ def generate_ig_feed(place_name: str,
     draw.text((title_x + 20, y + 14), ptag_text,
               font=ptag_font, fill=COLOR_TEXT_SUB)
 
-    title_font = load_font(FONT_BOLD, 30)
+    # 過去記事タイトル：3行に確実に収まる最大フォントサイズを自動探索（30→18pt）
+    # 18pt でも 3行に収まらない極端な長文だけ truncate_text で「…」省略
+    title_max_w = title_w - 40
+    title_font = None
+    for size in range(30, 17, -1):
+        f_try = load_font(FONT_BOLD, size)
+        lines_try = wrap_text(title_to_show, f_try, title_max_w, draw)
+        if len(lines_try) <= 3:
+            title_font = f_try
+            break
+    if title_font is None:
+        title_font = load_font(FONT_BOLD, 18)
     truncated = truncate_text(title_to_show, title_font,
-                               title_w - 40, draw, max_lines=3)
+                               title_max_w, draw, max_lines=3)
     ml_bbox = draw.multiline_textbbox((0, 0), truncated,
                                        font=title_font, spacing=8)
     ml_h = ml_bbox[3] - ml_bbox[1]
@@ -570,7 +596,7 @@ def generate_ig_feed(place_name: str,
                    fill=COLOR_ACCENT)
 
     sub_label_y = line_y + GAP_AFTER_LINE
-    end_label = "▼ その後、どうなった？"
+    end_label = "▼ " + (sub_heading or "その後、どうなった？")
     bbox = draw.textbbox((0, 0), end_label, font=label_small_c)
     elw = bbox[2] - bbox[0]
     draw.text((cx_card - elw // 2, sub_label_y), end_label,
@@ -643,7 +669,7 @@ def generate_ig_feed(place_name: str,
 
     if output_path is None:
         output_path = ROOT / "_sample" / "ig_feed_sample.png"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(output_path, "PNG")
     return output_path
 
