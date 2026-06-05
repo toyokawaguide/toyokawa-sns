@@ -4,6 +4,8 @@ eyecatch_generator.py — ライト記事のアイキャッチ自動生成 v5
 """
 from __future__ import annotations
 import argparse
+import os
+import platform
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
@@ -13,9 +15,17 @@ LOGO_PATH = ASSETS / "logo.png"
 LOGO_WHITE_PATH = ASSETS / "toyokawaguide-logo white.png"
 LIGHT_BASE = Path("G:/マイドライブ/ライト記事")
 
-FONT_BOLD = "C:/Windows/Fonts/yugothb.ttc"
-FONT_REG = "C:/Windows/Fonts/yugothm.ttc"
-FONT_FALLBACK = "C:/Windows/Fonts/msgothic.ttc"
+# フォント：Windows（ローカル開発）と Linux/GHA（本番）で自動切替
+# GHA は post_light_article.yml が LIGHT_FONT_DIR=/tmp/light_fonts に NotoSansCJK を用意する
+if platform.system() == "Windows":
+    FONT_BOLD = "C:/Windows/Fonts/yugothb.ttc"
+    FONT_REG = "C:/Windows/Fonts/yugothm.ttc"
+    FONT_FALLBACK = "C:/Windows/Fonts/msgothic.ttc"
+else:
+    _font_dir = os.environ.get("LIGHT_FONT_DIR", "/tmp/light_fonts")
+    FONT_BOLD = f"{_font_dir}/NotoSansCJK-Bold.ttc"
+    FONT_REG = f"{_font_dir}/NotoSansCJK-Regular.ttc"
+    FONT_FALLBACK = f"{_font_dir}/NotoSansCJK-Regular.ttc"
 
 COLOR_BG = (26, 58, 138)             # 深い紺
 COLOR_BEIGE = (252, 245, 230)        # ベージュ（帯用）
@@ -47,7 +57,10 @@ def load_font(path: str, size: int):
     try:
         return ImageFont.truetype(path, size)
     except OSError:
-        return ImageFont.truetype(FONT_FALLBACK, size)
+        try:
+            return ImageFont.truetype(FONT_FALLBACK, size)
+        except OSError:
+            return ImageFont.load_default()
 
 
 def fit_text_to_width(text: str, font_path: str, max_width: int,
