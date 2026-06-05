@@ -402,7 +402,8 @@ def generate_eyecatch(place_name: str,
     # === 保存 ===
     if output_path is None:
         output_path = ROOT / "_sample" / "eyecatch_sample.png"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+    # 出力先ディレクトリを必ず作成（GHA に _sample が無くても保存できるように）
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
     img.save(output_path, "PNG")
     return output_path
@@ -682,7 +683,7 @@ def generate_ig_feed(place_name: str,
 
     if output_path is None:
         output_path = ROOT / "_sample" / "ig_feed_sample.png"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     img.save(output_path, "PNG")
     return output_path
 
