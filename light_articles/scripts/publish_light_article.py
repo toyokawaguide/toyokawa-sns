@@ -503,8 +503,10 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
             for f in sns_failures:
                 log(f"  ❌ {f}", 2)
         else:
-            update_status(row_index, "予約済")
-            log(f"📊 Sheets 状態更新: {row_index} 行目 → 予約済", 1)
+            # SNS完全成功 → 「投稿済」に更新（get_pending_rows は draft/予約済 のみ拾うので、
+            # cronが遅延多重発火しても投稿済はskip＝SNS重複投稿を根絶）
+            update_status(row_index, "投稿済")
+            log(f"📊 Sheets 状態更新: {row_index} 行目 → 投稿済（SNS投稿完了・cron再発火でも再投稿しない）", 1)
 
     # === Step 6: Gmail通知（X予約用テキスト） ===
     # draft時は X通知も送らない（公開予定が確定してないため）
