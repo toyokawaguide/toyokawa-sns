@@ -152,55 +152,9 @@ jobs:
           "
 
       # ─────────────────────────────────────
-      # ライト記事 WP予約投稿（朝5時 cron で確実実行）
+      # ライト記事の朝5時予約は廃止（2026-06-06）
+      # 理由：朝5時の予約作成（lr010）と 夜19時Cloudflareの公開（lr010-2）が
+      #       WP記事を二重作成する不具合が発生（LR010で実害）。
+      # → ライト記事は Cloudflare Cron 19時（post_light_article.yml）だけに一本化。
+      #   19時に WP作成＋公開＋SNS投稿を一気に行う（二重作成なし）。
       # ─────────────────────────────────────
-      # 2026-06-01 設計：占いの cron（朝5時・99%安定）を使ってライト記事の WP予約投稿だけ作成。
-      # WP 内部の予約投稿機能（status=future）で 19:00 に自動 publish される。
-      # SNS は別途 post_light_article.yml の cron（19/19:30/20/22時）で投稿。
-      #
-      # メリット：
-      # - 19:00 cron が不発でも WP記事は確実に19時公開（WP内部cronで動く）
-      # - 朝公開バグは再発しない（status=future なので朝5時にpublishされない）
-      # - SNS失敗時は WP記事だけ公開・後で社長手動 SNS でリカバー可能
-      # 朝5時 占い cron 内でライト記事の WP予約投稿のみ作成（SNS は別cron）
-      # 2026-06-02 朝公開バグ対策：publish_light_article.py に時刻ガード追加（18:30-23:00以外はskip）
-      # → 朝5時 wp-only モードは時刻ガード対象外（SNS出ないので朝公開バグ起きない）
-      - name: ライト記事 セットアップ
-        if: success()
-        working-directory: light_articles/scripts
-        run: |
-          pip install -r requirements.txt
-          echo "${{ secrets.LIGHT_GOOGLE_CREDENTIALS_B64 }}" | base64 -d > credentials.json
-          mkdir -p _assets
-          echo "${{ secrets.LIGHT_GOOGLE_TOKEN_B64 }}" | base64 -d > _assets/sheets_token.json
-
-      - name: ライト記事 ffmpeg（Reel生成に必要）
-        if: success()
-        run: |
-          if command -v ffmpeg > /dev/null; then
-            echo "ffmpeg プリインストール済み"
-          else
-            sudo apt-get update && sudo apt-get install -y ffmpeg
-          fi
-
-      - name: ライト記事 日本語フォント
-        if: success()
-        run: |
-          FONT_DIR=/tmp/light_fonts
-          mkdir -p "$FONT_DIR"
-          BASE_URL="https://github.com/notofonts/noto-cjk/raw/main/Sans/OTC"
-          curl -fsSL --retry 3 --max-time 180 -o "$FONT_DIR/NotoSansCJK-Bold.ttc" "$BASE_URL/NotoSansCJK-Bold.ttc"
-          curl -fsSL --retry 3 --max-time 180 -o "$FONT_DIR/NotoSansCJK-Regular.ttc" "$BASE_URL/NotoSansCJK-Regular.ttc"
-          echo "LIGHT_FONT_DIR=$FONT_DIR" >> $GITHUB_ENV
-
-      - name: ライト記事 WP予約投稿（SNSスキップ）
-        if: success()
-        working-directory: light_articles/scripts
-        env:
-          WP_URL: ${{ secrets.WP_URL }}
-          WP_USERNAME: ${{ secrets.WP_USERNAME }}
-          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
-          PYTHONIOENCODING: utf-8
-        run: |
-          echo "▶ ライト記事 WP予約投稿（朝5時・占い cron 内で実行）"
-          python publish_light_article.py --wp-only || echo "⚠ ライト記事 WP予約投稿失敗（19時 cron で再試行）"
