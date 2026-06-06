@@ -129,6 +129,8 @@ def generate_eyecatch(place_name: str,
                       sub_heading: str = None,
                       label_text: str = None,
                       title_label: str = None,
+                      card_label: str = None,
+                      landmark_label: str = None,
                       output_path: Path = None) -> Path:
     """ライト記事アイキャッチ v6：ベージュ帯拡張＋過去記事太字2段＋場所カードに目印追加
 
@@ -226,7 +228,7 @@ def generate_eyecatch(place_name: str,
     # 元記事あり: F列の内容
     # 元記事なし: 「管理人が気になった、{場所}の話」を自動生成
     title_to_show = original_title if has_original else f"管理人が気になった、{place_name}の話"
-    card_label_text = mode["card_label"]
+    card_label_text = card_label or mode["card_label"]
 
     title_x = 55
     title_y = 335
@@ -375,7 +377,7 @@ def generate_eyecatch(place_name: str,
                    fill=COLOR_ACCENT)
 
     # 「目印」ラベル＋テキスト
-    lm_label = "▼ 目印"
+    lm_label = "▼ " + (landmark_label or "目印")
     bbox = draw.textbbox((0, 0), lm_label, font=end_label_font)
     llw = bbox[2] - bbox[0]
     draw.text((right_x + (card_w - llw) // 2, addr_line_y + 12),
@@ -418,6 +420,8 @@ def generate_ig_feed(place_name: str,
                       sub_heading: str = None,
                       label_text: str = None,
                       title_label: str = None,
+                      card_label: str = None,
+                      landmark_label: str = None,
                       output_path: Path = None) -> Path:
     """Instagram Feed 用画像 1080×1350（4:5 縦長）
     リールと同じ縦積み構造（ブランドヘッダー＋ベージュ帯＋【続報】＋過去記事＋2カード縦積み）
@@ -596,7 +600,7 @@ def generate_ig_feed(place_name: str,
     draw.rounded_rectangle([margin_x, card_y, margin_x + content_w, card_y + card_h],
                             radius=12, outline=COLOR_ACCENT, width=3)
     draw.text((margin_x + 22, card_y + PAD_TOP),
-              mode["card_label"], font=chead_font_c, fill=COLOR_ACCENT)
+              (card_label or mode["card_label"]), font=chead_font_c, fill=COLOR_ACCENT)
 
     place_y = card_y + PAD_TOP + CHEAD_SIZE + GAP_CHEAD
     bbox = draw.textbbox((0, 0), place_name, font=place_font_c)
@@ -659,7 +663,7 @@ def generate_ig_feed(place_name: str,
                        fill=COLOR_ACCENT)
 
         lm_label_y = addr_line_y + GAP_AFTER_LINE
-        lm_label = "▼ 目印"
+        lm_label = "▼ " + (landmark_label or "目印")
         bbox = draw.textbbox((0, 0), lm_label, font=label_small_c)
         llw = bbox[2] - bbox[0]
         draw.text((cx_card - llw // 2, lm_label_y), lm_label,

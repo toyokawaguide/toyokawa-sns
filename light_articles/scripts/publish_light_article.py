@@ -294,12 +294,25 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         eyecatch_sub = row.get("サブ", "お知らせ")  # 後方互換
 
     eyecatch_path = ROOT / "_sample" / f"_tmp_{article_id}_eyecatch.png"
+    # アイキャッチ表示文言の上書き（空欄→None→続報デフォルト＝後方互換）
+    _label   = (row.get("ラベル", "") or "").strip() or None
+    _catch   = (row.get("見出し1", "") or "").strip() or None
+    _tlabel  = (row.get("過去記事ラベル", "") or "").strip() or None
+    _sub1    = (row.get("見出し2", "") or "").strip() or None
+    _clabel  = (row.get("カードラベル", "") or "").strip() or None
+    _lmlabel = (row.get("目印ラベル", "") or "").strip() or None
     generate_eyecatch(
         place_name=place,
         sub_text=eyecatch_sub,
         address=row.get("住所", "豊川市内"),
         landmark=row.get("目印", ""),
         original_title=row.get("元記事タイトル", ""),
+        label_text=_label,
+        lead_catch=_catch,
+        title_label=_tlabel,
+        sub_heading=_sub1,
+        card_label=_clabel,
+        landmark_label=_lmlabel,
         output_path=eyecatch_path,
     )
     log(f"🎨 アイキャッチ生成: {eyecatch_path.name}", 1)
@@ -312,6 +325,12 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         address=row.get("住所", "豊川市内"),
         landmark=row.get("目印", ""),
         original_title=row.get("元記事タイトル", ""),
+        label_text=_label,
+        lead_catch=_catch,
+        title_label=_tlabel,
+        sub_heading=_sub1,
+        card_label=_clabel,
+        landmark_label=_lmlabel,
         output_path=ig_feed_path,
     )
     log(f"📷 IG Feed画像生成: {ig_feed_path.name}", 1)
