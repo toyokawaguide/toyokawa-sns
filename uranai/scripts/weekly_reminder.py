@@ -125,7 +125,7 @@ def build_x_reservation_text(d: date, wd: str, name: str | None, is_chain: bool)
         return (
             f"🔮{md}({wd_jp})今週まとめ&来週運勢\n\n"
             f"今週も1週間お疲れさまでした!\n\n"
-            f"🌱今週のラッキースポット6選と\n"
+            f"🌱今週のラッキースポット6選まとめと\n"
             f"来週の運勢のヒントは記事で👇\n\n"
             f"{url}\n\n"
             f"明日からまた毎朝のお楽しみに✨\n\n"
