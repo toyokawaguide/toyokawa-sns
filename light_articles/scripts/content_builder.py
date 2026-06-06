@@ -89,8 +89,9 @@ def build_content(row: dict, eyecatch_id: int = None,
     # === リード文 ===
     if has_original:
         _, wp_predicate = _detect_zokuhou_lead(row)
+        _wp_pre = row.get("リード接頭", "").strip() or "以前ご紹介した"
         parts.append(f"<!-- wp:paragraph -->")
-        parts.append(f"<p>以前ご紹介した<strong>{place}</strong>の、{wp_predicate}</p>")
+        parts.append(f"<p>{_wp_pre}<strong>{place}</strong>の、{wp_predicate}</p>")
         parts.append(f"<!-- /wp:paragraph -->")
         parts.append("")
 
@@ -244,6 +245,15 @@ def _detect_zokuhou_lead(row: dict) -> tuple[str, str]:
     - caption_lead: SNSキャプション用フル文（絵文字あり）
     - wp_predicate: WP本文用述語（場所名の後に続く・絵文字なし）
     """
+    # リード接頭/接尾（V/W列・プルダウン）が指定されてれば最優先（自動判定より優先）
+    _pre = row.get("リード接頭", "").strip()
+    _suf = row.get("リード接尾", "").strip()
+    if _pre or _suf:
+        p = _pre or "以前ご紹介した"
+        s = _suf or "の、その後が分かりました🤝"
+        wp_pred = s.lstrip("の、 ").rstrip("🤝🎉😢👀… ").strip() or "その後が分かりました。"
+        return (f"{p}あの場所{s}", wp_pred)
+
     sub1 = row.get("その後（1段目）", "").strip()
     sub2 = row.get("その後（2段目）", "").strip()
     combined = f"{sub1} {sub2}"
