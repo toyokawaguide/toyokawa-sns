@@ -177,10 +177,12 @@ def check_meta_token() -> dict:
 
 
 def generate_x_captions(start_date: date) -> list[tuple[date, str, str]]:
-    """翌週7日分の X 予約投稿用文面を生成（dry-run dummy data ベース）"""
-    from caption import make_x_caption
+    """翌週7日分の X 予約投稿用文面を生成。
+    ⚠️ 予約投稿には占いTOP3（ダミー変動値）を載せない。build_x_reservation_text の
+    安全版（テーマ名＋リンク誘導＋確定ラッキースポットのみ）を使う。
+    予約時点では実配信の順位が未確定 → TOP3を書くと実配信と食い違うため。
+    （2026-06-07 ダミーTOP3版から切替・feedback_scheduled_post_safe_content 準拠）"""
     from select_lucky_spot import select_lucky_spot
-    from generate_text import _dummy_template_data
 
     weekday_keys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
     results = []
@@ -189,24 +191,11 @@ def generate_x_captions(start_date: date) -> list[tuple[date, str, str]]:
         wd = weekday_keys[d.weekday()]
         try:
             spot = select_lucky_spot(d)
+            name = getattr(spot, "name", None)
+            is_chain = getattr(spot, "is_chain", False)
         except Exception:
-            continue
-        data = _dummy_template_data(wd, d, spot)
-        # 日曜は spots_week 補完
-        if wd == "sun":
-            spots_week = data.get("spots_week", {})
-            if not spots_week:
-                spots_week = {}
-                for j, k in enumerate(["mon", "tue", "wed", "thu", "fri", "sat"]):
-                    past_d = d - timedelta(days=6 - j)
-                    try:
-                        spots_week[k] = select_lucky_spot(past_d).name
-                    except Exception:
-                        pass
-                data["spots_week"] = spots_week
-        ymd = d.strftime("%Y%m%d")
-        post_url = f"https://toyokawa-rentallife.com/{d.year}/{d.month:02d}/{d.day:02d}/uranai-{ymd}/"
-        cap = make_x_caption(wd, data, spot, d, post_url)
+            name, is_chain = None, False
+        cap = build_x_reservation_text(d, wd, name, is_chain)
         results.append((d, wd, cap))
     return results
 
