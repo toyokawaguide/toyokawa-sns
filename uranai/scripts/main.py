@@ -33,6 +33,7 @@ import sys
 import json
 import argparse
 import base64
+import html
 from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
@@ -267,6 +268,93 @@ def update_wp_post(post_id: int, title: str, content: str,
     }
 
 
+def update_homepage_uranai_card(post_url: str, title: str, image_url: str | None,
+                                 target_date: date, *, page_id: int = 25,
+                                 dry: bool = False) -> dict:
+    """トップ固定ページ(ID=25)の「占いコーナー」カードを当日の記事に更新する。
+
+    占いカテゴリ(711)はSWELLの「投稿リスト除外」設定のため動的ブロックでは表示
+    できない（"記事が見つかりませんでした"になる）。そこで .uranai-spot-card
+    グループの中身を、当日記事を指す静的カードHTMLで毎日上書きして最新化する。
+    ※メイン配信フローを絶対に止めないよう、呼び出し側で try/except する前提。
+    """
+    WP_URL = os.getenv("WP_URL")
+    if not (WP_URL and os.getenv("WP_USERNAME") and os.getenv("WP_PASSWORD")):
+        return {"status": "skip", "reason": "no_creds"}
+    if not (post_url and image_url and title):
+        return {"status": "skip", "reason": "missing_data"}
+
+    creds = f"{os.getenv('WP_USERNAME')}:{os.getenv('WP_PASSWORD')}"
+    token = base64.b64encode(creds.encode()).decode()
+    auth_header = {"Authorization": f"Basic {token}"}
+
+    r = requests.get(
+        f"{WP_URL}/wp-json/wp/v2/pages/{page_id}",
+        params={"context": "edit", "_fields": "content"},
+        headers=auth_header, timeout=30,
+    )
+    if r.status_code != 200:
+        return {"status": "failed", "error": f"fetch {r.status_code}"}
+    raw = r.json()["content"]["raw"]
+
+    GROUP_OPEN = '<!-- wp:group {"className":"uranai-spot-card"} -->'
+    gstart = raw.find(GROUP_OPEN)
+    if gstart < 0:
+        return {"status": "skip", "reason": "spot_card_group_not_found"}
+    gend = raw.find("<!-- /wp:group -->", gstart)
+    if gend < 0:
+        return {"status": "skip", "reason": "group_end_not_found"}
+    gend_full = gend + len("<!-- /wp:group -->")
+
+    e_url = html.escape(post_url, quote=True)
+    e_img = html.escape(image_url, quote=True)
+    e_title = html.escape(title)
+    date_iso = target_date.strftime("%Y-%m-%d")
+    date_jp = f"{target_date.year}年{target_date.month:02d}月{target_date.day:02d}日"
+
+    new_group = (
+        GROUP_OPEN + "\n"
+        '<div class="wp-block-group uranai-spot-card">\n'
+        "<!-- wp:html -->\n"
+        '<div class="uranai-feature-wrap">\n'
+        '<ul class="p-postList -type-card -pc-col1 -sp-col1">\n'
+        '<li class="p-postList__item">\n'
+        f'<a href="{e_url}" class="p-postList__link">\n'
+        '<div class="p-postList__thumb c-postThumb">\n'
+        '<figure class="c-postThumb__figure">\n'
+        f'<img src="{e_img}" alt="" class="c-postThumb__img u-obf-cover" width="1024" height="576" loading="lazy">\n'
+        "</figure>\n</div>\n"
+        '<div class="p-postList__body">\n'
+        f'<h2 class="p-postList__title">{e_title}</h2>\n'
+        '<div class="p-postList__meta">\n'
+        '<div class="p-postList__times c-postTimes u-thin">\n'
+        f'<time class="c-postTimes__posted icon-posted" datetime="{date_iso}" aria-label="公開日">{date_jp}</time>\n'
+        "</div>\n"
+        '<span class="p-postList__cat u-thin icon-folder">占い</span>\n'
+        "</div>\n</div>\n</a>\n</li>\n</ul>\n</div>\n"
+        "<style>\n"
+        ".uranai-feature-wrap{max-width:800px;margin:0 auto;}\n"
+        ".uranai-feature-wrap .p-postList__item{width:100%!important;float:none!important;}\n"
+        "</style>\n"
+        "<!-- /wp:html -->\n"
+        "</div>\n"
+        "<!-- /wp:group -->"
+    )
+    new_raw = raw[:gstart] + new_group + raw[gend_full:]
+    if new_raw == raw:
+        return {"status": "nochange"}
+    if dry:
+        return {"status": "dry_ok", "new_len": len(new_raw)}
+
+    headers_post = {**auth_header, "Content-Type": "application/json"}
+    body = json.dumps({"content": new_raw}, ensure_ascii=False).encode("utf-8")
+    resp = requests.post(f"{WP_URL}/wp-json/wp/v2/pages/{page_id}",
+                         headers=headers_post, data=body, timeout=30)
+    if resp.status_code != 200:
+        return {"status": "failed", "error": f"{resp.status_code} {resp.text[:150]}"}
+    return {"status": "ok", "post_url": post_url}
+
+
 def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, skip_wp: bool = False) -> dict:
     weekday_idx = target_date.weekday()
     weekday_key = WEEKDAY_KEYS[weekday_idx]
@@ -395,6 +483,20 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
                     "link": wp_res.get("link"),
                     "preview_url": wp_res.get("preview_url"),
                 }
+
+    # ---------- Step 5.5: トップページの占いカードを最新記事へ更新 ----------
+    if publish and post_url:
+        print("\n[5.5] トップページ占いカード更新")
+        try:
+            hp_res = update_homepage_uranai_card(
+                post_url=post_url, title=article["title"],
+                image_url=wp_image_url, target_date=target_date,
+            )
+            print(f"  → {hp_res.get('status')} {hp_res.get('reason', '')}{hp_res.get('error', '')}")
+            result["steps"]["homepage_card"] = hp_res
+        except Exception as e:
+            print(f"  [warn] トップ占いカード更新失敗（メインフロー継続）: {e}")
+            result["steps"]["homepage_card"] = {"status": "failed", "error": str(e)}
 
     # ---------- Step 6: SNS 投稿 ----------
     print("\n[6/7] SNS投稿（X / Threads / Instagram）")
