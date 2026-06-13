@@ -1,19 +1,25 @@
-name: 占い配信（毎朝6時 JST・05:00発火で遅延吸収）
+name: 占い配信（WP早朝公開＋SNS6:00・分離版）
+
+# 【設計 2026-06-13】WP公開とSNS投稿を分離（Xの6時投稿前に記事を確実公開するため）
+#  - WP公開（--wp-only・SNS無し）を早朝に複数回リトライ（04:30/05:00/05:30 JST）
+#    → SNSを含まないので何度リトライしても二重投稿にならない＝確実に6時前公開
+#  - SNS投稿（--sns-only）は 06:00 JST に1回だけ。早朝ジョブが保存した bridge を
+#    GHAキャッシュ経由で受け取り、Claude API再呼び出しなし（¥0）でSNSへ
+#  - 手動 workflow_dispatch は従来どおりフル（--publish）で復旧可能
 
 on:
   schedule:
-    - cron: '0 20 * * *'  # 毎日 05:00 JST（UTC 20:00 前日）本配信・GHA遅延吸収版（実態は5:00〜6:30に動く）
-    # 🚨 2026-05-24 一時停止：5/24 配信で IG/Threads 二重投稿が発生したため保険cronを無効化
-    # check_already_published() は WP のみチェックする設計で、IG/Threads の重複は防げない
-    # 原因特定後に復活させる
-    # - cron: '0 0 * * *'   # 保険 09:00 JST（UTC 0:00）失敗自動救済・既公開ならスキップ
+    - cron: '30 19 * * *'  # 04:30 JST  WP公開（早朝・余裕バッファ）
+    - cron: '0 20 * * *'   # 05:00 JST  WP公開リトライ
+    - cron: '30 20 * * *'  # 05:30 JST  WP公開リトライ
+    - cron: '0 21 * * *'   # 06:00 JST  SNS投稿（X除く・Threads/IG/Reels）
   workflow_dispatch:
     inputs:
       target_date:
         description: '対象日 YYYY-MM-DD（空ならJSTの今日）'
         required: false
       mode:
-        description: '実行モード（テスト時のみ dry-run に変更）'
+        description: '実行モード（publish=フル復旧 / dry-run=テスト）'
         type: choice
         options:
           - publish
@@ -22,17 +28,20 @@ on:
 
 permissions:
   contents: read
-  actions: write   # post_light_article.yml を dispatch するため必要
 
 jobs:
   uranai:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Reels動画のIG側処理待ち（最大5分ポーリング×3回リトライ=18分）に余裕を持たせる
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: uranai/scripts
     steps:
       - uses: actions/checkout@v4
+
+      - name: 対象日（JST）を確定
+        id: d
+        run: echo "ymd=$(TZ=Asia/Tokyo date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
       - name: Python セットアップ
         uses: actions/setup-python@v5
@@ -41,43 +50,38 @@ jobs:
           cache: 'pip'
           cache-dependency-path: uranai/scripts/requirements.txt
 
-      - name: 日本語フォントセットアップ（GitHub直接DL方式・apt-get廃止）
+      - name: 日本語フォントセットアップ（GitHub直接DL方式）
         run: |
-          # apt-get fonts-noto-cjk は Azure Ubuntu Mirror 経由で61.2MBを取得するが
-          # 数分かかることがあるため、GitHub Raw 経由で直接DLに変更（数十秒で完了）
           SAFE_FONT_DIR=/tmp/uranai_fonts
           mkdir -p "$SAFE_FONT_DIR"
           BASE_URL="https://github.com/notofonts/noto-cjk/raw/main/Sans/OTC"
-          echo "フォント直接DL: $BASE_URL"
-          curl -fsSL --retry 3 --max-time 180 \
-            -o "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc" \
-            "$BASE_URL/NotoSansCJK-Bold.ttc"
-          curl -fsSL --retry 3 --max-time 180 \
-            -o "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc" \
-            "$BASE_URL/NotoSansCJK-Regular.ttc"
-          # コードが要求する Black/Medium も同じファイルで代用
+          curl -fsSL --retry 3 --max-time 180 -o "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc" "$BASE_URL/NotoSansCJK-Bold.ttc"
+          curl -fsSL --retry 3 --max-time 180 -o "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc" "$BASE_URL/NotoSansCJK-Regular.ttc"
           cp "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc" "$SAFE_FONT_DIR/NotoSansCJK-Black.ttc"
           cp "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc" "$SAFE_FONT_DIR/NotoSansCJK-Medium.ttc"
-          # サイズ確認（途中切れ等を検出）
           ls -la "$SAFE_FONT_DIR"/NotoSansCJK-*
-          # 後続ステップに固定パスを引き継ぐ
           echo "URANAI_FONT_DIR=$SAFE_FONT_DIR" >> $GITHUB_ENV
 
-      - name: ffmpeg 確認（プリインストール優先・apt-getフォールバック）
+      - name: ffmpeg 確認（プリインストール優先）
         run: |
-          # FedericoCarboni/setup-ffmpeg@v3 は外部サイト(johnvansickle)依存で
-          # "Failed to get latest johnvansickle ffmpeg release" で落ちる事故あり(2026-05-18 #48)。
-          # ubuntu-latest は ffmpeg プリインストール済みなので外部依存を排除。
           if command -v ffmpeg >/dev/null 2>&1; then
             echo "ffmpeg プリインストール済み: $(ffmpeg -version | head -1)"
           else
-            echo "ffmpeg 未検出 → apt-get で導入"
             sudo apt-get update && sudo apt-get install -y ffmpeg
           fi
           ffmpeg -version | head -1
 
       - name: ライブラリインストール
         run: pip install -r requirements.txt
+
+      # bridge（早朝WP公開ジョブが保存した生成データ）を復元
+      #  - WPリトライ：前の成功ジョブの bridge を受け取り skip-if-published 判定に使う
+      #  - 06:00 SNSジョブ：早朝ジョブの bridge を受け取って SNS投稿に使う（再生成・再課金なし）
+      - name: bridge キャッシュ復元
+        uses: actions/cache/restore@v4
+        with:
+          path: uranai/output/bridge_${{ steps.d.outputs.ymd }}.json
+          key: uranai-bridge-${{ steps.d.outputs.ymd }}
 
       - name: 占い配信実行
         env:
@@ -99,26 +103,36 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           URANAI_SHEETS_URL: ${{ secrets.URANAI_SHEETS_URL }}
           URANAI_SHEETS_SECRET: ${{ secrets.URANAI_SHEETS_SECRET }}
-          # URANAI_FONT_DIR は前ステップで $GITHUB_ENV に動的に設定済み
         run: |
           DATE_ARG=""
           if [ -n "${{ github.event.inputs.target_date }}" ]; then
             DATE_ARG="--date ${{ github.event.inputs.target_date }}"
           fi
-          MODE_FLAGS=""
+          SCHED="${{ github.event.schedule }}"
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            MODE_FLAGS="--publish"
-            # 09:00 JST 保険cron は「既に公開済みなら何もしない」を付与（二重投稿防止）
-            if [ "${{ github.event.schedule }}" = "0 0 * * *" ]; then
-              MODE_FLAGS="--publish --skip-if-published"
+            if [ "$SCHED" = "0 21 * * *" ]; then
+              FLAGS="--sns-only"                               # 06:00 SNS投稿のみ
+            else
+              FLAGS="--publish --wp-only --skip-if-published"  # 早朝 WP公開のみ（リトライ安全）
             fi
           elif [ "${{ github.event.inputs.mode }}" = "publish" ]; then
-            MODE_FLAGS="--publish"
+            FLAGS="--publish"                                  # 手動フル復旧（WP+SNS一括）
           else
-            MODE_FLAGS="--dry --skip-wp"
+            FLAGS="--dry --skip-wp"                            # 手動テスト
           fi
-          echo "実行コマンド: python main.py $DATE_ARG $MODE_FLAGS"
-          python main.py $DATE_ARG $MODE_FLAGS
+          echo "実行コマンド: python main.py $DATE_ARG $FLAGS"
+          python main.py $DATE_ARG $FLAGS
+
+      # 早朝WP公開ジョブが作った bridge を保存（06:00 SNSジョブが受け取る）
+      #  - SNSを含む 06:00 / 手動 では保存しない（bridge無し・SNSは直に投稿済）
+      #  - continue-on-error: bridge未生成(WP失敗) や key既存(リトライ) でも落とさない
+      - name: bridge キャッシュ保存
+        if: github.event_name == 'schedule' && github.event.schedule != '0 21 * * *'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: uranai/output/bridge_${{ steps.d.outputs.ymd }}.json
+          key: uranai-bridge-${{ steps.d.outputs.ymd }}
 
       - name: 動画アーティファクトをアップロード（dry-run時のみ）
         if: github.event.inputs.mode == 'dry-run'
@@ -150,11 +164,3 @@ jobs:
               s.login(os.environ['GMAIL_USER'], os.environ['GMAIL_APP_PASSWORD'])
               s.send_message(msg)
           "
-
-      # ─────────────────────────────────────
-      # ライト記事の朝5時予約は廃止（2026-06-06）
-      # 理由：朝5時の予約作成（lr010）と 夜19時Cloudflareの公開（lr010-2）が
-      #       WP記事を二重作成する不具合が発生（LR010で実害）。
-      # → ライト記事は Cloudflare Cron 19時（post_light_article.yml）だけに一本化。
-      #   19時に WP作成＋公開＋SNS投稿を一気に行う（二重作成なし）。
-      # ─────────────────────────────────────

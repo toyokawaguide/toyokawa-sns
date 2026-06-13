@@ -355,7 +355,113 @@ def update_homepage_uranai_card(post_url: str, title: str, image_url: str | None
     return {"status": "ok", "post_url": post_url}
 
 
-def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, skip_wp: bool = False) -> dict:
+def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video):
+    """X / Threads / Instagram(Feed+Reels) へ投稿。run_pipeline と run_sns_only 共通。"""
+    from post_x_uranai import post_x_uranai
+    from post_threads_uranai import post_threads_uranai
+    from post_instagram_uranai import (post_instagram_uranai,
+                                        post_instagram_uranai_reel_resumable)
+    sns_results = {}
+
+    print("  [X]")
+    x_res = post_x_uranai(weekday_key=weekday_key, data=data, spot=spot,
+                          target_date=target_date, post_url=post_url, dry=False)
+    print(f"     status={x_res['status']}  url={x_res.get('url')}")
+    sns_results["x"] = x_res
+
+    print("  [Threads]")
+    th_res = post_threads_uranai(weekday_key=weekday_key, data=data, spot=spot,
+                                 target_date=target_date, post_url=post_url, dry=False)
+    print(f"     status={th_res['status']}  post_id={th_res.get('post_id')}")
+    sns_results["threads"] = th_res
+
+    print("  [Instagram Feed]")
+    if not ig_image_url:
+        print("     [skip] IG画像URL未取得")
+        sns_results["instagram"] = {"status": "skipped", "reason": "no_ig_url"}
+    else:
+        ig_res = post_instagram_uranai(weekday_key=weekday_key, data=data, spot=spot,
+                                       target_date=target_date, ig_image_url=ig_image_url, dry=False)
+        print(f"     status={ig_res['status']}  post_id={ig_res.get('post_id')}")
+        sns_results["instagram"] = ig_res
+
+    print("  [Instagram Reels（Resumable Upload）]")
+    if not (reel_video and Path(reel_video).exists()):
+        print(f"     [skip] Reel動画ファイル未生成: {reel_video}")
+        sns_results["instagram_reel"] = {"status": "skipped", "reason": "no_reel_file"}
+    else:
+        ig_reel_res = post_instagram_uranai_reel_resumable(
+            weekday_key=weekday_key, data=data, spot=spot,
+            target_date=target_date, video_path=reel_video, cover_path=None, dry=False)
+        print(f"     status={ig_reel_res['status']}  post_id={ig_reel_res.get('post_id')}")
+        sns_results["instagram_reel"] = ig_reel_res
+
+    return sns_results
+
+
+def run_sns_only(target_date: date) -> dict:
+    """別ジョブ（6:00）：WP公開ジョブが保存した bridge を読み、SNSのみ投稿する。
+    bridge が無ければSNSはスキップ（記事は既に公開済＝Xリンクは生きてる）＋失敗通知。"""
+    from types import SimpleNamespace
+    weekday_key = WEEKDAY_KEYS[target_date.weekday()]
+    weekday_jp = WEEKDAY_JP[target_date.weekday()]
+    print(f"\n{'='*60}\n占い SNS投稿のみ  {target_date} ({weekday_jp})\n{'='*60}\n")
+
+    bridge_file = OUTPUT_DIR / f"bridge_{target_date}.json"
+    if not bridge_file.exists():
+        msg = f"bridge未保存: {bridge_file}（WP公開ジョブ未完 or キャッシュ未連携）→ SNSスキップ"
+        print(f"  [error] {msg}")
+        try:
+            notify_uranai_failure(RuntimeError(msg),
+                                  context={"target_date": str(target_date), "phase": "sns_only"})
+        except Exception:
+            pass
+        return {"status": "no_bridge"}
+
+    bridge = json.loads(bridge_file.read_text(encoding="utf-8"))
+    data = bridge.get("data", {})
+    items = bridge.get("items", [])
+    spot = SimpleNamespace(**bridge.get("spot", {"name": "", "is_chain": False, "source": "", "area": ""}))
+    post_url = bridge.get("post_url")
+    ig_image_url = bridge.get("ig_image_url")
+    print(f"  bridge読込OK: spot={spot.name}  post_url={post_url}")
+
+    # Reel動画をローカル再生成（¥0・Claude非使用）
+    reel_video = OUTPUT_DIR / f"{target_date}_{weekday_key}_reel.mp4"
+    try:
+        from generate_reel import generate_reel
+        generate_reel(target_date=target_date, weekday_key=weekday_key, items=items,
+                      spot={"name": spot.name, "area": getattr(spot, "area", "")},
+                      output_path=reel_video, data=data)
+        print(f"  Reel再生成: {reel_video.name} ({reel_video.stat().st_size/1024:.0f}KB)")
+    except Exception as e:
+        print(f"  [warn] Reel再生成失敗（Feed等は継続）: {e}")
+        reel_video = None
+
+    sns_results = post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video)
+
+    # 配信ログ
+    try:
+        claude_path = ROOT.parent / "claude"
+        if str(claude_path) not in sys.path:
+            sys.path.insert(0, str(claude_path))
+        from sns_log import append_log
+        memo_parts = ["占い", weekday_key]
+        from datetime import date as _date
+        if _date(2026, 5, 11) <= target_date <= _date(2026, 5, 17):
+            memo_parts.append("テスト配信中")
+        append_log(title=bridge.get("title") or f"今日の占い {target_date}",
+                   url=post_url, time="06:00", memo=" / ".join(memo_parts))
+        print("  → 配信ログ追記OK")
+    except Exception as e:
+        print(f"  [warn] 配信ログ失敗: {e}")
+
+    print(f"\n{'='*60}\nSNS投稿完了: {target_date}\n{'='*60}")
+    return {"status": "ok", "sns": sns_results}
+
+
+def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
+                 skip_wp: bool = False, wp_only: bool = False) -> dict:
     weekday_idx = target_date.weekday()
     weekday_key = WEEKDAY_KEYS[weekday_idx]
     weekday_jp = WEEKDAY_JP[weekday_idx]
@@ -498,6 +604,30 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
             print(f"  [warn] トップ占いカード更新失敗（メインフロー継続）: {e}")
             result["steps"]["homepage_card"] = {"status": "failed", "error": str(e)}
 
+    # ---------- WP-only モード：bridge を保存して SNS/ログは別ジョブ(6:00)へ委譲 ----------
+    if wp_only:
+        if post_url:
+            bridge = {
+                "weekday_key": weekday_key,
+                "title": article["title"],
+                "data": article.get("data", {}),
+                "items": items,
+                "spot": {"name": spot.name, "is_chain": getattr(spot, "is_chain", False),
+                          "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
+                "post_url": post_url,
+                "ig_image_url": ig_image_url,
+            }
+            (OUTPUT_DIR / f"bridge_{target_date}.json").write_text(
+                json.dumps(bridge, ensure_ascii=False), encoding="utf-8")
+            print("\n  [wp-only] bridge保存 → SNSは6:00の別ジョブで投稿")
+            result["steps"]["sns"] = {"status": "deferred", "reason": "wp_only"}
+        else:
+            print("\n  [wp-only] WP未公開のため bridge保存せず（次リトライへ）")
+            result["steps"]["sns"] = {"status": "deferred", "reason": "wp_not_published"}
+        result["steps"]["log"] = {"status": "deferred"}
+        print(f"\n{'='*60}\nパイプライン完了(wp-only): {target_date}\n{'='*60}")
+        return result
+
     # ---------- Step 6: SNS 投稿 ----------
     print("\n[6/7] SNS投稿（X / Threads / Instagram）")
     sns_results = {}
@@ -537,55 +667,8 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False, sk
         print("  → [skip] WP投稿失敗のため SNS投稿スキップ")
         result["steps"]["sns"] = {"status": "skipped", "reason": "wp_failed"}
     else:
-        from post_x_uranai import post_x_uranai
-        from post_threads_uranai import post_threads_uranai
-        from post_instagram_uranai import post_instagram_uranai
-
-        print("  [X]")
-        x_res = post_x_uranai(
-            weekday_key=weekday_key, data=article.get("data", {}), spot=spot,
-            target_date=target_date, post_url=post_url, dry=False,
-        )
-        print(f"     status={x_res['status']}  url={x_res.get('url')}")
-        sns_results["x"] = x_res
-
-        print("  [Threads]")
-        th_res = post_threads_uranai(
-            weekday_key=weekday_key, data=article.get("data", {}), spot=spot,
-            target_date=target_date, post_url=post_url, dry=False,
-        )
-        print(f"     status={th_res['status']}  post_id={th_res.get('post_id')}")
-        sns_results["threads"] = th_res
-
-        print("  [Instagram Feed]")
-        if not ig_image_url:
-            print("     [skip] IG画像URL未取得（WP メディアアップ失敗）")
-            sns_results["instagram"] = {"status": "skipped", "reason": "no_ig_url"}
-        else:
-            ig_res = post_instagram_uranai(
-                weekday_key=weekday_key, data=article.get("data", {}), spot=spot,
-                target_date=target_date, ig_image_url=ig_image_url, dry=False,
-            )
-            print(f"     status={ig_res['status']}  post_id={ig_res.get('post_id')}")
-            sns_results["instagram"] = ig_res
-
-        # Reels 投稿（ローカル動画を Resumable Upload で直接 Meta へ）
-        # 2026-05-25: External URL 方式（video_url=WP URL）が5/24-25連続失敗→Resumable に切替
-        print("  [Instagram Reels（Resumable Upload）]")
-        if not reel_video.exists():
-            print(f"     [skip] Reel動画ファイル未生成: {reel_video}")
-            sns_results["instagram_reel"] = {"status": "skipped", "reason": "no_reel_file"}
-        else:
-            from post_instagram_uranai import post_instagram_uranai_reel_resumable
-            ig_reel_res = post_instagram_uranai_reel_resumable(
-                weekday_key=weekday_key, data=article.get("data", {}), spot=spot,
-                target_date=target_date, video_path=reel_video,
-                cover_path=None,
-                dry=False,
-            )
-            print(f"     status={ig_reel_res['status']}  post_id={ig_reel_res.get('post_id')}")
-            sns_results["instagram_reel"] = ig_reel_res
-
+        sns_results = post_all_sns(weekday_key, article.get("data", {}), spot,
+                                   target_date, post_url, ig_image_url, reel_video)
         result["steps"]["sns"] = sns_results
 
     # ---------- Step 7: 配信ログ ----------
@@ -635,20 +718,38 @@ def main():
     parser.add_argument("--publish", action="store_true", help="本番公開＋SNS投稿（Phase 3 で実装）")
     parser.add_argument("--skip-wp", action="store_true", help="WP下書き保存もスキップ（ローカル生成のみ）")
     parser.add_argument("--skip-if-published", action="store_true",
-                        help="今日の記事が既にWP公開済みなら何もせず終了（保険cron用・二重投稿防止）")
+                        help="今日の記事が既にWP公開済みなら何もせず終了（リトライ用・二重公開防止）")
+    parser.add_argument("--wp-only", action="store_true",
+                        help="WP公開のみ（SNS無し）＋bridge保存。早朝リトライ安全（SNS二重投稿なし）")
+    parser.add_argument("--sns-only", action="store_true",
+                        help="bridge を読み SNS投稿のみ（6:00別ジョブ用）")
     args = parser.parse_args()
 
     target_date = (
         datetime.strptime(args.date, "%Y-%m-%d").date() if args.date else get_today_jst()
     )
 
-    # 保険cron冪等ガード：06:00 が成功済みなら 09:00 は何もしない
+    # SNS-only モード（6:00 別ジョブ）：bridge から SNS投稿のみ
+    if args.sns_only:
+        try:
+            res = run_sns_only(target_date)
+            print(json.dumps(res, ensure_ascii=False, indent=2, default=str))
+        except Exception as e:
+            try:
+                notify_uranai_failure(e, context={"target_date": str(target_date), "phase": "sns_only"})
+            except Exception:
+                pass
+            raise
+        return
+
+    # 冪等ガード：既にWP公開済みなら何もしない（wp-only 早朝リトライ用）
     if args.skip_if_published and check_already_published(target_date):
-        print(f"[skip] {target_date} は既にWP公開済み → 保険cron冪等スキップ（二重投稿回避）")
+        print(f"[skip] {target_date} は既にWP公開済み → 冪等スキップ（二重公開回避）")
         return
 
     try:
-        result = run_pipeline(target_date, dry=args.dry, publish=args.publish, skip_wp=args.skip_wp)
+        result = run_pipeline(target_date, dry=args.dry, publish=args.publish,
+                              skip_wp=args.skip_wp, wp_only=args.wp_only)
         print()
         print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
     except Exception as e:
