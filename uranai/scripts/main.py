@@ -356,27 +356,57 @@ def update_homepage_uranai_card(post_url: str, title: str, image_url: str | None
 
 
 def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video):
-    """X / Threads / Instagram(Feed+Reels) へ投稿。run_pipeline と run_sns_only 共通。"""
+    """X / Threads / Instagram(Feed+Reels) へ投稿。run_pipeline と run_sns_only 共通。
+    ★既投稿マーカー(sns_done_{date}.json) で、リトライ時に成功済みの媒体は再投稿しない
+      （= 朝6:00/6:30/7:00/8:00 を何度走らせても二重投稿にならない自動リトライの要）。
+      マーカーは GHA キャッシュで各リトライ間に引き継ぐ。"""
     from post_x_uranai import post_x_uranai
     from post_threads_uranai import post_threads_uranai
     from post_instagram_uranai import (post_instagram_uranai,
                                         post_instagram_uranai_reel_resumable)
+    done_file = OUTPUT_DIR / f"sns_done_{target_date}.json"
+    done = {}
+    if done_file.exists():
+        try:
+            done = json.loads(done_file.read_text(encoding="utf-8"))
+            posted = [k for k, v in done.items() if v == "ok"]
+            if posted:
+                print(f"  ✅ 既投稿マーカー: {posted} は再投稿しません（リトライ二重投稿防止）")
+        except Exception:
+            done = {}
+    def mark(platform):
+        done[platform] = "ok"
+        try:
+            done_file.parent.mkdir(parents=True, exist_ok=True)
+            done_file.write_text(json.dumps(done, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
     sns_results = {}
 
     print("  [X]")
-    x_res = post_x_uranai(weekday_key=weekday_key, data=data, spot=spot,
-                          target_date=target_date, post_url=post_url, dry=False)
-    print(f"     status={x_res['status']}  url={x_res.get('url')}")
-    sns_results["x"] = x_res
+    if done.get("x") == "ok":
+        print("     [skip] 既投稿済み"); sns_results["x"] = {"status": "already_posted"}
+    else:
+        x_res = post_x_uranai(weekday_key=weekday_key, data=data, spot=spot,
+                              target_date=target_date, post_url=post_url, dry=False)
+        print(f"     status={x_res['status']}  url={x_res.get('url')}")
+        sns_results["x"] = x_res
+        if x_res.get("status") == "ok": mark("x")
 
     print("  [Threads]")
-    th_res = post_threads_uranai(weekday_key=weekday_key, data=data, spot=spot,
-                                 target_date=target_date, post_url=post_url, dry=False)
-    print(f"     status={th_res['status']}  post_id={th_res.get('post_id')}")
-    sns_results["threads"] = th_res
+    if done.get("threads") == "ok":
+        print("     [skip] 既投稿済み"); sns_results["threads"] = {"status": "already_posted"}
+    else:
+        th_res = post_threads_uranai(weekday_key=weekday_key, data=data, spot=spot,
+                                     target_date=target_date, post_url=post_url, dry=False)
+        print(f"     status={th_res['status']}  post_id={th_res.get('post_id')}")
+        sns_results["threads"] = th_res
+        if th_res.get("status") == "ok": mark("threads")
 
     print("  [Instagram Feed]")
-    if not ig_image_url:
+    if done.get("instagram") == "ok":
+        print("     [skip] 既投稿済み"); sns_results["instagram"] = {"status": "already_posted"}
+    elif not ig_image_url:
         print("     [skip] IG画像URL未取得")
         sns_results["instagram"] = {"status": "skipped", "reason": "no_ig_url"}
     else:
@@ -384,9 +414,12 @@ def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, r
                                        target_date=target_date, ig_image_url=ig_image_url, dry=False)
         print(f"     status={ig_res['status']}  post_id={ig_res.get('post_id')}")
         sns_results["instagram"] = ig_res
+        if ig_res.get("status") == "ok": mark("instagram")
 
     print("  [Instagram Reels（Resumable Upload）]")
-    if not (reel_video and Path(reel_video).exists()):
+    if done.get("instagram_reel") == "ok":
+        print("     [skip] 既投稿済み"); sns_results["instagram_reel"] = {"status": "already_posted"}
+    elif not (reel_video and Path(reel_video).exists()):
         print(f"     [skip] Reel動画ファイル未生成: {reel_video}")
         sns_results["instagram_reel"] = {"status": "skipped", "reason": "no_reel_file"}
     else:
@@ -395,6 +428,7 @@ def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, r
             target_date=target_date, video_path=reel_video, cover_path=None, dry=False)
         print(f"     status={ig_reel_res['status']}  post_id={ig_reel_res.get('post_id')}")
         sns_results["instagram_reel"] = ig_reel_res
+        if ig_reel_res.get("status") == "ok": mark("instagram_reel")
 
     return sns_results
 

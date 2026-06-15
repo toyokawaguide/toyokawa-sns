@@ -13,6 +13,9 @@ on:
     - cron: '0 20 * * *'   # 05:00 JST  WP公開リトライ
     - cron: '30 20 * * *'  # 05:30 JST  WP公開リトライ
     - cron: '0 21 * * *'   # 06:00 JST  SNS投稿（X除く・Threads/IG/Reels）
+    - cron: '30 21 * * *'  # 06:30 JST  SNS自動リトライ（既投稿はマーカーでスキップ＝二重投稿なし）
+    - cron: '0 22 * * *'   # 07:00 JST  SNS自動リトライ
+    - cron: '0 23 * * *'   # 08:00 JST  SNS自動リトライ（最終保険）
   workflow_dispatch:
     inputs:
       target_date:
@@ -83,6 +86,16 @@ jobs:
           path: uranai/output/bridge_${{ steps.d.outputs.ymd }}.json
           key: uranai-bridge-${{ steps.d.outputs.ymd }}
 
+      # SNS既投稿マーカー（どの媒体まで投稿済みか）を前のリトライから引き継ぐ
+      #  restore-keys のプレフィックス一致で「その日の最新マーカー」を取得
+      - name: SNS既投稿マーカー復元
+        uses: actions/cache/restore@v4
+        with:
+          path: uranai/output/sns_done_${{ steps.d.outputs.ymd }}.json
+          key: uranai-snsdone-${{ steps.d.outputs.ymd }}-${{ github.run_id }}
+          restore-keys: |
+            uranai-snsdone-${{ steps.d.outputs.ymd }}-
+
       - name: 占い配信実行
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -110,11 +123,12 @@ jobs:
           fi
           SCHED="${{ github.event.schedule }}"
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            if [ "$SCHED" = "0 21 * * *" ]; then
-              FLAGS="--sns-only"                               # 06:00 SNS投稿のみ
-            else
-              FLAGS="--publish --wp-only --skip-if-published"  # 早朝 WP公開のみ（リトライ安全）
-            fi
+            case "$SCHED" in
+              "0 21 * * *"|"30 21 * * *"|"0 22 * * *"|"0 23 * * *")
+                FLAGS="--sns-only" ;;                          # 06:00〜08:00 SNS投稿（リトライ・既投稿はマーカーでスキップ）
+              *)
+                FLAGS="--publish --wp-only --skip-if-published" ;;  # 早朝 WP公開のみ（リトライ安全）
+            esac
           elif [ "${{ github.event.inputs.mode }}" = "publish" ]; then
             FLAGS="--publish"                                  # 手動フル復旧（WP+SNS一括）
           else
@@ -127,12 +141,22 @@ jobs:
       #  - SNSを含む 06:00 / 手動 では保存しない（bridge無し・SNSは直に投稿済）
       #  - continue-on-error: bridge未生成(WP失敗) や key既存(リトライ) でも落とさない
       - name: bridge キャッシュ保存
-        if: github.event_name == 'schedule' && github.event.schedule != '0 21 * * *'
+        if: github.event_name == 'schedule' && (github.event.schedule == '30 19 * * *' || github.event.schedule == '0 20 * * *' || github.event.schedule == '30 20 * * *')
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
           path: uranai/output/bridge_${{ steps.d.outputs.ymd }}.json
           key: uranai-bridge-${{ steps.d.outputs.ymd }}
+
+      # SNS投稿後、どこまで投稿できたかのマーカーを保存（次のリトライが二重投稿を避けるため）
+      #  SNSジョブ(06:00〜08:00)＋手動publish で保存。always()で部分成功も必ず残す。run_id込みで毎回新キー
+      - name: SNS既投稿マーカー保存
+        if: always() && ( (github.event_name == 'schedule' && (github.event.schedule == '0 21 * * *' || github.event.schedule == '30 21 * * *' || github.event.schedule == '0 22 * * *' || github.event.schedule == '0 23 * * *')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'publish') )
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: uranai/output/sns_done_${{ steps.d.outputs.ymd }}.json
+          key: uranai-snsdone-${{ steps.d.outputs.ymd }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: 動画アーティファクトをアップロード（dry-run時のみ）
         if: github.event.inputs.mode == 'dry-run'
