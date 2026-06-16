@@ -460,9 +460,23 @@ def run_sns_only(target_date: date) -> dict:
         if all(done.get(k) == "ok" for k in core):
             print("  ✅ 主要SNSは既に投稿済み(マーカー) → 再生成せず終了")
             return {"status": "already_posted_no_bridge"}
-        # 未投稿あり → フルパイプライン再実行で再生成して直接SNS投稿。
+        # ── 再生成は1日1回まで（コスト暴走ガード）──
+        # bridge欠落＋SNS失敗が重なる異常日に、06:00/06:30/07:00/08:00 の4リトライが
+        # それぞれ記事を再生成(Claude API)すると最悪4倍課金。トークン切れ等の持続的失敗は
+        # リトライ再生成では直らないので、再生成は本日1回に制限する。
+        # フラグは sns_done に同居させGHAキャッシュで次リトライへ引き継ぐ。
+        if done.get("_fallback_regen_done"):
+            print("  ⏭ 本日フォールバック再生成は実施済み → 再課金せず終了（bridge復活/トークン復旧待ち）")
+            return {"status": "fallback_capped"}
+        done["_fallback_regen_done"] = True
+        try:
+            done_file.parent.mkdir(parents=True, exist_ok=True)
+            done_file.write_text(json.dumps(done, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+        # 未投稿あり → フルパイプライン再実行で再生成して直接SNS投稿（本日1回限り）。
         #   WP更新はDRAFT_POST_IDS+slugで冪等／SNSはsns_doneマーカーで二重投稿しない。
-        print("  → フォールバック: フルパイプライン再実行（再生成して直接SNS投稿）")
+        print("  → フォールバック: フルパイプライン再実行（再生成して直接SNS投稿・本日1回限り）")
         return run_pipeline(target_date, publish=True)
 
     bridge = json.loads(bridge_file.read_text(encoding="utf-8"))
