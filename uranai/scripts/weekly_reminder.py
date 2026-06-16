@@ -176,6 +176,28 @@ def check_meta_token() -> dict:
         return {"status": "error", "error": str(e)}
 
 
+def check_threads_token() -> dict:
+    """THREADS_ACCESS_TOKEN の有効性チェック（2026-06-16 追加）。
+    Threads は debug_token で残り日数が取りにくいので「有効/無効」を実コールで判定。
+    6/14 にトークンが期限切れしたのを META チェックだけでは検知できなかった対策。"""
+    token = os.getenv("THREADS_ACCESS_TOKEN")
+    user = os.getenv("THREADS_USER_ID")
+    if not token or not user:
+        return {"status": "missing"}
+    try:
+        r = requests.get(
+            f"https://graph.threads.net/v1.0/{user}/threads",
+            params={"fields": "id", "limit": 1, "access_token": token},
+            timeout=30,
+        )
+        if r.status_code == 200:
+            return {"status": "ok"}
+        err = r.json().get("error", {})
+        return {"status": "invalid", "message": err.get("message", r.text[:160])}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
 def generate_x_captions(start_date: date) -> list[tuple[date, str, str]]:
     """翌週7日分の X 予約投稿用文面を生成。
     ⚠️ 予約投稿には占いTOP3（ダミー変動値）を載せない。build_x_reservation_text の
@@ -305,6 +327,24 @@ def main():
         lines.append("  ⚠️ META_ACCESS_TOKEN が GitHub Secrets に未設定")
     else:
         lines.append(f"  ❓ 状態不明: {token_info}")
+    lines.append("")
+
+    # 1.5 Threads トークン有効性チェック（2026-06-16 追加・6/14期限切れ見落とし対策）
+    lines.append("【1.5】THREADS_ACCESS_TOKEN 有効性チェック")
+    lines.append("-" * 40)
+    th_info = check_threads_token()
+    if th_info["status"] == "ok":
+        lines.append("  ✅ Threadsトークン有効")
+    elif th_info["status"] == "invalid":
+        lines.append("  ❌❌❌ Threadsトークンが無効/期限切れ！至急 再発行してください ❌❌❌")
+        lines.append(f"     {th_info.get('message', '')}")
+        lines.append("     → 占い・記事SNS 両方の Threads 投稿が停止します")
+        lines.append("     更新先：GitHub Secrets THREADS_ACCESS_TOKEN（toyokawa-sns ＋ toyokawa-article-sns 両方）")
+        lines.append("     手順：memory/project_uranai_reminders.md")
+    elif th_info["status"] == "missing":
+        lines.append("  ⚠️ THREADS_ACCESS_TOKEN / THREADS_USER_ID が未設定（env を確認）")
+    else:
+        lines.append(f"  ❓ 状態不明: {th_info}")
     lines.append("")
 
     # 2. 翌週 X 予約投稿用文面

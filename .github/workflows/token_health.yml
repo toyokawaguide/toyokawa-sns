@@ -1,12 +1,18 @@
-name: 週次リマインダー（占い）
+name: SNSトークン健康診断（毎日・再発防止）
+
+# 2026-06-16 新設。Threadsトークンが6/14に無監視のまま期限切れ→数日Threads投稿停止した件の再発防止。
+# 毎日 META と Threads の両トークンを点検し、問題がある時だけ Gmail で警告（健全なら無音）。
 
 on:
   schedule:
-    - cron: '0 12 * * 6'  # 毎週土曜 21:00 JST（UTC 土曜 12:00）
+    - cron: '0 0 * * *'   # 毎日 09:00 JST（UTC 00:00）
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  reminder:
+  health:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     defaults:
@@ -14,24 +20,17 @@ jobs:
         working-directory: uranai/scripts
     steps:
       - uses: actions/checkout@v4
-
       - name: Python セットアップ
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: uranai/scripts/requirements.txt
-
       - name: ライブラリインストール
-        run: pip install -r requirements.txt
-
-      - name: 週次リマインダー実行
+        run: pip install requests
+      - name: トークン健康診断
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          URANAI_SHEETS_URL: ${{ secrets.URANAI_SHEETS_URL }}
-          URANAI_SHEETS_SECRET: ${{ secrets.URANAI_SHEETS_SECRET }}
-        run: python weekly_reminder.py
+        run: python token_health_check.py
