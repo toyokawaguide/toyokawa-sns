@@ -9,9 +9,12 @@ name: 占い配信（WP早朝公開＋SNS6:00・分離版）
 
 on:
   schedule:
-    - cron: '30 19 * * *'  # 04:30 JST  WP公開（早朝・余裕バッファ）
+    - cron: '30 18 * * *'  # 03:30 JST  WP公開（最速・cron不発対策で前倒し追加 2026-06-16）
+    - cron: '0 19 * * *'   # 04:00 JST  WP公開リトライ
+    - cron: '30 19 * * *'  # 04:30 JST  WP公開リトライ
     - cron: '0 20 * * *'   # 05:00 JST  WP公開リトライ
     - cron: '30 20 * * *'  # 05:30 JST  WP公開リトライ
+    - cron: '45 20 * * *'  # 05:45 JST  WP公開リトライ（最終・06:00前にbridge確実化）
     - cron: '0 21 * * *'   # 06:00 JST  SNS投稿（X除く・Threads/IG/Reels）
     - cron: '30 21 * * *'  # 06:30 JST  SNS自動リトライ（既投稿はマーカーでスキップ＝二重投稿なし）
     - cron: '0 22 * * *'   # 07:00 JST  SNS自動リトライ
@@ -141,7 +144,7 @@ jobs:
       #  - SNSを含む 06:00 / 手動 では保存しない（bridge無し・SNSは直に投稿済）
       #  - continue-on-error: bridge未生成(WP失敗) や key既存(リトライ) でも落とさない
       - name: bridge キャッシュ保存
-        if: github.event_name == 'schedule' && (github.event.schedule == '30 19 * * *' || github.event.schedule == '0 20 * * *' || github.event.schedule == '30 20 * * *')
+        if: github.event_name == 'schedule' && (github.event.schedule == '30 18 * * *' || github.event.schedule == '0 19 * * *' || github.event.schedule == '30 19 * * *' || github.event.schedule == '0 20 * * *' || github.event.schedule == '30 20 * * *' || github.event.schedule == '45 20 * * *')
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
