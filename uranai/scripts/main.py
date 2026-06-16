@@ -443,14 +443,27 @@ def run_sns_only(target_date: date) -> dict:
 
     bridge_file = OUTPUT_DIR / f"bridge_{target_date}.json"
     if not bridge_file.exists():
-        msg = f"bridge未保存: {bridge_file}（WP公開ジョブ未完 or キャッシュ未連携）→ SNSスキップ"
-        print(f"  [error] {msg}")
-        try:
-            notify_uranai_failure(RuntimeError(msg),
-                                  context={"target_date": str(target_date), "phase": "sns_only"})
-        except Exception:
-            pass
-        return {"status": "no_bridge"}
+        # ── bridge未連携フォールバック（根本対策 2026-06-17）──
+        # Plan Bのbridge受け渡し(GHAキャッシュ)が不発でも、SNSを必ず出す。
+        # 旧実装は「SNSスキップ＋失敗通知」で静かに止まり、6/15〜17の占いSNSが
+        # 3日間サイレント欠落した（記事=WPは出るのにSNSだけ出ない）。
+        print(f"  [warn] bridge未連携: {bridge_file.name}（キャッシュ未連携 or WP公開ジョブ未完）")
+        # 既に主要SNS投稿済み(マーカー)なら再生成しない＝¥0・二重投稿防止・無駄な再課金回避
+        done_file = OUTPUT_DIR / f"sns_done_{target_date}.json"
+        done = {}
+        if done_file.exists():
+            try:
+                done = json.loads(done_file.read_text(encoding="utf-8"))
+            except Exception:
+                done = {}
+        core = ("threads", "instagram", "instagram_reel")
+        if all(done.get(k) == "ok" for k in core):
+            print("  ✅ 主要SNSは既に投稿済み(マーカー) → 再生成せず終了")
+            return {"status": "already_posted_no_bridge"}
+        # 未投稿あり → フルパイプライン再実行で再生成して直接SNS投稿。
+        #   WP更新はDRAFT_POST_IDS+slugで冪等／SNSはsns_doneマーカーで二重投稿しない。
+        print("  → フォールバック: フルパイプライン再実行（再生成して直接SNS投稿）")
+        return run_pipeline(target_date, publish=True)
 
     bridge = json.loads(bridge_file.read_text(encoding="utf-8"))
     data = bridge.get("data", {})

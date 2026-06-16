@@ -87,7 +87,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: uranai/output/bridge_${{ steps.d.outputs.ymd }}.json
-          key: uranai-bridge-${{ steps.d.outputs.ymd }}
+          key: uranai-bridge-${{ steps.d.outputs.ymd }}-${{ github.run_id }}
+          restore-keys: |
+            uranai-bridge-${{ steps.d.outputs.ymd }}-
 
       # SNS既投稿マーカー（どの媒体まで投稿済みか）を前のリトライから引き継ぐ
       #  restore-keys のプレフィックス一致で「その日の最新マーカー」を取得
@@ -149,7 +151,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: uranai/output/bridge_${{ steps.d.outputs.ymd }}.json
-          key: uranai-bridge-${{ steps.d.outputs.ymd }}
+          key: uranai-bridge-${{ steps.d.outputs.ymd }}-${{ github.run_id }}
 
       # SNS投稿後、どこまで投稿できたかのマーカーを保存（次のリトライが二重投稿を避けるため）
       #  SNSジョブ(06:00〜08:00)＋手動publish で保存。always()で部分成功も必ず残す。run_id込みで毎回新キー
