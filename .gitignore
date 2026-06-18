@@ -25,3 +25,4 @@ light_articles/scripts/__pycache__/
 *.bak
 *.tmp
 ~*
+_api_budget.json

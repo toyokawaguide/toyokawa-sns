@@ -115,11 +115,49 @@ def build_user_prompt(*, weekday_key: str, target_date: date,
 # Claude API 呼び出し（実消費）
 # ============================================================
 
+# ---- 従量課金セーフティ（Anthropic API・2026-06-18 追加）----
+#   ① 1実行あたりの上限（暴走ループを即停止／GHA・ローカル両方で有効）
+#   ② 1日あたりの上限（ローカルの誤連打防止／ファイル記録ベース）
+#   超過すると例外で停止。占いは通常1日1記事=数回の呼び出しなので十分な余裕。
+#   ※これはコード側の保険。確実な上限は Anthropic Console の Spend limit / Auto-reload OFF。
+MAX_CALLS_PER_RUN = 15
+MAX_CALLS_PER_DAY = 40
+_RUN_CALL_COUNT = 0
+_BUDGET_FILE = Path(__file__).resolve().parent / "_api_budget.json"
+
+
+def _budget_guard() -> None:
+    """Anthropic API 呼び出し前の上限チェック（超過なら RuntimeError で停止）。"""
+    global _RUN_CALL_COUNT
+    _RUN_CALL_COUNT += 1
+    if _RUN_CALL_COUNT > MAX_CALLS_PER_RUN:
+        raise RuntimeError(
+            f"🛑 従量課金セーフティ：1実行あたりの上限 {MAX_CALLS_PER_RUN} 回を超過しました。"
+            "暴走の可能性があるため停止します（コードを確認してください）。")
+    import json
+    from datetime import date as _date
+    today = _date.today().isoformat()
+    try:
+        data = json.loads(_BUDGET_FILE.read_text(encoding="utf-8")) if _BUDGET_FILE.exists() else {}
+    except Exception:
+        data = {}
+    n = int(data.get(today, 0)) + 1
+    if n > MAX_CALLS_PER_DAY:
+        raise RuntimeError(
+            f"🛑 従量課金セーフティ：本日のAnthropic API呼び出しが上限 {MAX_CALLS_PER_DAY} 回に到達。"
+            "意図的に増やす場合は generate_text.py の MAX_CALLS_PER_DAY を変更してください。")
+    try:
+        _BUDGET_FILE.write_text(json.dumps({today: n}), encoding="utf-8")  # 当日分のみ保持
+    except Exception:
+        pass
+
+
 def call_claude_api(system_prompt: str, user_prompt: str) -> str:
     """Claude API（Sonnet 4.5）を呼び出して本文を返す。料金発生注意。"""
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY が未設定")
+    _budget_guard()
     from anthropic import Anthropic
     client = Anthropic(api_key=api_key)
     response = client.messages.create(
