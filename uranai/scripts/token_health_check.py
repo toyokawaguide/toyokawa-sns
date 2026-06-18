@@ -76,6 +76,50 @@ def check_threads() -> tuple[str, str, str | None]:
         return ("Threads", "error", str(e))
 
 
+def check_google_token(label: str, token_b64_env: str, local_token_path: str,
+                       sheet_id: str) -> tuple[str, str, str | None]:
+    """Google OAuthトークン（Sheets/Drive）の健康診断（2026-06-18 追加）。
+    背景：2026-06-17 ライト記事・2026-06-18 記事SNS が GHA の Google トークン失効で
+    数日サイレントに投稿停止。従来は META/Threads しか見ておらず Google は無監視だった。
+    判定：b64環境変数(GHA) or ローカルtoken.json を読み、リフレッシュ＋簡単なSheets読みで生存確認。
+          未設定なら 'skip'（誤警告しない）／失効・認証失敗なら 'invalid'（警告）。"""
+    import base64
+    import json
+    raw = os.getenv(token_b64_env)
+    info = None
+    if raw:
+        try:
+            info = json.loads(base64.b64decode(raw).decode("utf-8"))
+        except Exception as e:
+            return (f"Google({label})", "error", f"{token_b64_env} のb64デコード失敗: {e}")
+    elif local_token_path and os.path.exists(local_token_path):
+        try:
+            info = json.loads(open(local_token_path, encoding="utf-8").read())
+        except Exception as e:
+            return (f"Google({label})", "error", f"ローカルtoken読込失敗: {e}")
+    else:
+        # GHAでもローカルでもトークンが渡っていない＝この環境では点検対象外（誤警告しない）
+        return (f"Google({label})", "skip", f"{token_b64_env}/ローカルtoken いずれも無し→点検対象外")
+    try:
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build
+    except ImportError:
+        return (f"Google({label})", "skip", "googleライブラリ未導入→点検スキップ")
+    try:
+        scopes = info.get("scopes") or [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive.readonly"]
+        creds = Credentials.from_authorized_user_info(info, scopes)
+        if not creds.valid:
+            creds.refresh(Request())  # invalid_grant（失効/取消）等はここで例外
+        svc = build("sheets", "v4", credentials=creds, cache_discovery=False)
+        svc.spreadsheets().values().get(spreadsheetId=sheet_id, range="A1").execute()
+        return (f"Google({label})", "ok", None)
+    except Exception as e:
+        return (f"Google({label})", "invalid", f"認証失敗→{label}のSheets読込/投稿が止まります: {str(e)[:160]}")
+
+
 def send_gmail(subject: str, body: str) -> bool:
     user = os.getenv("GMAIL_USER")
     pwd = os.getenv("GMAIL_APP_PASSWORD")
@@ -93,7 +137,18 @@ def send_gmail(subject: str, body: str) -> bool:
 
 
 def main():
-    results = [check_meta(), check_threads()]
+    results = [
+        check_meta(),
+        check_threads(),
+        check_google_token(
+            "ライト記事", "LIGHT_GOOGLE_TOKEN_B64",
+            r"C:\Users\Yoshida\Desktop\toyokawa-sns\light_articles\scripts\_assets\sheets_token.json",
+            "155K-AQdLNUiYb4Z3MK-elyG1U7UIIxPeu397uZsVxdo"),
+        check_google_token(
+            "記事SNS", "SNS_GOOGLE_TOKEN_B64",
+            r"C:\Users\Yoshida\Desktop\toyokawa-article-sns\scripts\_assets\sheets_token.json",
+            "1Z4flDlXdypPaXrbFW3tRjxk0XX4c-hVJxKkVODYOZRA"),
+    ]
     for name, status, msg in results:
         print(f"{name}: {status}  {msg or ''}")
 

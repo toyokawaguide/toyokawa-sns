@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: ライブラリインストール
-        run: pip install requests
+        run: pip install requests google-api-python-client google-auth google-auth-oauthlib
       - name: トークン健康診断
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
@@ -33,4 +33,8 @@ jobs:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          # Google OAuth トークン点検（2026-06-18 追加・ライト記事/記事SNSの失効を毎日検知）。
+          # SNS_GOOGLE_TOKEN_B64 は toyokawa-sns 未登録なら空文字→自動skip（記事SNS分は社長がSecret追加で有効化）。
+          LIGHT_GOOGLE_TOKEN_B64: ${{ secrets.LIGHT_GOOGLE_TOKEN_B64 }}
+          SNS_GOOGLE_TOKEN_B64: ${{ secrets.SNS_GOOGLE_TOKEN_B64 }}
         run: python token_health_check.py
