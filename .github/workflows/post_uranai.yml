@@ -145,13 +145,18 @@ jobs:
       # 早朝WP公開ジョブが作った bridge を保存（06:00 SNSジョブが受け取る）
       #  - SNSを含む 06:00 / 手動 では保存しない（bridge無し・SNSは直に投稿済）
       #  - continue-on-error: bridge未生成(WP失敗) や key既存(リトライ) でも落とさない
+      # bridge は「存在すれば毎回」キャッシュ保存する（2026-06-19 恒久対策）。
+      #  旧実装は早朝WP公開cronのみ保存だったため、SNS-cronのフォールバック再生成が
+      #  publishしても bridge が次リトライへ伝播せず→再生成ロックで占いSNSが沈黙した。
+      #  always() にして、SNS-cron／手動publish の publish でも bridge を必ず引き継ぐ。
+      #  bridgeが無い実行(dry-run等)は continue-on-error で無害にスキップ。
       - name: bridge キャッシュ保存
-        if: github.event_name == 'schedule' && (github.event.schedule == '30 18 * * *' || github.event.schedule == '0 19 * * *' || github.event.schedule == '30 19 * * *' || github.event.schedule == '0 20 * * *' || github.event.schedule == '30 20 * * *' || github.event.schedule == '45 20 * * *')
+        if: always()
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
           path: uranai/output/bridge_${{ steps.d.outputs.ymd }}.json
-          key: uranai-bridge-${{ steps.d.outputs.ymd }}-${{ github.run_id }}
+          key: uranai-bridge-${{ steps.d.outputs.ymd }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # SNS投稿後、どこまで投稿できたかのマーカーを保存（次のリトライが二重投稿を避けるため）
       #  SNSジョブ(06:00〜08:00)＋手動publish で保存。always()で部分成功も必ず残す。run_id込みで毎回新キー

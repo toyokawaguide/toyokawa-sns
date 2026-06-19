@@ -195,15 +195,37 @@ def update_wp_post(post_id: int, title: str, content: str,
             return "image/gif"
         return "image/png"
 
+    def _req_post(url, *, headers, data, timeout, what="WP通信"):
+        """接続タイムアウト等に強い POST（XSERVERがGHA海外IPを一時遮断する事象の対策・2026-06-19）。
+        最大3回・8/16秒バックオフ。最終失敗でも例外を投げず None を返す（呼び出し側で graceful 処理）。
+        ※従来は requests.post が connect timeout で例外→パイプライン全体がクラッシュし、
+          『記事は公開されたのにSNSが出ない＋再生成ロック』の連鎖障害になっていた（2026-06-19）。"""
+        import time as _t
+        last = None
+        for attempt in range(1, 4):
+            try:
+                return requests.post(url, headers=headers, data=data, timeout=timeout)
+            except Exception as e:
+                last = str(e)
+                if attempt < 3:
+                    print(f"  [retry] {what} 接続失敗（{attempt}/3）→ {8*attempt}秒後に再試行: {last[:120]}")
+                    _t.sleep(8 * attempt)
+        print(f"  [warn] {what} 通信失敗（リトライ尽きた）: {last}")
+        return None
+
     def _upload_media(p: Path) -> tuple[int | None, str | None]:
         with open(p, "rb") as f:
-            uph = {**headers_up,
-                   "Content-Disposition": f'attachment; filename="{p.name}"',
-                   "Content-Type": _content_type(p.name)}
-            r = requests.post(f"{WP_URL}/wp-json/wp/v2/media", headers=uph, data=f.read(), timeout=120)
-        if r.status_code in (200, 201):
+            blob = f.read()
+        uph = {**headers_up,
+               "Content-Disposition": f'attachment; filename="{p.name}"',
+               "Content-Type": _content_type(p.name)}
+        r = _req_post(f"{WP_URL}/wp-json/wp/v2/media", headers=uph, data=blob,
+                      timeout=(20, 180), what=f"メディアアップロード({p.name})")
+        if r is not None and r.status_code in (200, 201):
             j = r.json()
             return j["id"], j.get("source_url")
+        if r is not None:
+            print(f"  [warn] メディアアップロード失敗 {p.name}: HTTP {r.status_code}")
         return None, None
 
     wp_media_id = None
@@ -245,13 +267,19 @@ def update_wp_post(post_id: int, title: str, content: str,
     if wp_media_id:
         payload1["featured_media"] = wp_media_id
     body1 = json.dumps(payload1, ensure_ascii=False).encode("utf-8")
-    r1 = requests.post(f"{WP_URL}/wp-json/wp/v2/posts/{post_id}", headers=headers_post, data=body1, timeout=30)
+    r1 = _req_post(f"{WP_URL}/wp-json/wp/v2/posts/{post_id}", headers=headers_post, data=body1,
+                   timeout=(20, 60), what="WP本文更新")
+    if r1 is None:
+        return {"error": "WP draft update failed: 接続不可（タイムアウト・リトライ尽きた）"}
     if r1.status_code != 200:
         return {"error": f"WP draft update failed: {r1.status_code} {r1.text[:200]}"}
 
     if publish:
         body2 = json.dumps({"status": "publish"}, ensure_ascii=False).encode("utf-8")
-        r2 = requests.post(f"{WP_URL}/wp-json/wp/v2/posts/{post_id}", headers=headers_post, data=body2, timeout=30)
+        r2 = _req_post(f"{WP_URL}/wp-json/wp/v2/posts/{post_id}", headers=headers_post, data=body2,
+                       timeout=(20, 60), what="WP公開切替")
+        if r2 is None:
+            return {"error": "WP publish failed: 接続不可（タイムアウト・リトライ尽きた）"}
         if r2.status_code != 200:
             return {"error": f"WP publish failed: {r2.status_code} {r2.text[:200]}"}
         j = r2.json()
@@ -466,8 +494,14 @@ def run_sns_only(target_date: date) -> dict:
         # リトライ再生成では直らないので、再生成は本日1回に制限する。
         # フラグは sns_done に同居させGHAキャッシュで次リトライへ引き継ぐ。
         if done.get("_fallback_regen_done"):
-            print("  ⏭ 本日フォールバック再生成は実施済み → 再課金せず終了（bridge復活/トークン復旧待ち）")
-            return {"status": "fallback_capped"}
+            # ここに来る＝本日すでに再生成したのに bridge も無い＝SNS未投稿のまま。
+            # 旧実装は status を返して「成功(緑)」で静かに終わり、SNSが出てないのに気付けなかった
+            # （2026-06-19 障害の核）。恒久対策（WP公開時にbridgeを必ず残す）後は通常ここに来ない。
+            # 万一来たら再課金はしないが、黙って成功にせず「失敗」にして Gmail 通知を確実に出す。
+            print("  ⛔ 本日再生成済みだが bridge 欠落＝SNS未投稿のまま。再課金はしないが失敗扱いで通知する")
+            raise RuntimeError(
+                "占いSNS未投稿: bridge欠落＋本日の再生成上限に到達。"
+                "手動 workflow_dispatch(publish) で復旧が必要")
         done["_fallback_regen_done"] = True
         try:
             done_file.parent.mkdir(parents=True, exist_ok=True)
@@ -664,6 +698,30 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
         except Exception as e:
             print(f"  [warn] トップ占いカード更新失敗（メインフロー継続）: {e}")
             result["steps"]["homepage_card"] = {"status": "failed", "error": str(e)}
+
+    # ---------- bridge 保存：WP公開に成功したら必ず残す（SNS再投稿の自己修復・2026-06-19）----------
+    # publish成功＝記事が生きている時は、モードに関わらず bridge を保存する。
+    # これにより、この実行の Step6(SNS) が落ちても／別ジョブのSNSリトライが、
+    # bridge から¥0・WP再アップロード無しでSNSを出せる（再生成ロック障害の恒久対策）。
+    # bridge は post_all_sns が使う最小データ（data/items/spot/post_url/ig_image_url）。
+    if publish and post_url:
+        try:
+            _bridge = {
+                "weekday_key": weekday_key,
+                "title": article["title"],
+                "data": article.get("data", {}),
+                "items": items,
+                "spot": {"name": spot.name, "is_chain": getattr(spot, "is_chain", False),
+                          "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
+                "post_url": post_url,
+                "ig_image_url": ig_image_url,
+            }
+            _bf = OUTPUT_DIR / f"bridge_{target_date}.json"
+            _bf.parent.mkdir(parents=True, exist_ok=True)
+            _bf.write_text(json.dumps(_bridge, ensure_ascii=False), encoding="utf-8")
+            print(f"  [bridge] 保存OK: {_bf.name}（SNS再投稿の自己修復用）")
+        except Exception as e:
+            print(f"  [warn] bridge保存失敗（継続）: {e}")
 
     # ---------- WP-only モード：bridge を保存して SNS/ログは別ジョブ(6:00)へ委譲 ----------
     if wp_only:
