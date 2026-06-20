@@ -34,6 +34,7 @@ import json
 import argparse
 import base64
 import html
+import dataclasses
 from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
@@ -46,6 +47,22 @@ OUTPUT_DIR = ROOT / "output"
 RAW_DIR = OUTPUT_DIR / "raw"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 RAW_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _items_to_jsonable(items):
+    """bridge保存用に items（ArticleItem dataclass のリスト）を JSON 化可能な dict のリストへ。
+    （2026-06-20 真因修正：従来 "items": items を json.dumps→"ArticleItem is not JSON serializable"で
+     bridge保存が毎回失敗→bridge未連携→毎朝フォールバック再生成→WPタイムアウトでSNSスキップの連鎖だった）
+    generate_reel は dict/dataclass 両対応、post_all_sns は data(dict)を使うので消費側はそのままでOK。"""
+    out = []
+    for it in (items or []):
+        if isinstance(it, dict):
+            out.append(it)
+        elif dataclasses.is_dataclass(it) and not isinstance(it, type):
+            out.append(dataclasses.asdict(it))
+        else:
+            out.append(getattr(it, "__dict__", {}) or {})
+    return out
 
 # .env 読み込み（claude/.env を優先・占い/.env もフォールバック）
 from dotenv import load_dotenv
@@ -710,7 +727,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                 "weekday_key": weekday_key,
                 "title": article["title"],
                 "data": article.get("data", {}),
-                "items": items,
+                "items": _items_to_jsonable(items),
                 "spot": {"name": spot.name, "is_chain": getattr(spot, "is_chain", False),
                           "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
                 "post_url": post_url,
@@ -730,7 +747,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                 "weekday_key": weekday_key,
                 "title": article["title"],
                 "data": article.get("data", {}),
-                "items": items,
+                "items": _items_to_jsonable(items),
                 "spot": {"name": spot.name, "is_chain": getattr(spot, "is_chain", False),
                           "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
                 "post_url": post_url,
