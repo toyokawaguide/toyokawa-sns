@@ -151,55 +151,18 @@ def ensure_batch_watermarked(folder: Path) -> None:
 
 
 def get_photo_paths(folder: Path) -> list[Path]:
-    """フォルダから写真を取得（番号付き＋日付焼き込み版を優先）
+    """番号のみのファイル(0.jpg, 1.jpg, 2.jpg…)だけを番号順に返す。
+    batch_ や W1920Q75_ 等の余分なファイルは無視する（2026-06-22 社長指定）。
 
-    優先順位:
-    1. batch_[0-9]*.jpg（番号付き・日付焼き込み済み・本命）
-    2. [0-9]*.jpg（番号付き原本・add_date_watermark 未実行）
-    3. それ以外は無視（参考写真として置いてあるだけと判断）
-
-    社長運用：使いたい写真に「1, 2, 3」と番号を振る → そのファイルが対象。
-    batch_*.jpg が未生成なら自動で焼込み実行（事故防止）。
+    運用：社長が日付＋ロゴを焼き付けた写真を「0」「1」「2」…と番号だけで置く。
+    それ以外のファイル名（batch_*, IMG*, W1920Q75_* 等）は記事に使わない。
     """
-    # 自動焼込み（番号付き原本が batch_*.jpg 未生成なら焼く）
-    ensure_batch_watermarked(folder)
-
     if not folder.exists():
         return []
-
-    exts = ("jpg", "jpeg", "png")
-
-    # 1) 日付焼き込み済み番号付き batch_1.jpg, batch_2.jpg
-    batch_numbered = set()
-    for ext in exts:
-        batch_numbered.update(folder.glob(f"batch_[0-9]*.{ext}"))
-        batch_numbered.update(folder.glob(f"batch_[0-9]*.{ext.upper()}"))
-    if batch_numbered:
-        return sorted(batch_numbered,
-                      key=lambda p: int("".join(c for c in p.stem.replace("batch_", "")
-                                                if c.isdigit()) or 0))
-
-    # 2) 原本（日付焼込未実行） 1.jpg, 2.jpg
-    raw_numbered = set()
-    for ext in exts:
-        raw_numbered.update(folder.glob(f"[0-9]*.{ext}"))
-        raw_numbered.update(folder.glob(f"[0-9]*.{ext.upper()}"))
-    if raw_numbered:
-        return sorted(raw_numbered,
-                      key=lambda p: int("".join(c for c in p.stem if c.isdigit()) or 0))
-
-    # 3) フォールバック：すべての画像（ファイル名昇順）
-    # 過去記事から流用した写真（newopen-hatsune-2.jpg など）に対応
-    all_imgs = set()
-    for ext in exts:
-        all_imgs.update(folder.glob(f"*.{ext}"))
-        all_imgs.update(folder.glob(f"*.{ext.upper()}"))
-    # ドット始まり / アンダースコア始まり / batch_系 は除外
-    all_imgs = {p for p in all_imgs
-                if not p.name.startswith(".")
-                and not p.stem.startswith("_")
-                and not p.name.startswith("batch_")}
-    return sorted(all_imgs, key=lambda p: p.name.lower())
+    exts = (".jpg", ".jpeg", ".png")
+    numbered = [p for p in folder.iterdir()
+                if p.suffix.lower() in exts and p.stem.isdigit()]
+    return sorted(numbered, key=lambda p: int(p.stem))
 
 
 def process_one(row_index: int, row: dict, dry_run: bool = True,

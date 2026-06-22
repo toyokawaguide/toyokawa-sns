@@ -162,10 +162,8 @@ def download_file(file_id: str, output_path: Path) -> Path:
 def fetch_article_photos(article_id: str, cache_dir: Path) -> list[Path]:
     """記事ID の写真を Drive からDLして cache_dir に保存・パスリストを返す
 
-    優先順位:
-    1. batch_[0-9]*.jpg/png (日付焼込み済み)
-    2. [0-9]*.jpg/png (原本)
-    3. 他の画像（ファイル名昇順）
+    番号のみのファイル(0.jpg, 1.jpg, 2.jpg…)だけを番号順に使う。
+    batch_ や W1920Q75_ 等の余分なファイルは無視（2026-06-22 社長指定）。
     """
     print(f"🔍 Drive: ライト記事フォルダ検索中...")
     root_id = find_folder_id(ROOT_FOLDER_NAME)
@@ -187,35 +185,14 @@ def fetch_article_photos(article_id: str, cache_dir: Path) -> list[Path]:
         print(f"⚠ Drive: 画像なし")
         return []
 
-    # 優先順位ソート
-    def priority_key(img):
-        name = img["name"]
-        if name.startswith("batch_"):
-            try:
-                n = int("".join(c for c in name.replace("batch_", "").split(".")[0]
-                                if c.isdigit()))
-                return (0, n)
-            except ValueError:
-                return (0, 999)
-        if name[0].isdigit():
-            try:
-                n = int("".join(c for c in name.split(".")[0] if c.isdigit()))
-                return (1, n)
-            except ValueError:
-                return (1, 999)
-        return (2, name.lower())
-
-    images_sorted = sorted(images, key=priority_key)
-    # batch_ がある場合は batch_ のみ・それ以外を除外
-    has_batch = any(im["name"].startswith("batch_") for im in images_sorted)
-    has_numbered = any(im["name"][0].isdigit() and not im["name"].startswith("batch_")
-                       for im in images_sorted)
-    if has_batch:
-        images_sorted = [im for im in images_sorted if im["name"].startswith("batch_")]
-    elif has_numbered:
-        images_sorted = [im for im in images_sorted
-                         if im["name"][0].isdigit()]
-    # else: フォールバック全画像
+    # 番号のみのファイル(0.jpg, 1.jpg, 2.jpg…)だけ使う。
+    # batch_ や W1920Q75_ 等の余分なファイルは無視（2026-06-22 社長指定）。
+    numbered = [im for im in images if im["name"].rsplit(".", 1)[0].isdigit()]
+    if numbered:
+        images_sorted = sorted(numbered, key=lambda im: int(im["name"].rsplit(".", 1)[0]))
+    else:
+        print("⚠ Drive: 番号付き写真(0.jpg等)なし → 本文写真なしで続行")
+        images_sorted = []
 
     paths = []
     cache_dir.mkdir(parents=True, exist_ok=True)
