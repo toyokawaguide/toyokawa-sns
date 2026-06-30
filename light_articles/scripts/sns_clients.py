@@ -101,6 +101,56 @@ def post_instagram_feed(caption: str, image_url: str, dry: bool = True) -> dict:
         return {"error": str(e)}
 
 
+def post_instagram_feed_carousel(caption: str, image_urls: list, dry: bool = True) -> dict:
+    """IG Feed カルーセル投稿。image_urls[0]=生成カバー、以降=番号写真。
+    画像1枚なら単一投稿にフォールバック（IGカルーセルは2枚以上必須）。最大10枚。"""
+    image_urls = [u for u in image_urls if u][:10]
+    if dry:
+        print(f"[DRY][IG Feed carousel] {len(image_urls)}枚")
+        for i, u in enumerate(image_urls):
+            print(f"  [{i+1}] {u}")
+        print(f"[DRY][IG Feed carousel] caption:\n{caption[:160]}...")
+        return {"dry": True}
+    if len(image_urls) <= 1:
+        return post_instagram_feed(caption, image_urls[0] if image_urls else "", dry=False)
+
+    token = os.environ.get("META_ACCESS_TOKEN") or META_TOKEN
+    ig_id = (os.environ.get("INSTAGRAM_ACCOUNT_ID")
+             or os.environ.get("IG_USER_ID")
+             or DEFAULT_IG_ACCOUNT_ID)
+    if not token:
+        return {"error": "META_ACCESS_TOKEN 未設定"}
+    if not ig_id:
+        return {"error": "INSTAGRAM_ACCOUNT_ID 未設定"}
+    try:
+        # Step 1: 子コンテナ（各画像・is_carousel_item=true）
+        children = []
+        for u in image_urls:
+            rc = requests.post(f"{GRAPH_API}/{ig_id}/media",
+                               data={"image_url": u, "is_carousel_item": "true",
+                                     "access_token": token}, timeout=60)
+            if rc.status_code != 200:
+                return {"error": f"child failed: {rc.status_code} {rc.text[:300]}", "image_url": u}
+            children.append(rc.json()["id"])
+            time.sleep(1)
+        # Step 2: カルーセル親コンテナ
+        r1 = requests.post(f"{GRAPH_API}/{ig_id}/media",
+                           data={"media_type": "CAROUSEL", "children": ",".join(children),
+                                 "caption": caption, "access_token": token}, timeout=60)
+        if r1.status_code != 200:
+            return {"error": f"carousel container failed: {r1.status_code} {r1.text[:300]}"}
+        container_id = r1.json()["id"]
+        # Step 3: 公開
+        time.sleep(3)
+        r2 = requests.post(f"{GRAPH_API}/{ig_id}/media_publish",
+                           data={"creation_id": container_id, "access_token": token}, timeout=60)
+        if r2.status_code != 200:
+            return {"error": f"publish failed: {r2.status_code} {r2.text[:300]}"}
+        return {"post_id": r2.json().get("id"), "dry": False, "count": len(image_urls)}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def post_instagram_reel_resumable(caption: str, video_path: Path,
                                     dry: bool = True) -> dict:
     """Instagram Reels Resumable Upload（占い post_instagram_uranai_reel_resumable() から流用）

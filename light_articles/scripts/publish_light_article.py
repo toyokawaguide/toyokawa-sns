@@ -34,6 +34,7 @@ from content_builder import (build_title, build_content, build_photo_html,
 from eyecatch_generator import generate_eyecatch, generate_ig_feed
 from generate_reel import generate_reel
 from sns_clients import (post_threads, post_instagram_feed,
+                          post_instagram_feed_carousel,
                           post_instagram_reel_resumable)
 from notify import send_x_caption_mail, send_skip_notification
 
@@ -454,8 +455,18 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     threads_result = post_threads(threads_caption, dry=sns_dry)
     log(f"  → {threads_result}", 2)
 
-    log(f"📷 Instagram Feed 投稿（1080×1350・dry={sns_dry}）", 1)
-    ig_feed_result = post_instagram_feed(ig_caption, ig_post_image_url, dry=sns_dry)
+    # === IG Feed カルーセル：1枚目=生成カバー、2枚目以降=番号写真(1から) ===
+    carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
+    ig_images = [ig_feed_url] if ig_feed_url else [ig_post_image_url]
+    if not sns_dry and carousel_photos:
+        try:
+            uploaded = {p: u for p, u in zip(photos, photo_urls)} if (photo_urls and len(photo_urls) == len(photos)) else {}
+        except NameError:
+            uploaded = {}
+        for p in carousel_photos:
+            ig_images.append(uploaded.get(p) or upload_media(p)["source_url"])
+    log(f"📷 Instagram Feed カルーセル投稿（カバー＋番号写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
+    ig_feed_result = post_instagram_feed_carousel(ig_caption, ig_images, dry=sns_dry)
     log(f"  → {ig_feed_result}", 2)
 
     log(f"🎬 Instagram Reels 投稿（1080×1920・dry={sns_dry}）", 1)
