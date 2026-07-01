@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
-"""ライト記事の番号写真を「豊川ガイド枠」に入れる（通常SNS feed_slides と同じフレーム）。
-上下は実物切り出しフレーム(_assets/header_202606.png / footer.png)・中央 y359..991(1080×632)に写真。
-写真には既に日付＋ロゴが焼き込まれている前提（add_date_watermark 済み）。タイトルは載せない。"""
+"""ライト記事の番号写真を豊川ガイド枠に入れる。
+上＝元の豊川ガイドヘッダー(header_202606.png)＋投稿年月／下＝キツネ＋「さくっとお知らせ」(footer_sakutto.png)。
+写真の上下は金(ゴールド)ライン（さくっとお知らせ帯と同じ金色）。
+写真には既に日付＋ロゴが焼き込まれている前提（add_date_watermark 済み）。"""
 import os, re
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1080, 1350
 HEADER_H = 359
 FOOTER_H = 359
-CY0 = HEADER_H
-CY1 = H - FOOTER_H          # 991（写真領域 359..991 = 1080×632）
+CY0 = HEADER_H          # 写真 上端
+CY1 = H - FOOTER_H      # 写真 下端（=991）
 NAVY = (0, 58, 140)
+GOLD = (212, 160, 23)   # さくっとお知らせ帯と同じ金
 WHITE = (255, 255, 255)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(_HERE, "_assets")
 HEADER_IMG = os.path.join(ASSETS, "header_202606.png")
-FOOTER_IMG = os.path.join(ASSETS, "footer.png")
-HGMIN_E = os.path.join(ASSETS, "fonts", "HGRME.TTC")   # 日付用（HGS明朝E = index 2）
+FOOTER_IMG = os.path.join(ASSETS, "footer_sakutto.png")   # キツネ＋「さくっとお知らせ」
+HGMIN_E = os.path.join(ASSETS, "fonts", "HGRME.TTC")      # 年月用（HGS明朝E = index 2）
 
 
 def _F(path, size, index=0):
@@ -40,10 +42,10 @@ def _put_frame(base, month=None):
     base.paste(Image.open(HEADER_IMG).convert("RGB"), (0, 0))
     base.paste(Image.open(FOOTER_IMG).convert("RGB"), (0, CY1))
     d = ImageDraw.Draw(base)
-    # 写真の上下に白い装飾ライン
-    d.rectangle([0, CY0, W, CY0 + 5], fill=WHITE)
-    d.rectangle([0, CY1 - 5, W, CY1], fill=WHITE)
-    if month:   # 右上の年月ボックスを投稿月に差し替え（線も文字も描き直す）
+    # 写真の上下＝ゴールドの装飾ライン
+    d.rectangle([0, CY0, W, CY0 + 6], fill=GOLD)
+    d.rectangle([0, CY1 - 6, W, CY1], fill=GOLD)
+    if month:   # 右上の年月ボックスを投稿月に差し替え
         m = re.search(r"(\d{4})\D+(\d{1,2})", month)
         if m:
             d.rectangle([606, 142, 1006, 320], fill=NAVY)
@@ -61,7 +63,7 @@ def _put_frame(base, month=None):
 
 def frame_photo(src_path, out_path, month=None):
     """1枚の写真を豊川ガイド枠(1080×1350)に入れて out_path に保存し、そのパスを返す。
-    month="2026年7月" のように渡すと右上の年月を差し替える（None なら header 画像の既定月のまま）。"""
+    month="2026年7月" のように渡すと右上の年月を差し替える。"""
     base = Image.new("RGB", (W, H), NAVY)
     base.paste(_cover(Image.open(src_path).convert("RGB"), W, CY1 - CY0), (0, CY0))
     _put_frame(base, month)
