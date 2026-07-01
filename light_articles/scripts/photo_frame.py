@@ -11,13 +11,13 @@ HEADER_H = 359
 FOOTER_H = 359
 CY0 = HEADER_H          # 写真 上端
 CY1 = H - FOOTER_H      # 写真 下端（=991）
-NAVY = (0, 58, 140)
+NAVY = (26, 58, 138)    # カバー(1枚目)の COLOR_BG と統一
 GOLD = (212, 160, 23)   # さくっとお知らせ帯と同じ金
 WHITE = (255, 255, 255)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(_HERE, "_assets")
-HEADER_IMG = os.path.join(ASSETS, "header_202606.png")
+HEADER_IMG = os.path.join(ASSETS, "header_sakutto.png")   # カバー紺に合わせた再着色版
 FOOTER_IMG = os.path.join(ASSETS, "footer_sakutto.png")   # キツネ＋「さくっとお知らせ」
 HGMIN_E = os.path.join(ASSETS, "fonts", "HGRME.TTC")      # 年月用（HGS明朝E = index 2）
 
