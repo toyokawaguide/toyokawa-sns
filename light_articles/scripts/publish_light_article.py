@@ -455,16 +455,20 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     threads_result = post_threads(threads_caption, dry=sns_dry)
     log(f"  → {threads_result}", 2)
 
-    # === IG Feed カルーセル：1枚目=生成カバー、2枚目以降=番号写真(1から) ===
+    # === IG Feed カルーセル：1枚目=生成カバー、2枚目以降=番号写真(1から・豊川ガイド枠付き) ===
+    # 番号写真は通常SNS記事と同じ豊川ガイド枠(上下フレーム・1080×1350)に入れてからアップ
     carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
     ig_images = [ig_feed_url] if ig_feed_url else [ig_post_image_url]
     if not sns_dry and carousel_photos:
-        try:
-            uploaded = {p: u for p, u in zip(photos, photo_urls)} if (photo_urls and len(photo_urls) == len(photos)) else {}
-        except NameError:
-            uploaded = {}
+        from photo_frame import frame_photo
+        frame_month = f"{publish_dt.year}年{publish_dt.month}月"
+        frame_dir = ROOT / "_sample"
+        frame_dir.mkdir(parents=True, exist_ok=True)
         for p in carousel_photos:
-            ig_images.append(uploaded.get(p) or upload_media(p)["source_url"])
+            framed = frame_dir / f"_framed_{article_id}_{p.stem}.png"
+            frame_photo(str(p), str(framed), frame_month)
+            ig_images.append(upload_media(framed)["source_url"])
+            log(f"  🖼️ 枠付け→アップ: {p.name}", 2)
     log(f"📷 Instagram Feed カルーセル投稿（カバー＋番号写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
     ig_feed_result = post_instagram_feed_carousel(ig_caption, ig_images, dry=sns_dry)
     log(f"  → {ig_feed_result}", 2)
