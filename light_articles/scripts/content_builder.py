@@ -250,9 +250,17 @@ def _detect_zokuhou_lead(row: dict) -> tuple[str, str]:
     _suf = row.get("リード接尾", "").strip()
     if _pre or _suf:
         p = _pre or "以前ご紹介した"
-        s = _suf or "の、その後が分かりました🤝"
-        wp_pred = s.lstrip("の、 ").rstrip("🤝🎉😢👀… ").strip() or "その後が分かりました。"
-        return (f"{p}あの場所{s}", wp_pred)
+        # 「あの場所」は接尾(W列)に内包＝社長が接尾ごと書き換えれば「あの場所」も変えられる（2026-07-02）
+        s = _suf or "あの場所の、その後が分かりました🤝"
+        # WP述語: 「の、」以降を採用（無ければ先頭「あの場所」を除去）＝実店名の後に自然につながる
+        if "の、" in s:
+            _wp = s.split("の、", 1)[1]
+        elif s.startswith("あの場所"):
+            _wp = s[len("あの場所"):]
+        else:
+            _wp = s
+        wp_pred = _wp.lstrip("の、 ").rstrip("🤝🎉😢👀… ").strip() or "その後が分かりました。"
+        return (f"{p}{s}", wp_pred)
 
     sub1 = row.get("その後（1段目）", "").strip()
     sub2 = row.get("その後（2段目）", "").strip()
