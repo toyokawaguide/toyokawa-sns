@@ -319,6 +319,13 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         original_title=row.get("元記事タイトル", ""),
         tsubuyaki=row.get("管理人のつぶやき", "").strip(),
         publish_date_str=pub_str,
+        # フィード(generate_ig_feed)と同じ上書き項目を渡して文言を一致させる
+        label_text=_label,
+        lead_catch=_catch,
+        sub_heading=_sub1,
+        title_label=_tlabel,
+        card_label=_clabel,
+        landmark_label=_lmlabel,
         output_path=reel_path,
     )
     log(f"🎬 リール動画生成: {reel_path.name} "

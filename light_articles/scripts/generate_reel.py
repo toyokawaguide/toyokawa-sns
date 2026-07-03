@@ -41,6 +41,18 @@ COLOR_TEXT_WHITE = (255, 255, 255)
 COLOR_TEXT_SUB = (240, 220, 160)
 COLOR_TEXT_DARK = (60, 50, 30)
 
+# フィード(eyecatch_generator)と同一のモード別デフォルト（文言をフィードと完全一致させる）
+MODE_DEFAULTS = {
+    True: {  # 続報（元記事あり）
+        "label": "【続報】", "lead": "あの記事の答え合わせ",
+        "card_label": "【続報情報】", "title_label": "▼ 過去記事",
+    },
+    False: {  # お知らせ（元記事なし）
+        "label": "【お知らせ】", "lead": "管理人のひとり言",
+        "card_label": "【お知らせ】", "title_label": "▼ お知らせ内容",
+    },
+}
+
 if platform.system() == "Windows":
     FONT_BOLD = "C:/Windows/Fonts/yugothb.ttc"
     FONT_REG = "C:/Windows/Fonts/yugothm.ttc"
@@ -96,11 +108,26 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
                       address: str, landmark: str,
                       original_title: str,
                       tsubuyaki: str = "",
-                      publish_date_str: str = "") -> Image.Image:
-    """占いリール構造をライト記事用に流用"""
+                      publish_date_str: str = "",
+                      label_text: str = None,
+                      lead_catch: str = None,
+                      sub_heading: str = None,
+                      title_label: str = None,
+                      card_label: str = None,
+                      landmark_label: str = None) -> Image.Image:
+    """占いリール構造をライト記事用に流用（文言はフィードと同じ上書きロジックで解決）"""
     img = Image.new("RGB", (W, H), color=COLOR_BG)
     draw = ImageDraw.Draw(img)
     has_original = bool(original_title)
+
+    # フィード(eyecatch_generator)と完全一致する文言解決
+    _mode = MODE_DEFAULTS[has_original]
+    badge_label = label_text or _mode["label"]
+    catch_text2 = lead_catch or _mode["lead"]
+    card_head = card_label or _mode["card_label"]
+    ptag_label = title_label or _mode["title_label"]
+    end_label = "▼ " + (sub_heading or "その後、どうなった？")
+    lm_label = "▼ " + (landmark_label or "目印")
 
     margin_x = 40
     # 右側にサイドバー（縦書きロゴ）あり、コンテンツ領域は CONTENT_RIGHT まで
@@ -166,16 +193,10 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
     draw.text((start_x + sw + mw, y), star, font=catch_font, fill=COLOR_ACCENT)
     y += 130
 
-    # ─── 4. 【続報】ラベル ＋ キャッチ（少し小さく） ───
-    if has_original:
-        label_text = "【続報】"
-        catch_text2 = "あの記事の答え合わせ"
-    else:
-        label_text = "【お知らせ】"
-        catch_text2 = "管理人のひとり言"
+    # ─── 4. 【続報】ラベル ＋ キャッチ（フィードと同じ文言・上書き反映済み） ───
     label_font = load_font(FONT_BOLD, 32)
     catch2_font = load_font(FONT_REG, 32)
-    lbl_bbox = draw.textbbox((0, 0), label_text, font=label_font)
+    lbl_bbox = draw.textbbox((0, 0), badge_label, font=label_font)
     lbl_w = lbl_bbox[2] - lbl_bbox[0]
     lbl_h = lbl_bbox[3] - lbl_bbox[1]
     pad_x, pad_y = 20, 10
@@ -185,7 +206,7 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
     bar_h = lbl_h + pad_y * 2 + 8
     draw.rounded_rectangle([bar_x, bar_y, bar_x + bar_w, bar_y + bar_h],
                             radius=8, fill=COLOR_ACCENT)
-    draw.text((bar_x + pad_x, bar_y + pad_y), label_text,
+    draw.text((bar_x + pad_x, bar_y + pad_y), badge_label,
               font=label_font, fill=COLOR_TEXT_WHITE)
     draw.text((bar_x + bar_w + 20, bar_y + 16), catch_text2,
               font=catch2_font, fill=COLOR_TEXT_SUB)
@@ -200,7 +221,7 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
         draw.rounded_rectangle([box_x, box_y, box_x + box_w, box_y + box_h],
                                 radius=10, outline=COLOR_TEXT_SUB, width=2)
         ptag_font = load_font(FONT_BOLD, 24)
-        draw.text((box_x + 20, box_y + 14), "▼ 過去記事",
+        draw.text((box_x + 20, box_y + 14), ptag_label,
                   font=ptag_font, fill=COLOR_TEXT_SUB)
 
         title_font = load_font(FONT_BOLD, 28)
@@ -227,7 +248,7 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
     LABEL_SMALL_SIZE = 26
 
     chead_font = load_font(FONT_BOLD, CHEAD_SIZE)
-    chead_text = "【続報情報】" if has_original else "【お知らせ】"
+    chead_text = card_head
     label_small = load_font(FONT_BOLD, LABEL_SMALL_SIZE)
 
     place_max_w = card_w - 50
@@ -265,7 +286,7 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
                    fill=COLOR_ACCENT)
 
     sub_label_y = line_y + GAP_AFTER_LINE
-    draw_centered_x(draw, sub_label_y, "▼ その後、どうなった？",
+    draw_centered_x(draw, sub_label_y, end_label,
                     label_small, COLOR_ACCENT, cx=cx)
 
     if sub_lines:
@@ -314,7 +335,7 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
                        fill=COLOR_ACCENT)
 
         lm_label_y = addr_line_y + GAP_AFTER_LINE
-        draw_centered_x(draw, lm_label_y, "▼ 目印",
+        draw_centered_x(draw, lm_label_y, lm_label,
                         label_small, COLOR_ACCENT, cx=cx)
 
         lm_y = lm_label_y + LABEL_SMALL_SIZE + GAP_AFTER_LABEL
@@ -360,12 +381,24 @@ def generate_reel(*, place: str, sub_lines: list[str],
                    address: str, landmark: str, original_title: str,
                    tsubuyaki: str = "",
                    publish_date_str: str = "",
+                   label_text: str = None,
+                   lead_catch: str = None,
+                   sub_heading: str = None,
+                   title_label: str = None,
+                   card_label: str = None,
+                   landmark_label: str = None,
                    output_path: Path) -> Path:
     frame = build_reel_frame(place=place, sub_lines=sub_lines,
                               address=address, landmark=landmark,
                               original_title=original_title,
                               tsubuyaki=tsubuyaki,
-                              publish_date_str=publish_date_str)
+                              publish_date_str=publish_date_str,
+                              label_text=label_text,
+                              lead_catch=lead_catch,
+                              sub_heading=sub_heading,
+                              title_label=title_label,
+                              card_label=card_label,
+                              landmark_label=landmark_label)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     render_static_reel(frame, output_path)
     print(f"✅ Reel生成: {output_path} ({output_path.stat().st_size/1024:.0f} KB)")
@@ -420,6 +453,12 @@ def main():
         original_title=row.get("元記事タイトル", ""),
         tsubuyaki=row.get("管理人のつぶやき", "").strip(),
         publish_date_str=pub_str,
+        label_text=(row.get("ラベル", "") or "").strip() or None,
+        lead_catch=(row.get("見出し1", "") or "").strip() or None,
+        sub_heading=(row.get("見出し2", "") or "").strip() or None,
+        title_label=(row.get("過去記事ラベル", "") or "").strip() or None,
+        card_label=(row.get("カードラベル", "") or "").strip() or None,
+        landmark_label=(row.get("目印ラベル", "") or "").strip() or None,
         output_path=output_path,
     )
 
