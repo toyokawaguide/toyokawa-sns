@@ -12,12 +12,30 @@ import os
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
+import time as _time
+
 import requests
 from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 
 # load .env from claude/ folder (1階層上)
 load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
+
+
+def _request(method: str, url: str, *, what: str = "WP通信", **kwargs):
+    """接続タイムアウト等に強い requests 呼び出し（XSERVERがGHA海外IPを一時遮断する事象の対策・2026-07-03）。
+    最大3回・8/16秒バックオフ。最終失敗時は例外をそのまま送出（呼び出し側の挙動は変えない）。
+    占い(uranai/scripts/main.py の _req_post)と同じリトライパターン。"""
+    last_exc = None
+    for attempt in range(1, 4):
+        try:
+            return requests.request(method, url, **kwargs)
+        except requests.exceptions.RequestException as e:
+            last_exc = e
+            if attempt < 3:
+                print(f"  [retry] {what} 接続失敗（{attempt}/3）→ {8*attempt}秒後に再試行: {str(e)[:120]}")
+                _time.sleep(8 * attempt)
+    raise last_exc
 
 WP_URL = os.environ.get("WP_URL", "https://toyokawa-rentallife.com")
 WP_USER = os.environ.get("WP_USERNAME")
@@ -39,11 +57,12 @@ def get_auth():
 
 def get_news_category_id() -> int:
     """お知らせカテゴリの ID を取得"""
-    r = requests.get(
-        f"{WP_URL}/wp-json/wp/v2/categories",
+    r = _request(
+        "GET", f"{WP_URL}/wp-json/wp/v2/categories",
         params={"slug": NEWS_CATEGORY_SLUG},
         auth=get_auth(),
         timeout=30,
+        what="カテゴリ取得",
     )
     r.raise_for_status()
     data = r.json()
@@ -65,8 +84,8 @@ def check_manual_post_scheduled(target_date: date) -> bool:
     start_jst = datetime.combine(target_date, time(18, 30), tzinfo=JST)
     end_jst = datetime.combine(target_date, time(19, 30), tzinfo=JST)
 
-    r = requests.get(
-        f"{WP_URL}/wp-json/wp/v2/posts",
+    r = _request(
+        "GET", f"{WP_URL}/wp-json/wp/v2/posts",
         params={
             "categories": cat_id,
             "status": "future",
@@ -76,6 +95,7 @@ def check_manual_post_scheduled(target_date: date) -> bool:
         },
         auth=get_auth(),
         timeout=30,
+        what="手動投稿チェック",
     )
     r.raise_for_status()
     posts = r.json()
@@ -92,13 +112,15 @@ def upload_media(image_path: Path, caption: str = "") -> dict:
         "Content-Type": "image/png" if image_path.suffix.lower() == ".png" else "image/jpeg",
     }
     with image_path.open("rb") as f:
-        r = requests.post(
-            f"{WP_URL}/wp-json/wp/v2/media",
-            headers=headers,
-            data=f.read(),
-            auth=get_auth(),
-            timeout=120,
-        )
+        blob = f.read()
+    r = _request(
+        "POST", f"{WP_URL}/wp-json/wp/v2/media",
+        headers=headers,
+        data=blob,
+        auth=get_auth(),
+        timeout=120,
+        what=f"メディアアップ({image_path.name})",
+    )
     r.raise_for_status()
     data = r.json()
     return {"id": data["id"], "source_url": data["source_url"]}
@@ -122,11 +144,12 @@ def create_scheduled_post(*, title: str, content: str, featured_media_id: int,
     if slug:
         payload["slug"] = slug
 
-    r = requests.post(
-        f"{WP_URL}/wp-json/wp/v2/posts",
+    r = _request(
+        "POST", f"{WP_URL}/wp-json/wp/v2/posts",
         json=payload,
         auth=get_auth(),
         timeout=60,
+        what="予約投稿作成",
     )
     r.raise_for_status()
     return r.json()
@@ -140,11 +163,12 @@ def find_published_post_by_slug(slug: str) -> dict | None:
 
     戻り値: {"id": post_id, "link": url, "title": ...} or None
     """
-    r = requests.get(
-        f"{WP_URL}/wp-json/wp/v2/posts",
+    r = _request(
+        "GET", f"{WP_URL}/wp-json/wp/v2/posts",
         params={"slug": slug, "status": "publish,future"},
         auth=get_auth(),
         timeout=30,
+        what="重複投稿チェック",
     )
     r.raise_for_status()
     posts = r.json()
@@ -175,11 +199,12 @@ def create_draft_post(*, title: str, content: str, featured_media_id: int,
     if slug:
         payload["slug"] = slug
 
-    r = requests.post(
-        f"{WP_URL}/wp-json/wp/v2/posts",
+    r = _request(
+        "POST", f"{WP_URL}/wp-json/wp/v2/posts",
         json=payload,
         auth=get_auth(),
         timeout=60,
+        what="下書き投稿作成",
     )
     r.raise_for_status()
     return r.json()
