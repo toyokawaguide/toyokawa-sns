@@ -407,11 +407,16 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
                 featured_media_id=eyecatch_media["id"], slug=slug)
             log(f"📝 WP draft 投稿: post_id={wp_result['id']}", 1)
         else:
+            # 公開予定時刻を過ぎている（cron遅延・障害復旧後のcatch-up）→ status=future だと
+            # WPが宙ぶらりんにする恐れがあるため即時公開に切替（日付は予定時刻のまま=backdated）。
+            now_jst = datetime.now(JST)
+            wp_status = "publish" if publish_dt <= now_jst else "future"
             wp_result = create_scheduled_post(
                 title=title, content=content,
                 featured_media_id=eyecatch_media["id"],
-                publish_at_jst=publish_dt, slug=slug)
-            log(f"📅 WP予約投稿: post_id={wp_result['id']} ({publish_dt.isoformat()})", 1)
+                publish_at_jst=publish_dt, status=wp_status, slug=slug)
+            label = "即時公開(予定時刻経過)" if wp_status == "publish" else "予約投稿"
+            log(f"📅 WP{label}: post_id={wp_result['id']} ({publish_dt.isoformat()})", 1)
 
         result = {
             "article_id": article_id,
