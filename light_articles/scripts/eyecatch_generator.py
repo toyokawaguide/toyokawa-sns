@@ -692,6 +692,173 @@ def generate_ig_feed(place_name: str,
     return output_path
 
 
+def _cover_crop(im, w, h):
+    """アスペクト維持で w×h を埋めてセンタークロップ"""
+    iw, ih = im.size
+    sc = max(w / iw, h / ih)
+    nw, nh = int(iw * sc) + 1, int(ih * sc) + 1
+    im = im.resize((nw, nh), Image.LANCZOS)
+    return im.crop(((nw - w) // 2, (nh - h) // 2, (nw - w) // 2 + w, (nh - h) // 2 + h))
+
+
+def _fit_font(draw, text, font_path, max_w, start_size, min_size=28):
+    """max_w に収まるサイズまで縮めたフォントを返す"""
+    size = start_size
+    while size > min_size:
+        f = load_font(font_path, size)
+        b = draw.textbbox((0, 0), text, font=f)
+        if b[2] - b[0] <= max_w:
+            return f
+        size -= 4
+    return load_font(font_path, min_size)
+
+
+def _resolve_badge(label_text, original_title):
+    return (label_text or "").strip() or ("【続報】" if (original_title or "").strip() else "【お知らせ】")
+
+
+def generate_eyecatch_photo(photo_path, place_name: str,
+                            label_text: str = None,
+                            original_title: str = "",
+                            output_path: Path = None) -> Path:
+    """WPアイキャッチ 写真ファースト版（2026-07-04 B案・社長決定）：
+    写真フル面 1280×720 ＋ 上下ゴールドライン ＋ 左上「さくっとお知らせ」チップ
+    ＋ 下部グラデに バッジ＋場所名ドン。IG用の紺カードとは別物（WP専用）。"""
+    from PIL import ImageOps
+    W, H = 1280, 720
+    src = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
+    img = _cover_crop(src, W, H).convert("RGBA")
+
+    # 下部グラデーション（読みやすさ用・紺）
+    grad = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(grad)
+    gh = 280
+    for i in range(gh):
+        a = int(215 * (i / gh) ** 1.3)
+        y = H - gh + i
+        gd.line([(0, y), (W, y)], fill=(COLOR_BG[0], COLOR_BG[1], COLOR_BG[2], a))
+    img = Image.alpha_composite(img, grad)
+    draw = ImageDraw.Draw(img)
+
+    # 上下ゴールドライン
+    draw.rectangle([0, 0, W, 7], fill=COLOR_ACCENT)
+    draw.rectangle([0, H - 7, W, H], fill=COLOR_ACCENT)
+
+    # 左上チップ：紺の角丸＋白ロゴ＋「さくっとお知らせ」
+    chip_h = 66
+    chip_font = load_font(FONT_BOLD, 32)
+    label = "さくっとお知らせ"
+    b = draw.textbbox((0, 0), label, font=chip_font)
+    has_logo = LOGO_WHITE_PATH.exists()
+    logo_w = 44 if has_logo else 0
+    chip_w = 28 + logo_w + (10 if has_logo else 0) + (b[2] - b[0]) + 28
+    chip = Image.new("RGBA", (chip_w, chip_h), (0, 0, 0, 0))
+    cd = ImageDraw.Draw(chip)
+    cd.rounded_rectangle([0, 0, chip_w - 1, chip_h - 1], radius=14,
+                         fill=(COLOR_BG[0], COLOR_BG[1], COLOR_BG[2], 235),
+                         outline=COLOR_ACCENT, width=2)
+    tx = 28
+    if has_logo:
+        lg = Image.open(LOGO_WHITE_PATH).convert("RGBA")
+        lg.thumbnail((44, 44), Image.LANCZOS)
+        chip.paste(lg, (20, (chip_h - lg.size[1]) // 2), lg)
+        tx = 20 + lg.size[0] + 10
+    cd.text((tx, (chip_h - (b[3] - b[1])) // 2 - b[1]), label, font=chip_font, fill=COLOR_TEXT_WHITE)
+    img.paste(chip, (28, 26), chip)
+
+    # 下部：バッジ＋場所名ドン
+    badge = _resolve_badge(label_text, original_title)
+    badge_font = load_font(FONT_BOLD, 34)
+    bb = draw.textbbox((0, 0), badge, font=badge_font)
+    bx, by = 50, H - 172
+    draw.rounded_rectangle([bx, by, bx + (bb[2] - bb[0]) + 36, by + 52], radius=10, fill=COLOR_ACCENT)
+    draw.text((bx + 18, by + 26 - (bb[3] - bb[1]) // 2 - bb[1]), badge, font=badge_font, fill=COLOR_BG)
+
+    pf = _fit_font(draw, place_name, FONT_BOLD, W - 100, 62, 34)
+    pb = draw.textbbox((0, 0), place_name, font=pf)
+    py = H - 108 - pb[1]
+    # ソフトシャドウ
+    draw.text((52, py + 3), place_name, font=pf, fill=(0, 0, 20, 160))
+    draw.text((50, py), place_name, font=pf, fill=COLOR_TEXT_WHITE)
+
+    out = output_path or (Path(__file__).parent / "_sample" / "eyecatch_photo.png")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    img.convert("RGB").save(out)
+    return out
+
+
+def generate_eyecatch_simple(place_name: str,
+                             label_text: str = None,
+                             original_title: str = "",
+                             sub_text: str = "",
+                             output_path: Path = None) -> Path:
+    """WPアイキャッチ 簡略カード版（写真なし記事のフォールバック）：
+    紺背景＋ヘッダー＋ベージュ帯＋バッジ＋場所名ドン だけ（箱・引用なし＝サムネで読める）"""
+    W, H = 1280, 720
+    img = Image.new("RGB", (W, H), color=COLOR_BG)
+    draw = ImageDraw.Draw(img)
+
+    # ヘッダー（本家と同じ構成）
+    text_x = 45
+    if LOGO_WHITE_PATH.exists():
+        logo = Image.open(LOGO_WHITE_PATH).convert("RGBA")
+        logo.thumbnail((72, 72), Image.LANCZOS)
+        img.paste(logo, (45, 22), logo)
+        text_x = 130
+    brand_font = load_font(FONT_BOLD, 36)
+    sep_font = load_font(FONT_REG, 30)
+    catch_font = load_font(FONT_REG, 26)
+    bb = draw.textbbox((0, 0), "豊川ガイド", font=brand_font)
+    sb = draw.textbbox((0, 0), " ｜ ", font=sep_font)
+    draw.text((text_x, 38), "豊川ガイド", font=brand_font, fill=COLOR_TEXT_WHITE)
+    draw.text((text_x + bb[2] - bb[0], 42), " ｜ ", font=sep_font, fill=COLOR_TEXT_SUB)
+    draw.text((text_x + bb[2] - bb[0] + sb[2] - sb[0], 44), BRAND_CATCH, font=catch_font, fill=COLOR_TEXT_SUB)
+
+    # ベージュ帯
+    draw.rectangle([0, 105, W, 265], fill=COLOR_BEIGE)
+    small_f = load_font(FONT_REG, 30)
+    big_f = load_font(FONT_BOLD, 72)
+    t1, t2 = "豊川ガイド的", "さくっとお知らせ"
+    b1 = draw.textbbox((0, 0), t1, font=small_f)
+    b2 = draw.textbbox((0, 0), t2, font=big_f)
+    draw.text(((W - (b1[2] - b1[0])) / 2, 122), t1, font=small_f, fill=COLOR_TEXT_DARK)
+    draw.text(((W - (b2[2] - b2[0])) / 2, 158), t2, font=big_f, fill=COLOR_BG)
+
+    # バッジ（中央）
+    badge = _resolve_badge(label_text, original_title)
+    badge_font = load_font(FONT_BOLD, 36)
+    bb2 = draw.textbbox((0, 0), badge, font=badge_font)
+    bw = bb2[2] - bb2[0] + 44
+    bx = (W - bw) / 2
+    draw.rounded_rectangle([bx, 330, bx + bw, 330 + 58], radius=10, fill=COLOR_ACCENT)
+    draw.text((bx + 22, 330 + 29 - (bb2[3] - bb2[1]) / 2 - bb2[1]), badge, font=badge_font, fill=COLOR_BG)
+
+    # 場所名ドン（中央・自動縮小）
+    pf = _fit_font(draw, place_name, FONT_BOLD, W - 120, 66, 36)
+    pb = draw.textbbox((0, 0), place_name, font=pf)
+    draw.text(((W - (pb[2] - pb[0])) / 2, 445 - (pb[3] - pb[1]) / 2 - pb[1]),
+              place_name, font=pf, fill=COLOR_TEXT_WHITE)
+    lw = min(pb[2] - pb[0] + 40, W - 160)
+    draw.rectangle([(W - lw) / 2, 512, (W + lw) / 2, 516], fill=COLOR_ACCENT)
+
+    # サブ（1行だけ・任意）
+    sub1 = (sub_text or "").split("\n")[0].strip()
+    if sub1:
+        sf = _fit_font(draw, sub1, FONT_REG, W - 200, 38, 26)
+        sb3 = draw.textbbox((0, 0), sub1, font=sf)
+        draw.text(((W - (sb3[2] - sb3[0])) / 2, 560), sub1, font=sf, fill=COLOR_TEXT_SUB)
+
+    note_f = load_font(FONT_REG, 24)
+    note = "※ 詳しくは記事本文をどうぞ"
+    nb = draw.textbbox((0, 0), note, font=note_f)
+    draw.text(((W - (nb[2] - nb[0])) / 2, 660), note, font=note_f, fill=COLOR_TEXT_SUB)
+
+    out = output_path or (Path(__file__).parent / "_sample" / "eyecatch_simple.png")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    img.save(out)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--id", help="記事ID（例: LR001）")

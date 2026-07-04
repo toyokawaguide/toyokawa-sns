@@ -31,7 +31,8 @@ from sheets_client import get_draft_rows, get_pending_rows, update_status, SPREA
 from content_builder import (build_title, build_content, build_photo_html,
                               build_x_caption, build_threads_caption,
                               build_instagram_caption, get_sub)
-from eyecatch_generator import generate_eyecatch, generate_ig_feed
+from eyecatch_generator import (generate_eyecatch, generate_ig_feed,
+                                 generate_eyecatch_photo, generate_eyecatch_simple)
 from generate_reel import generate_reel
 from sns_clients import (post_threads, post_instagram_feed,
                           post_instagram_feed_carousel,
@@ -265,21 +266,27 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     _sub1    = (row.get("見出し2", "") or "").strip() or None
     _clabel  = (row.get("カードラベル", "") or "").strip() or None
     _lmlabel = (row.get("目印ラベル", "") or "").strip() or None
-    generate_eyecatch(
-        place_name=place,
-        sub_text=eyecatch_sub,
-        address=row.get("住所", "豊川市内"),
-        landmark=row.get("目印", ""),
-        original_title=row.get("元記事タイトル", ""),
-        label_text=_label,
-        lead_catch=_catch,
-        title_label=_tlabel,
-        sub_heading=_sub1,
-        card_label=_clabel,
-        landmark_label=_lmlabel,
-        output_path=eyecatch_path,
-    )
-    log(f"🎨 アイキャッチ生成: {eyecatch_path.name}", 1)
+    # WPアイキャッチ＝写真ファースト（2026-07-04 B案・社長決定）
+    # 写真あり→写真フル面＋バッジ＋場所名／写真なし→簡略カード（箱・引用なし）
+    # ※IG用の紺カード(generate_ig_feed)は従来どおり
+    if photos:
+        generate_eyecatch_photo(
+            photo_path=photos[0],
+            place_name=place,
+            label_text=_label,
+            original_title=row.get("元記事タイトル", ""),
+            output_path=eyecatch_path,
+        )
+        log(f"🎨 アイキャッチ生成（写真版）: {eyecatch_path.name}", 1)
+    else:
+        generate_eyecatch_simple(
+            place_name=place,
+            label_text=_label,
+            original_title=row.get("元記事タイトル", ""),
+            sub_text=eyecatch_sub,
+            output_path=eyecatch_path,
+        )
+        log(f"🎨 アイキャッチ生成（簡略カード版）: {eyecatch_path.name}", 1)
 
     # IG Feed 用画像（1080×1350 縦長・別ファイル）
     ig_feed_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_feed.png"
