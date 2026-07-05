@@ -730,12 +730,17 @@ def generate_eyecatch_photo(photo_path, place_name: str,
     img = _cover_crop(src, W, H).convert("RGBA")
 
     # 下部グラデーション（読みやすさ用・紺）
+    #   2026-07-05: 写真に焼き込み済みの「YYYY年M月撮影」透かしがタイトル文字と重なって
+    #   読みにくかった（LR039初回で発覚）→ グラデを高く・濃くして透かしごと沈める
     grad = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     gd = ImageDraw.Draw(grad)
-    gh = 280
+    gh, solid = 340, 130   # 下130pxは完全不透明（透かし文字を確実に沈める）・その上210pxでフェード
     for i in range(gh):
-        a = int(215 * (i / gh) ** 1.3)
         y = H - gh + i
+        if y >= H - solid:
+            a = 255
+        else:
+            a = int(255 * (i / (gh - solid)) ** 1.2)
         gd.line([(0, y), (W, y)], fill=(COLOR_BG[0], COLOR_BG[1], COLOR_BG[2], a))
     img = Image.alpha_composite(img, grad)
     draw = ImageDraw.Draw(img)
