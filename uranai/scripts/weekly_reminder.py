@@ -129,7 +129,7 @@ def build_x_reservation_text(d: date, wd: str, name: str | None, is_chain: bool)
             f"来週の運勢のヒントは記事で👇\n\n"
             f"{url}\n\n"
             f"明日からまた毎朝のお楽しみに✨\n\n"
-            f"#豊川ガイド #今週のまとめ #占い"
+            f"#豊川ガイド #とよサポ #今週のまとめ #占い"
         )
     label, theme_emoji, tag3 = WEEKDAY_THEME[wd]
     if name:
@@ -144,7 +144,7 @@ def build_x_reservation_text(d: date, wd: str, name: str | None, is_chain: bool)
         f"🦊 管理人の独断と偏見と忖度による\n"
         f"本日のラッキースポット\n"
         f"👉 {spot_disp}\n\n"
-        f"#豊川ガイド #今日の占い {tag3}"
+        f"#豊川ガイド #とよサポ #今日の占い {tag3}"
     )
 
 

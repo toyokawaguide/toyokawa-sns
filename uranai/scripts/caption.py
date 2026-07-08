@@ -83,7 +83,7 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
             f"🥉{items[2]['label']} ★{items[2]['stars']}\n\n"
             f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
-            f"#豊川ガイド #今日の占い #星座占い"
+            f"#豊川ガイド #とよサポ #今日の占い #星座占い"
         )
 
     if weekday_key == "tue":
@@ -98,7 +98,7 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
             f"4位:{order[3]}型 ★{blood[order[3]]['stars']}\n\n"
             f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
-            f"#豊川ガイド #今日の占い #血液型占い"
+            f"#豊川ガイド #とよサポ #今日の占い #血液型占い"
         )
 
     if weekday_key in ("wed", "thu"):
@@ -113,7 +113,7 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
             f"🥉{items[2]['label']} ★{items[2]['stars']}\n\n"
             f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
-            f"#豊川ガイド #今日の占い {tag}"
+            f"#豊川ガイド #とよサポ #今日の占い {tag}"
         )
 
     if weekday_key in ("fri", "sat"):
@@ -132,7 +132,7 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
             f"…続きはブログで\n\n"
             f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n"
-            f"#豊川ガイド {tag}"
+            f"#豊川ガイド #とよサポ {tag}"
         )
 
     if weekday_key == "sun":
@@ -146,7 +146,7 @@ def make_x_caption(weekday_key: str, data: dict, spot, target_date: date, post_u
             f"{msg}\n\n"
             f"明日からまた毎朝のお楽しみに🦊\n\n"
             f"{post_url}\n"
-            f"#豊川ガイド #今週のまとめ #占い"
+            f"#豊川ガイド #とよサポ #今週のまとめ #占い"
         )
 
     return ""
@@ -174,7 +174,7 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
             f"🥉{items[2]['label']} ★{items[2]['stars']}\n{_trim(items[2]['comment'])}\n\n"
             f"🦊本日のラッキースポット\n{sp}\n\n"
             f"→詳細はブログで\n{post_url}\n\n"
-            f"#豊川ガイド #豊川市 #今日の占い {tag}"
+            f"#豊川ガイド #とよサポ #豊川市 #今日の占い {tag}"
         )
 
     if weekday_key == "tue":
@@ -191,7 +191,7 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
             f"{body}"
             f"🦊本日のラッキースポット\n{sp}\n\n"
             f"→詳細はブログで\n{post_url}\n\n"
-            f"#豊川ガイド #豊川市 #今日の占い #血液型占い"
+            f"#豊川ガイド #とよサポ #豊川市 #今日の占い #血液型占い"
         )
 
     if weekday_key in ("fri", "sat"):
@@ -210,7 +210,7 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
             f"…続きはブログで全10位!\n\n"
             f"🦊本日のラッキースポット\n{sp}\n\n"
             f"{post_url}\n\n"
-            f"#豊川ガイド #豊川市 {tag}"
+            f"#豊川ガイド #とよサポ #豊川市 {tag}"
         )
 
     if weekday_key == "sun":
@@ -232,7 +232,7 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
             f"🌱来週のテーマは「{theme}」\n{msg}\n\n"
             f"明日からまた毎朝のお楽しみに🦊\n\n"
             f"{post_url}\n\n"
-            f"#豊川ガイド #豊川市 #今週のまとめ #占い"
+            f"#豊川ガイド #とよサポ #豊川市 #今週のまとめ #占い"
         )
 
     return ""
@@ -247,7 +247,7 @@ def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date
     wd = _wd_jp(target_date)
     sp = _chain(spot.name, spot.is_chain)
     head = f"{BETA_NOTICE_LONG}\n\n" if _is_beta(target_date) else ""
-    common_tags = "#豊川ガイド #豊川市 #toyokawa #愛知県 #朝の占い #占い好き #ご当地"
+    common_tags = "#豊川ガイド #とよサポ #豊川市 #toyokawa #愛知県 #朝の占い #占い好き #ご当地"
     cta = "📌全項目はブログで\n@toyokawaguide → プロフィールのリンクから\nトップページの「🔮 今日の占い」をチェック！"
 
     def _block(rank, label, stars_text, comment):
@@ -346,7 +346,7 @@ def make_instagram_reel_caption(weekday_key: str, data: dict, spot, target_date:
     wd = _wd_jp(target_date)
     sp = _chain(spot.name, spot.is_chain)
     head = f"{BETA_NOTICE_LONG}\n\n" if _is_beta(target_date) else ""
-    common_tags = "#豊川ガイド #豊川市 #toyokawa #愛知県 #朝の占い #占い好き #ご当地"
+    common_tags = "#豊川ガイド #とよサポ #豊川市 #toyokawa #愛知県 #朝の占い #占い好き #ご当地"
     cta = "📌全文＋スポット詳細はブログで\n@toyokawaguide → プロフィールのリンクから\nトップページの「🔮 今日の占い」をチェック！"
 
     def _block(rank, label, stars_text, comment):

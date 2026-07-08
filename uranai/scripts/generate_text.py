@@ -662,7 +662,7 @@ def _dummy_monday(target_date: date, spot: Spot) -> str:
         "",
         "明日の朝もお楽しみに！",
         "",
-        "#豊川ガイド #豊川市 #今日の占い #星座占い",
+        "#豊川ガイド #とよサポ #豊川市 #今日の占い #星座占い",
     ]
     return "\n".join(lines)
 
@@ -704,7 +704,7 @@ def _dummy_tuesday(target_date: date, spot: Spot) -> str:
         "※管理人の独断と偏見でお届けする、ゆる〜い占いです",
         "明日の朝もお楽しみに！",
         "",
-        "#豊川ガイド #豊川市 #今日の占い #血液型占い",
+        "#豊川ガイド #とよサポ #豊川市 #今日の占い #血液型占い",
     ]
     return "\n".join(lines)
 
@@ -786,7 +786,7 @@ def _dummy_generic(target_date: date, weekday_key: str, spot: Spot) -> str:
         "※管理人の独断と偏見でお届けする、ゆる〜い占いです",
         "明日の朝もお楽しみに！",
         "",
-        f"#豊川ガイド #豊川市 #今日の占い",
+        f"#豊川ガイド #とよサポ #豊川市 #今日の占い",
     ])
     return "\n".join(lines)
 
@@ -1007,7 +1007,7 @@ TOP3はブログで！
 🦊本日のラッキースポット
 【{spot.name}】
 https://toyokawa-rentallife.com/uranai/
-#豊川ガイド #豊川市 #今日の占い"""
+#豊川ガイド #とよサポ #豊川市 #今日の占い"""
     # TODO: 実 API でリライト
     rewriter_prompt = load_prompt("rewriters/x_rewriter.txt")
     user = f"# 元記事\n{wp_content}\n\n{rewriter_prompt}"
@@ -1035,7 +1035,7 @@ TOP5
 詳しくはブログで→
 https://toyokawa-rentallife.com/uranai/
 
-#豊川ガイド #豊川市 #今日の占い #星座占い"""
+#豊川ガイド #とよサポ #豊川市 #今日の占い #星座占い"""
     rewriter_prompt = load_prompt("rewriters/threads_rewriter.txt")
     user = f"# 元記事\n{wp_content}\n\n{rewriter_prompt}"
     return call_claude_api("あなたは豊川ガイドのSNS担当です。", user)
@@ -1057,7 +1057,7 @@ TOP3
 
 全部の運勢はプロフィールのリンクから✨
 
-#豊川ガイド #豊川市 #今日の占い #ご当地占い"""
+#豊川ガイド #とよサポ #豊川市 #今日の占い #ご当地占い"""
     rewriter_prompt = load_prompt("rewriters/instagram_rewriter.txt")
     user = f"# 元記事\n{wp_content}\n\n{rewriter_prompt}"
     return call_claude_api("あなたは豊川ガイドのSNS担当です。", user)

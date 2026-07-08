@@ -318,7 +318,7 @@ def build_x_caption(row: dict, wp_url: str) -> str:
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
 
     closing = "豊川市のちょっとした変化、見つけたらDMで教えてね👀"
-    hashtags = "#豊川市 #豊川ガイド #さくっとお知らせ"
+    hashtags = "#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ"
 
     # まずはつぶやきあり版を試算
     ts = _tsubuyaki_block(row)
@@ -348,7 +348,7 @@ def build_threads_caption(row: dict, wp_url: str) -> str:
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
 
     closing = "豊川市のちょっとした変化、見つけたらDMで教えてね👀"
-    hashtags = "#豊川市 #豊川ガイド #さくっとお知らせ"
+    hashtags = "#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ"
 
     lines = [title, "", lead]
     ts = _tsubuyaki_block(row)
@@ -388,6 +388,6 @@ def build_instagram_caption(row: dict, wp_url: str) -> str:
         "",
         "👀 豊川市のちょっとした変化、見つけたらDMで教えてね",
         "",
-        "#豊川市 #豊川ガイド #さくっとお知らせ #地域メディア",
+        "#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ #地域メディア",
     ]
     return "\n".join(lines)
