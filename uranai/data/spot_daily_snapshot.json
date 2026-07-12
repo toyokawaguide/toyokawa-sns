@@ -1,129 +1,129 @@
 {
-  "captured_at": "2026-05-20T12:03:38.422129+09:00",
-  "captured_date": "2026-05-20",
+  "captured_at": "2026-07-13T01:03:29.179509+09:00",
+  "captured_date": "2026-07-13",
   "lookahead_days": 30,
   "spots": {
-    "2026-05-20": {
-      "name": "キッチンながた",
+    "2026-07-13": {
+      "name": "Pièreposer（ピエルポゼ）",
       "is_chain": false
     },
-    "2026-05-21": {
-      "name": "餃子達人",
+    "2026-07-14": {
+      "name": "HOANGNAM FOODS",
       "is_chain": false
     },
-    "2026-05-22": {
-      "name": "豚専門店 雪乃醸",
-      "is_chain": false
-    },
-    "2026-05-23": {
-      "name": "ファミリーマート",
+    "2026-07-15": {
+      "name": "ミスタードーナツ",
       "is_chain": true
     },
-    "2026-05-24": {
+    "2026-07-16": {
+      "name": "串カツ田中　豊川稲荷店",
+      "is_chain": false
+    },
+    "2026-07-17": {
+      "name": "ラーメン・餃子　北国",
+      "is_chain": false
+    },
+    "2026-07-18": {
+      "name": "icic shaved ice",
+      "is_chain": false
+    },
+    "2026-07-19": {
       "name": null,
       "is_chain": false
     },
-    "2026-05-25": {
-      "name": "本気ハンバーグ",
-      "is_chain": false
-    },
-    "2026-05-26": {
-      "name": "ポンポコラーメンアウトレット",
-      "is_chain": false
-    },
-    "2026-05-27": {
-      "name": "パンジー屋",
-      "is_chain": false
-    },
-    "2026-05-28": {
-      "name": "アミカ",
-      "is_chain": false
-    },
-    "2026-05-29": {
-      "name": "や台ずし",
-      "is_chain": false
-    },
-    "2026-05-30": {
-      "name": "麵屋ひなげし",
-      "is_chain": false
-    },
-    "2026-05-31": {
-      "name": null,
-      "is_chain": true
-    },
-    "2026-06-01": {
-      "name": "ENTER SEEK",
-      "is_chain": false
-    },
-    "2026-06-02": {
-      "name": "バーガーキング",
-      "is_chain": false
-    },
-    "2026-06-03": {
-      "name": "ぎょうざの萬代",
-      "is_chain": false
-    },
-    "2026-06-04": {
-      "name": "グリーンセンター",
-      "is_chain": true
-    },
-    "2026-06-05": {
-      "name": "チトセテラス",
-      "is_chain": false
-    },
-    "2026-06-06": {
-      "name": "餃子の王将",
-      "is_chain": true
-    },
-    "2026-06-07": {
+    "2026-07-20": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-08": {
-      "name": "焼肉ホルモン ざくろ",
-      "is_chain": false
-    },
-    "2026-06-09": {
+    "2026-07-21": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-10": {
+    "2026-07-22": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-11": {
+    "2026-07-23": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-12": {
+    "2026-07-24": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-13": {
+    "2026-07-25": {
+      "name": "Mecci Tart（メッチタルト）",
+      "is_chain": false
+    },
+    "2026-07-26": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-14": {
+    "2026-07-27": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-15": {
+    "2026-07-28": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-16": {
+    "2026-07-29": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-17": {
+    "2026-07-30": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-18": {
+    "2026-07-31": {
       "name": null,
       "is_chain": false
     },
-    "2026-06-19": {
+    "2026-08-01": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-02": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-03": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-04": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-05": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-06": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-07": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-08": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-09": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-10": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-11": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-12": {
       "name": null,
       "is_chain": false
     }
