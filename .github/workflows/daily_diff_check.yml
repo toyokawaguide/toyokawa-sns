@@ -43,8 +43,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add uranai/data/spot_daily_snapshot.json
           if ! git diff --staged --quiet; then
-            git pull --rebase
+            # commit してから rebase（ステージ済みのまま rebase すると
+            # "index contains uncommitted changes" で毎回失敗＝スナップショットが
+            # 永久に更新されず同じ差分を毎晩再検知していた 2026-07-12 修正）
             git commit -m "daily_diff: snapshot $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase
             git push
           else
             echo "スナップショット変更なし→commit不要"
