@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-07-16T01:38:09.218142+09:00",
-  "captured_date": "2026-07-16",
+  "captured_at": "2026-07-17T01:22:25.652851+09:00",
+  "captured_date": "2026-07-17",
   "lookahead_days": 30,
   "spots": {
-    "2026-07-16": {
-      "name": "串カツ田中　豊川稲荷店",
-      "is_chain": false
-    },
     "2026-07-17": {
       "name": "ラーメン・餃子　北国",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-08-15": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-16": {
       "name": null,
       "is_chain": false
     }
