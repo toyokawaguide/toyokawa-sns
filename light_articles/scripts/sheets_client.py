@@ -84,14 +84,15 @@ def get_service():
     return build("sheets", "v4", credentials=creds, cache_discovery=False)
 
 
-def read_all_rows() -> list[dict]:
+def read_all_rows(sheet: str = None) -> list[dict]:
     """キューシートの全行を辞書のリストとして返す
     [{"id":"LR001", "状態":"draft", "場所":"...", ...}, ...]
+    sheet: タブ名の上書き（省略時=キュー。PRキュー等に切替可能）
     """
     service = get_service()
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"{SHEET_NAME}!A1:Z1000",
+        range=f"{sheet or SHEET_NAME}!A1:Z1000",
     ).execute()
     values = result.get("values", [])
     if not values:
@@ -114,16 +115,17 @@ def _column_letter(index: int) -> str:
     return result
 
 
-def update_status(row_index: int, new_status: str):
+def update_status(row_index: int, new_status: str, sheet: str = None):
     """「状態」列（列順は変動するためヘッダー名で動的特定）を更新。
 
-    社長が列を入れ替えても安全。
+    社長が列を入れ替えても安全。sheet=タブ名上書き（PRキュー等）。
     """
     service = get_service()
+    sheet_name = sheet or SHEET_NAME
     # まず1行目（ヘッダー）を取得して「状態」列の位置を特定
     h = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"{SHEET_NAME}!1:1",
+        range=f"{sheet_name}!1:1",
     ).execute()
     headers = h.get("values", [[]])[0]
     if "状態" not in headers:
@@ -132,7 +134,7 @@ def update_status(row_index: int, new_status: str):
     col_letter = _column_letter(col_idx)
     service.spreadsheets().values().update(
         spreadsheetId=SPREADSHEET_ID,
-        range=f"{SHEET_NAME}!{col_letter}{row_index}",
+        range=f"{sheet_name}!{col_letter}{row_index}",
         valueInputOption="USER_ENTERED",
         body={"values": [[new_status]]},
     ).execute()

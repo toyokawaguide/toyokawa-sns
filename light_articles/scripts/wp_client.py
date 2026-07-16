@@ -71,6 +71,56 @@ def get_news_category_id() -> int:
     return data[0]["id"]
 
 
+def get_category_id(slug: str) -> int:
+    """任意カテゴリの ID を取得（さくっとPR用等）"""
+    r = _request(
+        "GET", f"{WP_URL}/wp-json/wp/v2/categories",
+        params={"slug": slug},
+        auth=get_auth(),
+        timeout=30,
+        what="カテゴリ取得",
+    )
+    r.raise_for_status()
+    data = r.json()
+    if not data:
+        raise RuntimeError(f"カテゴリ slug={slug} が見つかりません")
+    return data[0]["id"]
+
+
+def create_scheduled_post_generic(*, title: str, content: str,
+                                   featured_media_id: int,
+                                   publish_at_jst: datetime,
+                                   category_slug: str,
+                                   tag_ids: list = None,
+                                   status: str = "future",
+                                   slug: str = None) -> dict:
+    """任意カテゴリで予約投稿を作成（さくっとPR等・タグは任意）"""
+    cat_id = get_category_id(category_slug)
+    payload = {
+        "title": title,
+        "content": content,
+        "status": status,
+        "categories": [cat_id],
+        "featured_media": featured_media_id,
+        "date": publish_at_jst.isoformat(),
+    }
+    if tag_ids:
+        payload["tags"] = tag_ids
+    if slug:
+        payload["slug"] = slug
+    if status == "draft":
+        payload.pop("date", None)
+    r = _request(
+        "POST", f"{WP_URL}/wp-json/wp/v2/posts",
+        json=payload,
+        auth=get_auth(),
+        timeout=60,
+        what="PR予約投稿作成",
+    )
+    r.raise_for_status()
+    return r.json()
+
+
 def check_manual_post_scheduled(target_date: date) -> bool:
     """指定日19:00公開予定の future 投稿（手動）が「お知らせ」カテゴリに既にあるかチェック
 

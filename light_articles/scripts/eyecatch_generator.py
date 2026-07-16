@@ -53,6 +53,9 @@ MODE_OSHIRASE = {
 }
 
 
+SERIES_LABEL = "さくっとお知らせ"  # PR配信時は publish側で "さくっとPR" に差し替え
+
+
 def load_font(path: str, size: int):
     try:
         return ImageFont.truetype(path, size)
@@ -186,7 +189,7 @@ def generate_eyecatch(place_name: str,
     sec_lg_font = load_font(FONT_BOLD, 56)
 
     sb_top = draw.textbbox((0, 0), "豊川ガイド的", font=sec_font)
-    sb_btm = draw.textbbox((0, 0), "さくっとお知らせ", font=sec_lg_font)
+    sb_btm = draw.textbbox((0, 0), SERIES_LABEL, font=sec_lg_font)
     h_top = sb_top[3] - sb_top[1]
     h_btm = sb_btm[3] - sb_btm[1]
     gap_between = 10
@@ -196,7 +199,7 @@ def generate_eyecatch(place_name: str,
     draw_centered_text(draw, start_y, "豊川ガイド的",
                        sec_font, COLOR_TEXT_DARK, W)
     draw_centered_text(draw, start_y + h_top + gap_between,
-                       "さくっとお知らせ", sec_lg_font, COLOR_BG, W)
+                       SERIES_LABEL, sec_lg_font, COLOR_BG, W)
 
     # ============ モード判定（元記事タイトルの有無） ============
     has_original = bool(original_title)
@@ -479,7 +482,7 @@ def generate_ig_feed(place_name: str,
     sec_font = load_font(FONT_REG, 36)
     sec_lg_font = load_font(FONT_BOLD, 88)
     sb_top = draw.textbbox((0, 0), "豊川ガイド的", font=sec_font)
-    sb_btm = draw.textbbox((0, 0), "さくっとお知らせ", font=sec_lg_font)
+    sb_btm = draw.textbbox((0, 0), SERIES_LABEL, font=sec_lg_font)
     h_top = sb_top[3] - sb_top[1]
     h_btm = sb_btm[3] - sb_btm[1]
     gap_between = 12
@@ -489,7 +492,7 @@ def generate_ig_feed(place_name: str,
     draw_centered_text(draw, start_y, "豊川ガイド的",
                        sec_font, COLOR_TEXT_DARK, W)
     draw_centered_text(draw, start_y + h_top + gap_between,
-                       "さくっとお知らせ", sec_lg_font, COLOR_BG, W)
+                       SERIES_LABEL, sec_lg_font, COLOR_BG, W)
 
     # ============ ラベル帯＋キャッチ ============
     y = band_y_bottom + 30
@@ -752,7 +755,7 @@ def generate_eyecatch_photo(photo_path, place_name: str,
     # 左上チップ：紺の角丸＋白ロゴ＋「さくっとお知らせ」
     chip_h = 66
     chip_font = load_font(FONT_BOLD, 32)
-    label = "さくっとお知らせ"
+    label = SERIES_LABEL
     b = draw.textbbox((0, 0), label, font=chip_font)
     has_logo = LOGO_WHITE_PATH.exists()
     logo_w = 44 if has_logo else 0
@@ -823,7 +826,7 @@ def generate_eyecatch_simple(place_name: str,
     draw.rectangle([0, 105, W, 265], fill=COLOR_BEIGE)
     small_f = load_font(FONT_REG, 30)
     big_f = load_font(FONT_BOLD, 72)
-    t1, t2 = "豊川ガイド的", "さくっとお知らせ"
+    t1, t2 = "豊川ガイド的", SERIES_LABEL
     b1 = draw.textbbox((0, 0), t1, font=small_f)
     b2 = draw.textbbox((0, 0), t2, font=big_f)
     draw.text(((W - (b1[2] - b1[0])) / 2, 122), t1, font=small_f, fill=COLOR_TEXT_DARK)
