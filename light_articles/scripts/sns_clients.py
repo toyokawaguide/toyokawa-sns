@@ -285,3 +285,67 @@ def post_instagram_reel_resumable(caption: str, video_path: Path,
 
     return {"status": "error", "post_id": None,
             "error": f"exhausted {MAX_RETRIES} retries: {last_error}"}
+
+
+def post_instagram_reel_by_url(caption: str, video_url: str, dry: bool = True) -> dict:
+    """Instagram Reels（公開URL方式）— Resumable Upload が ProcessingFailedError で
+    弾かれた時のフォールバック。2026-07-19 LR053 で Resumable が5回とも
+    400 ProcessingFailedError になった事故を受けて追加。
+
+    Args:
+        caption: Reels キャプション
+        video_url: 公開アクセス可能な mp4 の URL（WPメディア等）
+    Returns: {"status": "ok"/"dry"/"error", "post_id": str|None}
+    """
+    if dry:
+        print(f"[DRY][IG Reels URL] {video_url}")
+        return {"status": "dry", "post_id": None, "caption": caption}
+
+    token = os.environ.get("META_ACCESS_TOKEN") or META_TOKEN
+    ig_id = (os.environ.get("INSTAGRAM_ACCOUNT_ID")
+              or os.environ.get("IG_USER_ID")
+              or DEFAULT_IG_ACCOUNT_ID)
+    if not token:
+        return {"status": "error", "post_id": None, "error": "META_ACCESS_TOKEN 未設定"}
+    if not ig_id:
+        return {"status": "error", "post_id": None, "error": "INSTAGRAM_ACCOUNT_ID 未設定"}
+
+    try:
+        r1 = requests.post(
+            f"{GRAPH_API}/{ig_id}/media",
+            data={"media_type": "REELS", "video_url": video_url,
+                  "caption": caption, "access_token": token},
+            timeout=120,
+        )
+        if r1.status_code != 200:
+            return {"status": "error", "post_id": None,
+                    "error": f"container failed: {r1.status_code} {r1.text[:200]}"}
+        container_id = r1.json()["id"]
+        print(f"  [URL方式] container_id={container_id}", flush=True)
+
+        # 処理完了までポーリング（最大5分）
+        status = None
+        for _ in range(30):
+            time.sleep(10)
+            rs = requests.get(f"{GRAPH_API}/{container_id}",
+                              params={"fields": "status_code,status", "access_token": token},
+                              timeout=60)
+            if rs.status_code == 200:
+                status = rs.json().get("status_code")
+                if status == "FINISHED":
+                    break
+                if status == "ERROR":
+                    return {"status": "error", "post_id": None,
+                            "error": f"processing error: {rs.json()}"}
+        if status != "FINISHED":
+            return {"status": "error", "post_id": None, "error": "processing timeout (5 min)"}
+
+        r2 = requests.post(f"{GRAPH_API}/{ig_id}/media_publish",
+                           data={"creation_id": container_id, "access_token": token},
+                           timeout=60)
+        if r2.status_code != 200:
+            return {"status": "error", "post_id": None,
+                    "error": f"publish failed: {r2.status_code} {r2.text[:200]}"}
+        return {"status": "ok", "post_id": str(r2.json()["id"]), "media_type": "REELS_URL"}
+    except Exception as e:
+        return {"status": "error", "post_id": None, "error": str(e)}

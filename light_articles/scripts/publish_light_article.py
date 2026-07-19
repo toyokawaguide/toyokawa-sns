@@ -36,7 +36,8 @@ from eyecatch_generator import (generate_eyecatch, generate_ig_feed,
 from generate_reel import generate_reel
 from sns_clients import (post_threads, post_instagram_feed,
                           post_instagram_feed_carousel,
-                          post_instagram_reel_resumable)
+                          post_instagram_reel_resumable,
+                          post_instagram_reel_by_url)
 from notify import send_x_caption_mail, send_skip_notification
 
 LIGHT_BASE = Path("G:/マイドライブ/ライト記事")
@@ -495,6 +496,19 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     log(f"🎬 Instagram Reels 投稿（1080×1920・dry={sns_dry}）", 1)
     reel_result = post_instagram_reel_resumable(ig_caption, reel_path, dry=sns_dry)
     log(f"  → {reel_result}", 2)
+    # Resumable が ProcessingFailedError 等で失敗したら公開URL方式で再挑戦
+    # （2026-07-19 LR053: Resumable が5回とも 400 ProcessingFailedError になった）
+    if (not sns_dry) and reel_result.get("error"):
+        try:
+            log("  ↻ Resumable失敗 → 公開URL方式でフォールバック", 2)
+            video_url = upload_media(Path(reel_path))["source_url"]
+            log(f"    動画URL: {video_url}", 2)
+            fb = post_instagram_reel_by_url(ig_caption, video_url, dry=False)
+            log(f"  → (fallback) {fb}", 2)
+            if fb.get("status") == "ok":
+                reel_result = fb
+        except Exception as _e:
+            log(f"  ⚠ フォールバックも失敗: {_e}", 2)
 
     # === SNS 結果判定 → 状態更新 ===
     sns_failures = []
