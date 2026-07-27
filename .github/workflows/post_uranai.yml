@@ -121,6 +121,7 @@ jobs:
       # 対象日の投稿が1件でも実在する（または実在確認できない）なら exit 9 で
       # ここで止まり、後続の投稿ステップに進まない＝二重投稿しない。
       - name: 強制再投稿の前に実物不在を確認（force_repost=true のときだけ）
+        id: repost_guard
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_repost == 'true'
         env:
           PYTHONUNBUFFERED: '1'
@@ -223,8 +224,10 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+      # 強制再投稿ガードによる中止は「投稿済みなので何もしなかった」＝正常な判断であって
+      # 配信失敗ではない。ここで除外しないと、ガードが働くたびに誤った失敗通知が飛ぶ。
       - name: 失敗通知（Gmail）
-        if: failure()
+        if: failure() && steps.repost_guard.outcome != 'failure'
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
