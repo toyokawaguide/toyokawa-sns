@@ -149,7 +149,8 @@ def check_reachable_accounts(token: str, configured_ig_id: str) -> None:
 
 
 def check_instagram(token: str, ig_id: str, target: date, limit: int,
-                    post_ids: list[str]) -> None:
+                    post_ids: list[str]) -> int:
+    """Returns: 対象日に実在した IG メディア件数（-1 = 確認できなかった）"""
     hr(f"3. 投稿先 Instagram アカウント (id={ig_id})")
 
     prof, err = get(f"{GRAPH_API}/{ig_id}", {
@@ -158,7 +159,7 @@ def check_instagram(token: str, ig_id: str, target: date, limit: int,
     })
     if err:
         print(f"  ❌ アカウント情報取得失敗 → {err}")
-        return
+        return -1
     print(f"  @{prof.get('username')} ({prof.get('name')})")
     print(f"  メディア総数: {prof.get('media_count')} / フォロワー: {prof.get('followers_count')}")
 
@@ -170,12 +171,12 @@ def check_instagram(token: str, ig_id: str, target: date, limit: int,
     })
     if err:
         print(f"  ❌ メディア一覧取得失敗 → {err}")
-        return
+        return -1
 
     items = (media or {}).get("data", [])
     if not items:
         print("  ⚠ メディアが1件も返ってこない（アカウントが空、または権限不足）")
-        return
+        return 0
 
     hits = 0
     for m in items:
@@ -213,16 +214,19 @@ def check_instagram(token: str, ig_id: str, target: date, limit: int,
                       f"{to_jst(one.get('timestamp'))} {one.get('media_type')}")
                 print(f"     {one.get('permalink')}")
 
+    return hits
+
 
 def check_threads(token: str, user_id: str, target: date, limit: int,
-                  post_ids: list[str]) -> None:
+                  post_ids: list[str]) -> int:
+    """Returns: 対象日に実在した Threads 投稿件数（-1 = 確認できなかった）"""
     hr("6. Threads")
 
     me, err = get(f"{THREADS_API}/me", {"fields": "id,username,name", "access_token": token})
     if err:
         print(f"  ❌ 本人情報取得失敗 → {err}")
         print("     ※ THREADS_ACCESS_TOKEN 失効の可能性")
-        return
+        return -1
     print(f"  @{me.get('username')} ({me.get('name')}) id={me.get('id')}")
     if str(me.get("id")) != str(user_id):
         print(f"  🚨 THREADS_USER_ID({user_id}) とトークンの本人ID({me.get('id')})が不一致")
@@ -234,7 +238,7 @@ def check_threads(token: str, user_id: str, target: date, limit: int,
     })
     if err:
         print(f"  ❌ 投稿一覧取得失敗 → {err}")
-        return
+        return -1
 
     items = (posts or {}).get("data", [])
     print(f"\n  最新 {len(items)} 件（対象日: {target} JST）")
@@ -268,6 +272,8 @@ def check_threads(token: str, user_id: str, target: date, limit: int,
                 print(f"  ✅ {pid} → 実在 {to_jst(one.get('timestamp'))}")
                 print(f"     {one.get('permalink')}")
 
+    return hits
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="SNS投稿 実在チェック（読み取り専用）")
@@ -277,6 +283,9 @@ def main() -> int:
                     help="実在確認したい IG post_id（複数指定可）")
     ap.add_argument("--threads-post-id", action="append", default=[],
                     help="実在確認したい Threads post_id（複数指定可）")
+    ap.add_argument("--abort-if-posted", action="store_true",
+                    help="対象日の投稿が1件でも実在したら exit 9。"
+                         "強制再投稿の前段に置いて二重投稿を止めるためのガード")
     args = ap.parse_args()
 
     target = (datetime.strptime(args.date, "%Y-%m-%d").date() if args.date
@@ -284,6 +293,8 @@ def main() -> int:
 
     print("SNS投稿 実在チェック（読み取り専用・投稿は行いません）")
     print(f"対象日: {target} / 実行時刻: {datetime.now(JST):%Y-%m-%d %H:%M JST}")
+
+    ig_hits = th_hits = -1
 
     meta_token = os.getenv("META_ACCESS_TOKEN")
     if not meta_token:
@@ -297,16 +308,30 @@ def main() -> int:
             print("  （実際の投稿処理も同じ既定値にフォールバックしている）")
         check_meta_token(meta_token)
         check_reachable_accounts(meta_token, ig_id)
-        check_instagram(meta_token, ig_id, target, args.limit, args.ig_post_id)
+        ig_hits = check_instagram(meta_token, ig_id, target, args.limit, args.ig_post_id)
 
     th_token = os.getenv("THREADS_ACCESS_TOKEN")
     th_user = os.getenv("THREADS_USER_ID")
     if not th_token or not th_user:
         print("\n⚠ THREADS_ACCESS_TOKEN / THREADS_USER_ID 未設定のため Threads 確認をスキップ")
     else:
-        check_threads(th_token, th_user, target, args.limit, args.threads_post_id)
+        th_hits = check_threads(th_token, th_user, target, args.limit, args.threads_post_id)
 
     hr("チェック完了")
+
+    if args.abort_if_posted:
+        # 強制再投稿の前段ガード。「確認できなかった(-1)」も通さない：
+        # 実在するのに確認できないまま投稿すると二重投稿になるため、安全側に倒す。
+        if ig_hits > 0 or th_hits > 0:
+            print(f"🛑 対象日 {target} の投稿が既に実在する（IG {ig_hits}件 / Threads {th_hits}件）")
+            print("   二重投稿になるため強制再投稿を中止します。")
+            return 9
+        if ig_hits < 0 or th_hits < 0:
+            print(f"🛑 実在確認ができなかった（IG {ig_hits} / Threads {th_hits}）")
+            print("   投稿済みか判断できないため、安全側に倒して強制再投稿を中止します。")
+            return 9
+        print(f"✅ 対象日 {target} の投稿は IG・Threads とも実在しない → 再投稿して問題なし")
+
     return 0
 
 

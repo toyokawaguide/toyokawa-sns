@@ -859,11 +859,27 @@ def main():
                         help="WP公開のみ（SNS無し）＋bridge保存。早朝リトライ安全（SNS二重投稿なし）")
     parser.add_argument("--sns-only", action="store_true",
                         help="bridge を読み SNS投稿のみ（6:00別ジョブ用）")
+    parser.add_argument("--force-sns", action="store_true",
+                        help="既投稿マーカーを破棄して強制再投稿（API成功なのに実物が消えた時の救済）。"
+                             "実物が残っている状態で使うと二重投稿になるので、"
+                             "必ず check_sns_posted.py --abort-if-posted で不在を確認してから使うこと")
     args = parser.parse_args()
 
     target_date = (
         datetime.strptime(args.date, "%Y-%m-%d").date() if args.date else get_today_jst()
     )
+
+    # 強制再投稿：マーカーを消してから通常フローへ。
+    # マーカーは「投稿API が成功した」記録でしかないので、Meta側で消された場合は
+    # 実物が無いのに全媒体スキップになる。その救済のための明示フラグ。
+    if args.force_sns:
+        done_file = OUTPUT_DIR / f"sns_done_{target_date}.json"
+        if done_file.exists():
+            print(f"⚠ --force-sns: 既投稿マーカーを破棄します → {done_file.name}")
+            print(f"   破棄前の内容: {done_file.read_text(encoding='utf-8')}")
+            done_file.unlink()
+        else:
+            print("⚠ --force-sns: 既投稿マーカーは存在しません（そのまま投稿へ進みます）")
 
     # SNS-only モード（6:00 別ジョブ）：bridge から SNS投稿のみ
     if args.sns_only:

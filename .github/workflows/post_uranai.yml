@@ -40,6 +40,13 @@ on:
           - sns-only
           - dry-run
         default: 'publish'
+      force_repost:
+        description: '既投稿マーカーを無視して強制再投稿（API成功なのに実物が消えた時の救済）'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+        default: 'false'
 
 permissions:
   contents: read
@@ -110,6 +117,25 @@ jobs:
           restore-keys: |
             uranai-snsdone-${{ steps.d.outputs.ymd }}-
 
+      # 強制再投稿の前段ガード。
+      # 対象日の投稿が1件でも実在する（または実在確認できない）なら exit 9 で
+      # ここで止まり、後続の投稿ステップに進まない＝二重投稿しない。
+      - name: 強制再投稿の前に実物不在を確認（force_repost=true のときだけ）
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_repost == 'true'
+        env:
+          PYTHONUNBUFFERED: '1'
+          PYTHONIOENCODING: utf-8
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+        run: |
+          DATE_ARG=""
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            DATE_ARG="--date ${{ github.event.inputs.target_date }}"
+          fi
+          python check_sns_posted.py $DATE_ARG --abort-if-posted
+
       - name: 占い配信実行
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -149,6 +175,9 @@ jobs:
             FLAGS="--publish"                                  # 手動フル復旧（WP+SNS一括）
           else
             FLAGS="--dry --skip-wp"                            # 手動テスト
+          fi
+          if [ "${{ github.event.inputs.force_repost }}" = "true" ]; then
+            FLAGS="$FLAGS --force-sns"                        # 直前ステップで実物不在を確認済み
           fi
           echo "実行コマンド: python main.py $DATE_ARG $FLAGS"
           python main.py $DATE_ARG $FLAGS
