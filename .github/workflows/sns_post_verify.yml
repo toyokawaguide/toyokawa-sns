@@ -1,0 +1,75 @@
+name: SNS投稿 実在チェック（読み取り専用・手動）
+
+# 「Actions のログは status=ok で post_id も返っているのに、
+#   アカウントを見ると投稿が無い」を切り分けるための診断専用ワークフロー。
+#
+# 投稿系APIは一切呼ばないので、何度実行しても二重投稿は起きない。
+# 自動 cron は付けない（必要なときだけ手動実行する診断ツールのため）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: '対象日 YYYY-MM-DD（空ならJSTの今日）'
+        required: false
+      ig_post_ids:
+        description: '実在確認したい Instagram post_id（カンマ/空白区切り・任意）'
+        required: false
+      threads_post_ids:
+        description: '実在確認したい Threads post_id（カンマ/空白区切り・任意）'
+        required: false
+      limit:
+        description: '取得する最新件数（既定25）'
+        required: false
+        default: '25'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: uranai/scripts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: ライブラリインストール
+        run: pip install requests
+
+      - name: 実在チェック実行（読み取り専用）
+        env:
+          PYTHONUNBUFFERED: '1'
+          PYTHONIOENCODING: utf-8
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          IN_DATE: ${{ github.event.inputs.target_date }}
+          IN_IG_IDS: ${{ github.event.inputs.ig_post_ids }}
+          IN_TH_IDS: ${{ github.event.inputs.threads_post_ids }}
+          IN_LIMIT: ${{ github.event.inputs.limit }}
+        run: |
+          ARGS=""
+          if [ -n "$IN_DATE" ]; then
+            ARGS="$ARGS --date $IN_DATE"
+          fi
+          if [ -n "$IN_LIMIT" ]; then
+            ARGS="$ARGS --limit $IN_LIMIT"
+          fi
+          # カンマ区切りを空白に均してから 1件ずつ --ig-post-id / --threads-post-id に展開
+          for id in $(echo "$IN_IG_IDS" | tr ',' ' '); do
+            ARGS="$ARGS --ig-post-id $id"
+          done
+          for id in $(echo "$IN_TH_IDS" | tr ',' ' '); do
+            ARGS="$ARGS --threads-post-id $id"
+          done
+          echo "実行: python check_sns_posted.py $ARGS"
+          python check_sns_posted.py $ARGS

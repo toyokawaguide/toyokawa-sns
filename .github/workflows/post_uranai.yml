@@ -19,16 +19,25 @@ on:
     - cron: '30 21 * * *'  # 06:30 JST  SNS自動リトライ（既投稿はマーカーでスキップ＝二重投稿なし）
     - cron: '0 22 * * *'   # 07:00 JST  SNS自動リトライ
     - cron: '0 23 * * *'   # 08:00 JST  SNS自動リトライ（最終保険）
+  # 【2026-07-27 追加】sns-only モード
+  #  GHA の schedule cron は朝も最大1時間ほど遅延する。7/27 は 06:00 の SNS cron が
+  #  06:24 に発火し、その回は「早朝WP公開リトライ」枠として空振り、実際に SNS へ
+  #  出たのは 07:01 だった（＝6時に見に行っても何も無い）。
+  #  ライト記事で同じ問題を Cloudflare Workers Cron の workflow_dispatch に
+  #  一本化して解決済みなので、占いにも同じ口を用意する。
+  #    Cloudflare 側から 06:00 JST ちょうどに mode=sns-only で dispatch する運用。
+  #    既存の schedule cron はそのまま保険として残す（マーカーで二重投稿しない）。
   workflow_dispatch:
     inputs:
       target_date:
         description: '対象日 YYYY-MM-DD（空ならJSTの今日）'
         required: false
       mode:
-        description: '実行モード（publish=フル復旧 / dry-run=テスト）'
+        description: '実行モード（sns-only=SNSのみ・Cloudflare定刻用 / publish=フル復旧 / dry-run=テスト）'
         type: choice
         options:
           - publish
+          - sns-only
           - dry-run
         default: 'publish'
 
@@ -134,6 +143,8 @@ jobs:
               *)
                 FLAGS="--publish --wp-only --skip-if-published" ;;  # 早朝 WP公開のみ（リトライ安全）
             esac
+          elif [ "${{ github.event.inputs.mode }}" = "sns-only" ]; then
+            FLAGS="--sns-only"                                 # Cloudflare定刻トリガー（06:00 JST）／手動SNS救済
           elif [ "${{ github.event.inputs.mode }}" = "publish" ]; then
             FLAGS="--publish"                                  # 手動フル復旧（WP+SNS一括）
           else
@@ -159,9 +170,11 @@ jobs:
           key: uranai-bridge-${{ steps.d.outputs.ymd }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # SNS投稿後、どこまで投稿できたかのマーカーを保存（次のリトライが二重投稿を避けるため）
-      #  SNSジョブ(06:00〜08:00)＋手動publish で保存。always()で部分成功も必ず残す。run_id込みで毎回新キー
+      #  SNSジョブ(06:00〜08:00)＋手動publish＋sns-only で保存。always()で部分成功も必ず残す。run_id込みで毎回新キー
+      #  sns-only を必ず含めること：Cloudflare が 06:00 に投稿したのにマーカーが残らないと、
+      #  後続の 06:30/07:00/08:00 schedule cron が「未投稿」と判断して二重投稿する。
       - name: SNS既投稿マーカー保存
-        if: always() && ( (github.event_name == 'schedule' && (github.event.schedule == '0 21 * * *' || github.event.schedule == '30 21 * * *' || github.event.schedule == '0 22 * * *' || github.event.schedule == '0 23 * * *')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'publish') )
+        if: always() && ( (github.event_name == 'schedule' && (github.event.schedule == '0 21 * * *' || github.event.schedule == '30 21 * * *' || github.event.schedule == '0 22 * * *' || github.event.schedule == '0 23 * * *')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.mode == 'publish' || github.event.inputs.mode == 'sns-only')) )
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
