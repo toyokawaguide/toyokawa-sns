@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-07-28T02:03:16.321280+09:00",
-  "captured_date": "2026-07-28",
+  "captured_at": "2026-07-29T01:44:59.132644+09:00",
+  "captured_date": "2026-07-29",
   "lookahead_days": 30,
   "spots": {
-    "2026-07-28": {
-      "name": "寺そば 萩山 慈恩寺",
-      "is_chain": false
-    },
     "2026-07-29": {
       "name": "中華楼",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-08-27": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-28": {
       "name": null,
       "is_chain": false
     }
