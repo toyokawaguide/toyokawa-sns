@@ -159,7 +159,7 @@ def download_file(file_id: str, output_path: Path) -> Path:
     return output_path
 
 
-def fetch_article_photos(article_id: str, cache_dir: Path) -> list[Path]:
+def fetch_article_photos(article_id: str, cache_dir: Path, title: str = None) -> list[Path]:
     """記事ID の写真を Drive からDLして cache_dir に保存・パスリストを返す
 
     番号のみのファイル(0.jpg, 1.jpg, 2.jpg…)だけを番号順に使う。
@@ -179,6 +179,9 @@ def fetch_article_photos(article_id: str, cache_dir: Path) -> list[Path]:
         print(f"⚠ Drive: {article_id} 用フォルダが見つかりません（写真なしで続行）")
         return []
 
+    if title:   # フォルダ名と記事内容の整合チェック（2026-08-01）
+        import folder_match
+        folder_match.verify(article_id, subfolder["name"], title)
     print(f"✅ Drive: {subfolder['name']} (id={subfolder['id'][:10]}...)")
     images = list_images_in_folder(subfolder["id"])
     if not images:

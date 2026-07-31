@@ -85,6 +85,9 @@ def find_article_folder(article_id: str, place: str) -> Path | None:
     # 2) {ID}_* マッチ（LR001_とんやんラーメン跡地 等）
     candidates = list(LIGHT_BASE.glob(f"{article_id}_*"))
     if candidates:
+        if place:   # フォルダ名と記事内容の整合チェック（取り違え事故の防止・2026-08-01）
+            import folder_match
+            folder_match.verify(article_id, candidates[0].name, place)
         return candidates[0]
     return None
 
@@ -107,12 +110,14 @@ def get_article_photos(article_id: str, place: str) -> list[Path]:
     try:
         from drive_client import fetch_article_photos
         cache_dir = ROOT / "_drive_cache" / article_id
-        photos = fetch_article_photos(article_id, cache_dir)
+        photos = fetch_article_photos(article_id, cache_dir, title=place)
         if photos:
             log(f"📸 写真: {len(photos)}枚 [Drive APIキャッシュ]", 1)
         else:
             log(f"📸 写真なし（Drive対象フォルダなし or 空）", 1)
         return photos
+    except RuntimeError:
+        raise               # 写真フォルダと記事内容の不一致 → 中止（誤投稿防止）
     except Exception as e:
         log(f"⚠ Drive API取得失敗（写真なしで続行）: {e}", 1)
         return []
