@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-07-31T01:40:35.747514+09:00",
-  "captured_date": "2026-07-31",
+  "captured_at": "2026-08-01T01:48:41.024683+09:00",
+  "captured_date": "2026-08-01",
   "lookahead_days": 30,
   "spots": {
-    "2026-07-31": {
-      "name": "イチトサンブンノイチ",
-      "is_chain": false
-    },
     "2026-08-01": {
       "name": "ハイジ豊川一宮店",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-08-30": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-08-31": {
       "name": null,
       "is_chain": false
     }
