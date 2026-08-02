@@ -26,3 +26,9 @@ light_articles/scripts/__pycache__/
 *.tmp
 ~*
 _api_budget.json
+
+# ライト記事：作業中の一時ファイル（2026-08-02 追加）
+light_articles/_preview_out/
+light_articles/scripts/*_backup_*.py
+light_articles/scripts/_band_*.png
+light_articles/scripts/_footer_compare.png

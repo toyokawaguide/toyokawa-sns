@@ -29,8 +29,9 @@ from sheets_client import read_all_rows, update_status
 from pr_builder import (build_pr_title, build_pr_content,
                         build_pr_x_caption, build_pr_threads_caption,
                         build_pr_instagram_caption)
+import series
+series.set_label("さくっとPR")   # 記事・SNS・画像・リールすべてに反映される
 import eyecatch_generator
-eyecatch_generator.SERIES_LABEL = "さくっとPR"  # PRブランドに差し替え
 from eyecatch_generator import (generate_ig_feed, generate_eyecatch_photo,
                                  generate_eyecatch_simple)
 from sns_clients import post_threads, post_instagram_feed

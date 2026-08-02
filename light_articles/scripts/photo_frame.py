@@ -6,6 +6,8 @@
 import os, re
 from PIL import Image, ImageDraw, ImageFont
 
+import series
+
 W, H = 1080, 1350
 HEADER_H = 359
 FOOTER_H = 359
@@ -18,7 +20,14 @@ WHITE = (255, 255, 255)
 _HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(_HERE, "_assets")
 HEADER_IMG = os.path.join(ASSETS, "header_sakutto.png")   # カバー紺に合わせた再着色版
-FOOTER_IMG = os.path.join(ASSETS, "footer_sakutto.png")   # キツネ＋「さくっとお知らせ」
+FOOTER_IMG = os.path.join(ASSETS, "footer_sakutto.png")   # 旧・文字焼き込み版（フォールバック用）
+FOX_IMG = os.path.join(ASSETS, "footer_fox.png")          # キツネだけ切り出したもの
+# 元画像の実測値（footer_sakutto.png より）: キツネ x110〜375 / 文字は縦中央・8文字で幅546
+FOX_XY = (100, 60)
+LABEL_CX = 690           # 文字の中心X（元画像の実測 694 に合わせた）
+LABEL_CY = 179           # 文字の中心Y（フッター帯の縦中央）
+LABEL_MAXW = 600         # これを超えたら自動で縮める
+LABEL_SIZE = 70          # 元画像の文字幅545・高65に一致するサイズ（実測）
 HGMIN_E = os.path.join(ASSETS, "fonts", "HGRME.TTC")      # 年月用（HGS明朝E = index 2）
 
 
@@ -38,9 +47,34 @@ def _cover(img, w, h):
     return im.crop(((nw - w) // 2, (nh - h) // 2, (nw - w) // 2 + w, (nh - h) // 2 + h))
 
 
-def _put_frame(base, month=None):
+def make_footer(label=None):
+    """フッター帯（紺＋キツネ＋シリーズ名）をその場で描く。
+
+    以前は「さくっとお知らせ」の文字ごと焼き込んだ画像を貼っていたので、
+    シリーズを増やすたびに画像を作り直す必要があった。文字だけ描画に変更。
+    """
+    label = label or series.LABEL
+    if not os.path.exists(FOX_IMG):                     # 念のため：旧画像で動く
+        return Image.open(FOOTER_IMG).convert("RGB")
+    im = Image.new("RGB", (W, FOOTER_H), NAVY)
+    im.paste(Image.open(FOX_IMG).convert("RGB"), FOX_XY)
+    d = ImageDraw.Draw(im)
+    size = LABEL_SIZE
+    while size > 30:                                    # 長いラベルは収まるまで縮める
+        f = _F(HGMIN_E, size, index=2)
+        b = d.textbbox((0, 0), label, font=f)
+        if b[2] - b[0] <= LABEL_MAXW:
+            break
+        size -= 2
+    b = d.textbbox((0, 0), label, font=f)
+    d.text((LABEL_CX - (b[2] - b[0]) / 2 - b[0],
+            LABEL_CY - (b[3] - b[1]) / 2 - b[1]), label, font=f, fill=WHITE)
+    return im
+
+
+def _put_frame(base, month=None, label=None):
     base.paste(Image.open(HEADER_IMG).convert("RGB"), (0, 0))
-    base.paste(Image.open(FOOTER_IMG).convert("RGB"), (0, CY1))
+    base.paste(make_footer(label), (0, CY1))
     d = ImageDraw.Draw(base)
     # 写真の上下＝ゴールドの装飾ライン
     d.rectangle([0, CY0, W, CY0 + 6], fill=GOLD)
@@ -61,12 +95,13 @@ def _put_frame(base, month=None):
             d.text((cx - (b2[2] - b2[0]) / 2, 240), t2, font=df, fill=WHITE)
 
 
-def frame_photo(src_path, out_path, month=None):
+def frame_photo(src_path, out_path, month=None, label=None):
     """1枚の写真を豊川ガイド枠(1080×1350)に入れて out_path に保存し、そのパスを返す。
-    month="2026年7月" のように渡すと右上の年月を差し替える。"""
+    month="2026年7月" のように渡すと右上の年月を差し替える。
+    label を渡すと下帯の文字を差し替える（省略時は series.LABEL）。"""
     base = Image.new("RGB", (W, H), NAVY)
     base.paste(_cover(Image.open(src_path).convert("RGB"), W, CY1 - CY0), (0, CY0))
-    _put_frame(base, month)
+    _put_frame(base, month, label)
     base.save(out_path, quality=95)
     return out_path
 

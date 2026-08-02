@@ -11,6 +11,8 @@ generate_reel.py — ライト記事用リール動画生成（1080×1920・15�
 python generate_reel.py --id LR001
 """
 from __future__ import annotations
+
+import series
 import argparse
 import subprocess
 import sys
@@ -172,7 +174,7 @@ def build_reel_frame(*, place: str, sub_lines: list[str],
     catch_font_size = 60
     catch_font = load_font(FONT_BOLD, catch_font_size)
     star = "★"
-    middle = " 豊川ガイド的　さくっとお知らせ "
+    middle = f" 豊川ガイド的　{series.LABEL} "
     content_cx = (margin_x + content_right) // 2
     sw_bbox = draw.textbbox((0, 0), star, font=catch_font)
     mw_bbox = draw.textbbox((0, 0), middle, font=catch_font)

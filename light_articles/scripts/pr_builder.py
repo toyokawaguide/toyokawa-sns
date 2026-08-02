@@ -102,9 +102,11 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
             f'<strong>🎁 特典：</strong>{tokuten}</div>'
         )
 
-    # ⑦ 管理人のつぶやき（任意）
+    # ⑦ お店からのひとこと（任意）
+    #    ※申込フォームで集めるのは「店主さんの言葉」なので、管理人の言葉として出さない。
+    #      広告記事で媒体が推薦しているように読めると、ステマ規制の観点で問題になる（社長判断 2026-08-02）
     if tsubuyaki:
-        parts.append(f"<p>💬 管理人ひとこと：{tsubuyaki}</p>")
+        parts.append(f"<p>💬 お店から：{tsubuyaki}</p>")
 
     # ⑧ closing（募集導線）
     parts.append("<hr/>")

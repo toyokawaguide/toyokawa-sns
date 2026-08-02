@@ -4,6 +4,8 @@ eyecatch_generator.py — ライト記事のアイキャッチ自動生成 v5
 """
 from __future__ import annotations
 import argparse
+
+import series
 import os
 import platform
 from pathlib import Path
@@ -53,7 +55,9 @@ MODE_OSHIRASE = {
 }
 
 
-SERIES_LABEL = "さくっとお知らせ"  # PR配信時は publish側で "さくっとPR" に差し替え
+# シリーズ名は series.py で一元管理（series.set_label() で切替）
+# 旧コードとの互換のため名前は残すが、実際の描画は series.LABEL を見る
+SERIES_LABEL = series.LABEL
 
 
 def load_font(path: str, size: int):
@@ -180,7 +184,7 @@ def generate_eyecatch(place_name: str,
     band_y_top = 105
     band_y_bottom = 265
     band_h = band_y_bottom - band_y_top  # 160
-    draw.rectangle([0, band_y_top, W, band_y_bottom], fill=COLOR_BEIGE)
+    draw.rectangle([0, band_y_top, W, band_y_bottom], fill=series.band_colors()[0])
     draw.rectangle([0, band_y_top - 3, W, band_y_top], fill=COLOR_ACCENT)
     draw.rectangle([0, band_y_bottom, W, band_y_bottom + 3], fill=COLOR_ACCENT)
 
@@ -189,7 +193,7 @@ def generate_eyecatch(place_name: str,
     sec_lg_font = load_font(FONT_BOLD, 56)
 
     sb_top = draw.textbbox((0, 0), "豊川ガイド的", font=sec_font)
-    sb_btm = draw.textbbox((0, 0), SERIES_LABEL, font=sec_lg_font)
+    sb_btm = draw.textbbox((0, 0), series.LABEL, font=sec_lg_font)
     h_top = sb_top[3] - sb_top[1]
     h_btm = sb_btm[3] - sb_btm[1]
     gap_between = 10
@@ -197,9 +201,9 @@ def generate_eyecatch(place_name: str,
     start_y = band_y_top + (band_h - total_h) // 2 - 4  # 微調整
 
     draw_centered_text(draw, start_y, "豊川ガイド的",
-                       sec_font, COLOR_TEXT_DARK, W)
+                       sec_font, series.band_colors()[1], W)
     draw_centered_text(draw, start_y + h_top + gap_between,
-                       SERIES_LABEL, sec_lg_font, COLOR_BG, W)
+                       series.LABEL, sec_lg_font, COLOR_BG, W)
 
     # ============ モード判定（元記事タイトルの有無） ============
     has_original = bool(original_title)
@@ -475,14 +479,14 @@ def generate_ig_feed(place_name: str,
     band_y_top = 125
     band_y_bottom = 335
     band_h = band_y_bottom - band_y_top
-    draw.rectangle([0, band_y_top, W, band_y_bottom], fill=COLOR_BEIGE)
+    draw.rectangle([0, band_y_top, W, band_y_bottom], fill=series.band_colors()[0])
     draw.rectangle([0, band_y_top - 4, W, band_y_top], fill=COLOR_ACCENT)
     draw.rectangle([0, band_y_bottom, W, band_y_bottom + 4], fill=COLOR_ACCENT)
 
     sec_font = load_font(FONT_REG, 36)
     sec_lg_font = load_font(FONT_BOLD, 88)
     sb_top = draw.textbbox((0, 0), "豊川ガイド的", font=sec_font)
-    sb_btm = draw.textbbox((0, 0), SERIES_LABEL, font=sec_lg_font)
+    sb_btm = draw.textbbox((0, 0), series.LABEL, font=sec_lg_font)
     h_top = sb_top[3] - sb_top[1]
     h_btm = sb_btm[3] - sb_btm[1]
     gap_between = 12
@@ -490,9 +494,9 @@ def generate_ig_feed(place_name: str,
     start_y = band_y_top + (band_h - total_h) // 2 - 6
 
     draw_centered_text(draw, start_y, "豊川ガイド的",
-                       sec_font, COLOR_TEXT_DARK, W)
+                       sec_font, series.band_colors()[1], W)
     draw_centered_text(draw, start_y + h_top + gap_between,
-                       SERIES_LABEL, sec_lg_font, COLOR_BG, W)
+                       series.LABEL, sec_lg_font, COLOR_BG, W)
 
     # ============ ラベル帯＋キャッチ ============
     y = band_y_bottom + 30
@@ -755,7 +759,7 @@ def generate_eyecatch_photo(photo_path, place_name: str,
     # 左上チップ：紺の角丸＋白ロゴ＋「さくっとお知らせ」
     chip_h = 66
     chip_font = load_font(FONT_BOLD, 32)
-    label = SERIES_LABEL
+    label = series.LABEL
     b = draw.textbbox((0, 0), label, font=chip_font)
     has_logo = LOGO_WHITE_PATH.exists()
     logo_w = 44 if has_logo else 0
@@ -823,13 +827,13 @@ def generate_eyecatch_simple(place_name: str,
     draw.text((text_x + bb[2] - bb[0] + sb[2] - sb[0], 44), BRAND_CATCH, font=catch_font, fill=COLOR_TEXT_SUB)
 
     # ベージュ帯
-    draw.rectangle([0, 105, W, 265], fill=COLOR_BEIGE)
+    draw.rectangle([0, 105, W, 265], fill=series.band_colors()[0])
     small_f = load_font(FONT_REG, 30)
     big_f = load_font(FONT_BOLD, 72)
-    t1, t2 = "豊川ガイド的", SERIES_LABEL
+    t1, t2 = "豊川ガイド的", series.LABEL
     b1 = draw.textbbox((0, 0), t1, font=small_f)
     b2 = draw.textbbox((0, 0), t2, font=big_f)
-    draw.text(((W - (b1[2] - b1[0])) / 2, 122), t1, font=small_f, fill=COLOR_TEXT_DARK)
+    draw.text(((W - (b1[2] - b1[0])) / 2, 122), t1, font=small_f, fill=series.band_colors()[1])
     draw.text(((W - (b2[2] - b2[0])) / 2, 158), t2, font=big_f, fill=COLOR_BG)
 
     # バッジ（中央）

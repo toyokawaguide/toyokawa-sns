@@ -7,6 +7,8 @@ content_builder.py — ライト記事の本文＆タイトルを生成
 """
 from __future__ import annotations
 
+import series
+
 
 def get_sub(row: dict) -> str:
     """その後（1段目）+ その後（2段目）を結合（後方互換：旧サブ列も対応）
@@ -46,10 +48,10 @@ def build_title(row: dict) -> str:
 
     if has_original:
         # 続報モード
-        return f"【さくっとお知らせ】{place} → {sub_for_title}"
+        return f"【{series.LABEL}】{place} → {sub_for_title}"
     else:
         # お知らせモード
-        return f"【さくっとお知らせ】{place}（{sub_for_title}）"
+        return f"【{series.LABEL}】{place}（{sub_for_title}）"
 
 
 def build_content(row: dict, eyecatch_id: int = None,
@@ -76,7 +78,7 @@ def build_content(row: dict, eyecatch_id: int = None,
     parts.append(
         '<div style="background:#fff8e7; border-left:5px solid #d4a017; '
         'padding:14px 18px; margin:1em 0; border-radius:6px; font-size:0.95em;">'
-        '<p style="margin:0;"><strong>【さくっとお知らせ】</strong>は、'
+        f'<p style="margin:0;"><strong>【{series.LABEL}】</strong>は、'
         '以前ご紹介させて頂いた場所の続報や、'
         '豊川市内の&ldquo;ちょっとした街の変化&rdquo;を'
         'ゆるっとお届けする記事です。'
@@ -311,14 +313,14 @@ def build_x_caption(row: dict, wp_url: str) -> str:
     has_original = bool(row.get("元記事タイトル", "").strip())
 
     if has_original:
-        title = f"【さくっとお知らせ】{place} → {sub}"
+        title = f"【{series.LABEL}】{place} → {sub}"
         lead, _ = _detect_zokuhou_lead(row)
     else:
-        title = f"【さくっとお知らせ】{place}"
+        title = f"【{series.LABEL}】{place}"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
 
     closing = "豊川市のちょっとした変化、見つけたらDMで教えてね👀"
-    hashtags = "#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ"
+    hashtags = f"#豊川市 #豊川ガイド #とよサポ {series.hashtag()}"
 
     # まずはつぶやきあり版を試算
     ts = _tsubuyaki_block(row)
@@ -341,14 +343,14 @@ def build_threads_caption(row: dict, wp_url: str) -> str:
     has_original = bool(row.get("元記事タイトル", "").strip())
 
     if has_original:
-        title = f"【さくっとお知らせ】{place} → {sub}"
+        title = f"【{series.LABEL}】{place} → {sub}"
         lead, _ = _detect_zokuhou_lead(row)
     else:
-        title = f"【さくっとお知らせ】{place}"
+        title = f"【{series.LABEL}】{place}"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
 
     closing = "豊川市のちょっとした変化、見つけたらDMで教えてね👀"
-    hashtags = "#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ"
+    hashtags = f"#豊川市 #豊川ガイド #とよサポ {series.hashtag()}"
 
     lines = [title, "", lead]
     ts = _tsubuyaki_block(row)
@@ -369,10 +371,10 @@ def build_instagram_caption(row: dict, wp_url: str) -> str:
     has_original = bool(row.get("元記事タイトル", "").strip())
 
     if has_original:
-        title = f"【さくっとお知らせ】{place} → {sub}"
+        title = f"【{series.LABEL}】{place} → {sub}"
         lead, _ = _detect_zokuhou_lead(row)
     else:
-        title = f"【さくっとお知らせ】{place}（{sub}）"
+        title = f"【{series.LABEL}】{place}（{sub}）"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
 
     lines = [title, "", lead]
@@ -388,6 +390,6 @@ def build_instagram_caption(row: dict, wp_url: str) -> str:
         "",
         "👀 豊川市のちょっとした変化、見つけたらDMで教えてね",
         "",
-        "#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ #地域メディア",
+        f"#豊川市 #豊川ガイド #とよサポ {series.hashtag()} #地域メディア",
     ]
     return "\n".join(lines)
