@@ -83,36 +83,18 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     # === 写真（ライト記事と同じ置き場: {PRID}_{店名} フォルダ） ===
     photos = get_article_photos(article_id, shop)
 
-    # === アイキャッチ ===
+    # === アイキャッチ＆IG Feed（2026-08-05 確定デザイン：額ぶち／一枚の札） ===
+    #     色・ラベルは備考の「色：／ラベル：」を読む（無ければ店名から自動＝申込プレビューと同じ色）
+    import pr_eyecatch
+    first_photo = photos[0] if photos else None
     eyecatch_path = ROOT / "_sample" / f"_tmp_{article_id}_eyecatch.png"
     eyecatch_path.parent.mkdir(exist_ok=True)
-    if photos:
-        generate_eyecatch_photo(
-            photo_path=photos[0], place_name=shop,
-            label_text="PR", original_title="",
-            output_path=eyecatch_path,
-        )
-        log(f"🎨 アイキャッチ（写真版・PRバッジ）: {eyecatch_path.name}", 1)
-    else:
-        generate_eyecatch_simple(
-            place_name=shop, label_text="PR", original_title="",
-            sub_text=catch or "さくっとPR",
-            output_path=eyecatch_path,
-        )
-        log(f"🎨 アイキャッチ（カード版・PRバッジ）: {eyecatch_path.name}", 1)
+    pr_eyecatch.render_169(row, photo_path=first_photo, output_path=eyecatch_path)
+    log(f"🎨 アイキャッチ16:9（{'一枚の札' if first_photo else '額ぶち'}）: {eyecatch_path.name}", 1)
 
-    # === IG Feed 画像 ===
     ig_feed_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_feed.png"
-    generate_ig_feed(
-        place_name=shop,
-        sub_text=catch or "さくっとPR",
-        address=row.get("エリア・住所", "豊川市内"),
-        landmark="",
-        original_title="",
-        label_text="PR",
-        output_path=ig_feed_path,
-    )
-    log(f"📷 IG Feed画像: {ig_feed_path.name}", 1)
+    pr_eyecatch.render_45(row, photo_path=first_photo, output_path=ig_feed_path)
+    log(f"📷 IG Feed 4:5（{'一枚の札' if first_photo else '額ぶち'}）: {ig_feed_path.name}", 1)
 
     title = build_pr_title(row)
     log(f"📰 タイトル: {title}", 1)

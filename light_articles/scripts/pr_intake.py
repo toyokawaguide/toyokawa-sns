@@ -73,12 +73,10 @@ def build_preview(row: dict):
     body = strip_html(pr_builder.build_pr_content(row))
     OUT_DIR.mkdir(exist_ok=True)
     img = OUT_DIR / f"{row.get('ID', 'PR')}_preview.png"
-    eyecatch_generator.generate_eyecatch(
-        row.get("店名", ""),
-        sub_text=row.get("ひとことキャッチ", "") or "PR",
-        address=row.get("エリア・住所", "") or "豊川市内",
-        output_path=img,
-    )
+    # ★2026-08-05 確定デザイン（額ぶち／一枚の札）。申込ページのライブプレビューと同じ絵が届く
+    #   プレビュー時点では写真はまだ無い（受付メール返信で届く）ので写真なし版
+    import pr_eyecatch
+    pr_eyecatch.render_45(row, output_path=img)
     return title, body, img
 
 

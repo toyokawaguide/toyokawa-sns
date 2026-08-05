@@ -466,6 +466,7 @@ $('send').onclick = async () => {
   const t = currentTheme();
   const biko = [
     '【申込ページから】',
+    'ラベル：' + badgeText(),
     '色：' + (themeChoice === 'auto' ? 'おまかせ（' + t.name + '）' : t.name),
     'かたち：' + (img ? '一枚の札（写真あり）' : '額ぶち（写真なし）'),
     '写真：' + (img ? 'あり → 受付メールへの返信で受け取る' : 'なし'),
