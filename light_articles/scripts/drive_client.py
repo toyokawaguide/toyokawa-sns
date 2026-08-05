@@ -159,16 +159,19 @@ def download_file(file_id: str, output_path: Path) -> Path:
     return output_path
 
 
-def fetch_article_photos(article_id: str, cache_dir: Path, title: str = None) -> list[Path]:
+def fetch_article_photos(article_id: str, cache_dir: Path, title: str = None,
+                          root_name: str = None) -> list[Path]:
     """記事ID の写真を Drive からDLして cache_dir に保存・パスリストを返す
 
     番号のみのファイル(0.jpg, 1.jpg, 2.jpg…)だけを番号順に使う。
     batch_ や W1920Q75_ 等の余分なファイルは無視（2026-06-22 社長指定）。
+    root_name: 親フォルダ名の上書き（さくっとPR用・省略時=ライト記事）
     """
-    print(f"🔍 Drive: ライト記事フォルダ検索中...")
-    root_id = find_folder_id(ROOT_FOLDER_NAME)
+    root_name = root_name or ROOT_FOLDER_NAME
+    print(f"🔍 Drive: {root_name}フォルダ検索中...")
+    root_id = find_folder_id(root_name)
     if not root_id:
-        print(f"❌ Drive: {ROOT_FOLDER_NAME} フォルダが見つかりません")
+        print(f"❌ Drive: {root_name} フォルダが見つかりません")
         return []
 
     print(f"🔍 Drive: {article_id}_* サブフォルダ検索中...")

@@ -42,12 +42,48 @@ from publish_light_article import get_article_photos, parse_publish_date
 
 PR_SHEET = "PRキュー"
 PR_SPREADSHEET_ID = "1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A"   # ★専用スプレッドシート（2026-08-05分離）
+PR_PHOTO_BASE = Path("G:/マイドライブ/さくっとPR")   # ★写真もライト記事と分離（2026-08-06社長指示）
 JST = timezone(timedelta(hours=9))
 PUBLISH_HOUR = 10  # 朝10時
 
 
 def log(msg: str, indent: int = 0):
     print("  " * indent + msg)
+
+
+def get_pr_photos(article_id: str, shop: str) -> list[Path]:
+    """さくっとPRの写真を返す（ライト記事とはフォルダ分離）
+    ローカル: G:\\マイドライブ\\さくっとPR\\{ID}_{店名}\\ ／ GHA: Drive「さくっとPR」フォルダ"""
+    from publish_light_article import get_photo_paths
+    if PR_PHOTO_BASE.exists():
+        exact = PR_PHOTO_BASE / article_id
+        cands = [exact] if exact.is_dir() else sorted(PR_PHOTO_BASE.glob(f"{article_id}_*"))
+        cands = [c for c in cands if c.is_dir()]
+        if cands:
+            folder = cands[0]
+            if shop and folder.name != article_id:
+                import folder_match
+                folder_match.verify(article_id, folder.name, shop)
+            photos = get_photo_paths(folder)
+            log(f"📸 写真: {len(photos)}枚 ({folder.name}) [ローカル]", 1)
+            return photos
+        log("📸 写真なし（さくっとPRフォルダに該当なし）", 1)
+        return []
+    try:
+        from drive_client import fetch_article_photos
+        cache_dir = ROOT / "_drive_cache" / article_id
+        photos = fetch_article_photos(article_id, cache_dir, title=shop,
+                                      root_name="さくっとPR")
+        if photos:
+            log(f"📸 写真: {len(photos)}枚 [Drive APIキャッシュ]", 1)
+        else:
+            log("📸 写真なし（Drive対象フォルダなし or 空）", 1)
+        return photos
+    except RuntimeError:
+        raise               # フォルダ名と記事内容の不一致 → 中止（誤投稿防止）
+    except Exception as e:
+        log(f"⚠ Drive API取得失敗（写真なしで続行）: {e}", 1)
+        return []
 
 
 def get_pr_rows_for(target: date) -> list[tuple[int, dict]]:
@@ -83,8 +119,8 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
 
     publish_dt = datetime.combine(target_date, time(PUBLISH_HOUR, 0), tzinfo=JST)
 
-    # === 写真（ライト記事と同じ置き場: {PRID}_{店名} フォルダ） ===
-    photos = get_article_photos(article_id, shop)
+    # === 写真（G:\マイドライブ\さくっとPR\{PRID}_{店名}\・ライト記事と分離） ===
+    photos = get_pr_photos(article_id, shop)
 
     # === アイキャッチ＆IG Feed（2026-08-05 確定デザイン：額ぶち／一枚の札） ===
     #     色・ラベルは備考の「色：／ラベル：」を読む（無ければ店名から自動＝申込プレビューと同じ色）

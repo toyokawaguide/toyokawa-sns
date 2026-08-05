@@ -2,7 +2,8 @@
 """さくっとPR 写真自動取り込み（ローカル実行専用・G:ドライブ必須）
 
 受付メールへの返信（件名に「さくっとPR」または PR番号・画像添付あり）を Gmail IMAP で拾い、
-G:\\マイドライブ\\ライト記事\\PR番号\\ フォルダに連番(1.jpg, 2.jpg…)で保存する。
+G:\\マイドライブ\\さくっとPR\\PR番号_店名\\ フォルダに連番(1.jpg, 2.jpg…)で保存する。
+★ライト記事とはフォルダ分離（2026-08-06 社長指示）
 
 - フォルダ名は ID だけ（例: PR003）。folder_match は ID一致のみで通過する仕様確認済み
 - Google Drive Desktop が自動同期 → 配信(GHA)は Drive API 読み取りで同じ写真を見る
@@ -37,8 +38,8 @@ load_dotenv(Path(r"C:/Users/Yoshida/Desktop/豊川ガイド/claude/.env"), overr
 
 GMAIL_USER = os.environ.get("GMAIL_USER")
 GMAIL_PASS = os.environ.get("GMAIL_APP_PASSWORD")
-LIGHT_BASE = Path("G:/マイドライブ/ライト記事")
-STATE_FILE = LIGHT_BASE / "_pr_photo_intake_state.json"
+PR_BASE = Path("G:/マイドライブ/さくっとPR")   # ★ライト記事とフォルダ分離（2026-08-06社長指示）
+STATE_FILE = PR_BASE / "_pr_photo_intake_state.json"
 PR_RE = re.compile(r"\bPR\d{3}\b")
 SINCE_DAYS = 60
 MAX_SIDE = 1920
@@ -78,13 +79,13 @@ def load_shop_names() -> dict:
 
 def target_folder(pr_id: str, shop_names: dict) -> Path:
     """保存先フォルダ＝ PR000_店名（既存の PR000* フォルダがあればそれを使う）"""
-    existing = sorted(LIGHT_BASE.glob(f"{pr_id}*"))
+    existing = sorted(PR_BASE.glob(f"{pr_id}*"))
     for d in existing:
         if d.is_dir():
             return d
     shop = shop_names.get(pr_id, "")
     shop = re.sub(r'[\\/:*?"<>|]', "", shop).strip()      # Windowsフォルダ名に使えない文字を除去
-    return LIGHT_BASE / (f"{pr_id}_{shop}" if shop else pr_id)
+    return PR_BASE / (f"{pr_id}_{shop}" if shop else pr_id)
 
 
 def next_number(folder: Path) -> int:
@@ -142,8 +143,9 @@ def main():
     if not GMAIL_USER or not GMAIL_PASS:
         print("❌ GMAIL_USER / GMAIL_APP_PASSWORD 未設定")
         sys.exit(1)
-    if not LIGHT_BASE.exists():
-        print(f"❌ {LIGHT_BASE} がありません（G:ドライブ未接続？）")
+    PR_BASE.mkdir(exist_ok=True)
+    if not PR_BASE.exists():
+        print(f"❌ {PR_BASE} がありません（G:ドライブ未接続？）")
         sys.exit(1)
 
     state = load_state()
