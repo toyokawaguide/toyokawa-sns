@@ -89,11 +89,12 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
             if para:
                 parts.append(f"<p>{para}</p>")
 
-    # ④ 写真
+    # ④ 写真（連続で詰まらないよう1枚ごとに下マージン・2026-08-06社長指摘）
     if photo_urls:
         for u in photo_urls:
             parts.append(
-                f'<figure class="wp-block-image size-large"><img src="{u}" alt="{shop}"/></figure>'
+                f'<figure class="wp-block-image size-large" style="margin:0 0 2em;">'
+                f'<img src="{u}" alt="{shop}"/></figure>'
             )
 
     # ⑤ 基本情報（お店以外＝サークル・イベント等でも自然な見出しに・2026-08-05）

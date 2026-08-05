@@ -129,7 +129,8 @@ def build_preview(row: dict, photo_path=None):
     return title, body, img
 
 
-def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool) -> bool:
+def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool,
+                 extra_images: list[Path] | None = None) -> bool:
     to = (row.get("メールアドレス") or "").strip()
     if not to:
         log("メールアドレスが空 → スキップ", 1)
@@ -162,8 +163,10 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool) -> b
         body,
         "───────────────",
         "",
-        "▼ アイキャッチ画像",
-        "このメールに添付しています。記事の先頭とSNSに使われます。",
+        "▼ 添付画像について",
+        ("Instagramに投稿される画像の並び（1枚目=カード・2枚目以降=お写真）を全部添付しています。"
+         if extra_images else
+         "アイキャッチ画像を添付しています。記事の先頭とSNSに使われます。"),
         "",
         "■ このままでよろしければ",
         "「OKです」とご返信ください。掲載日を調整してご連絡します。",
@@ -182,7 +185,7 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool) -> b
     if dry:
         log(f"[dry] 送信先 {to}", 1)
         log(f"[dry] 件名 【{SITE}】さくっとPR 完成イメージのご確認（{pid}・{shop}）", 1)
-        log(f"[dry] 添付 {img.name}（{img.stat().st_size:,} bytes）", 1)
+        log(f"[dry] 添付 {img.name} ＋ 追加{len(extra_images or [])}枚", 1)
         log("[dry] 本文 ----", 1)
         for ln in text.splitlines()[:24]:
             log(ln, 2)
@@ -195,7 +198,12 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool) -> b
     msg["Bcc"] = GMAIL_USER                      # 送った控えを社長にも残す
     msg["Subject"] = f"【{SITE}】さくっとPR 完成イメージのご確認（{pid}・{shop}）"
     msg.set_content(text)
-    msg.add_attachment(img.read_bytes(), maintype="image", subtype="png", filename=img.name)
+    msg.add_attachment(img.read_bytes(), maintype="image", subtype="png",
+                       filename=f"{pid}_1_カバー.png")
+    for i, p in enumerate(extra_images or [], start=2):
+        sub = "png" if p.suffix.lower() == ".png" else "jpeg"
+        msg.add_attachment(p.read_bytes(), maintype="image", subtype=sub,
+                           filename=f"{pid}_{i}枚目{p.suffix}")
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
         s.login(GMAIL_USER, GMAIL_PASS)
         s.send_message(msg)
