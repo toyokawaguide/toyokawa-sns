@@ -8,6 +8,14 @@ from __future__ import annotations
 import unicodedata
 
 HASHTAGS_BASE = "#PR #豊川市 #豊川ガイド #とよサポ #さくっとPR"
+HASHTAGS_OUTSIDE = "#PR #豊川ガイド #さくっとPR"
+
+
+def _hashtags(row: dict) -> str:
+    """#とよサポ（とよかわ応援サポーター）と #豊川市 は住所が豊川市のときだけ。
+    市外の申込に付けると制度趣旨とズレるため（2026-08-05 社長方針）"""
+    addr = (row.get("エリア・住所", "") or "")
+    return HASHTAGS_BASE if "豊川市" in addr else HASHTAGS_OUTSIDE
 
 
 def _x_weight(text: str) -> int:
@@ -130,10 +138,10 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     lines = [title, ""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
-    lines += ["▼ 詳細", wp_url, "", HASHTAGS_BASE]
+    lines += ["▼ 詳細", wp_url, "", _hashtags(row)]
     full = "\n".join(lines)
     if _x_weight(full) > 280 and tokuten:
-        lines = [title, "", "▼ 詳細", wp_url, "", HASHTAGS_BASE]
+        lines = [title, "", "▼ 詳細", wp_url, "", _hashtags(row)]
         full = "\n".join(lines)
     return full
 
@@ -148,7 +156,7 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。{genre}の{shop}さんの紹介です！", ""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
-    lines += ["▼ 詳細", wp_url, "", HASHTAGS_BASE]
+    lines += ["▼ 詳細", wp_url, "", _hashtags(row)]
     return "\n".join(lines)
 
 
@@ -171,6 +179,6 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
         "",
         "📣 お店の宣伝をご希望の方はDMへ",
         "",
-        HASHTAGS_BASE + " #広告 #豊川グルメ #地域メディア",
+        _hashtags(row) + " #広告 #豊川グルメ #地域メディア",
     ]
     return "\n".join(lines)
