@@ -111,6 +111,29 @@ def save_image(data: bytes, folder: Path, n: int) -> Path | None:
     return out
 
 
+def resend_preview_with_photo(pr_id: str, folder: Path):
+    """写真到着後、写真入りの完成イメージを申込者に自動再送（2026-08-06）"""
+    try:
+        from sheets_client import read_all_rows
+        import pr_intake
+        rows = read_all_rows(sheet="PRキュー",
+                             spreadsheet_id="1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A")
+        row = next((r for r in rows if (r.get("ID") or "").strip() == pr_id), None)
+        if not row:
+            print(f"  ⚠ {pr_id} がキューに見つからず再送スキップ")
+            return
+        nums = sorted([f for f in folder.iterdir() if f.stem.isdigit()],
+                      key=lambda f: int(f.stem))
+        if not nums:
+            return
+        title, body, img = pr_intake.build_preview(row, photo_path=nums[0])
+        ok = pr_intake.send_preview(row, title, body, img, dry=False)
+        if ok:
+            print(f"  📧 写真入り完成イメージを再送しました")
+    except Exception as e:
+        print(f"  ⚠ 写真入りプレビュー再送失敗（写真保存は完了済み）: {e}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true")
@@ -185,6 +208,8 @@ def main():
                 print(f"  ⚠ 読めない画像をスキップ: {fn}")
         print(f"  ✅ 保存: {', '.join(saved)}")
         total_saved += len(saved)
+        if saved:
+            resend_preview_with_photo(pr_id, folder)
         if msg_id:
             state[msg_id] = {"pr": pr_id, "saved": len(saved),
                              "at": datetime.now().isoformat(timespec="seconds")}

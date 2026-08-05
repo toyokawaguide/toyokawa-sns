@@ -116,16 +116,16 @@ def normalize_row(idx: int, row: dict):
         log(f"備考→専用列に展開＋圧縮: {', '.join(c for c, _ in updates)}", 1)
 
 
-def build_preview(row: dict):
-    """(タイトル, 本文テキスト, アイキャッチのパス) を返す"""
+def build_preview(row: dict, photo_path=None):
+    """(タイトル, 本文テキスト, アイキャッチのパス) を返す
+    photo_path があれば写真入り（一枚の札）で生成（写真到着後の再送用・2026-08-06）"""
     title = pr_builder.build_pr_title(row)
     body = strip_html(pr_builder.build_pr_content(row))
     OUT_DIR.mkdir(exist_ok=True)
     img = OUT_DIR / f"{row.get('ID', 'PR')}_preview.png"
     # ★2026-08-05 確定デザイン（額ぶち／一枚の札）。申込ページのライブプレビューと同じ絵が届く
-    #   プレビュー時点では写真はまだ無い（受付メール返信で届く）ので写真なし版
     import pr_eyecatch
-    pr_eyecatch.render_45(row, output_path=img)
+    pr_eyecatch.render_45(row, photo_path=photo_path, output_path=img)
     return title, body, img
 
 
@@ -138,12 +138,22 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool) -> b
     shop = row.get("店名", "")
     name = row.get("申込者名") or "ご担当者"
 
+    # 申込ページで「写真あり」を選んだ人への注意（フォームの写真は仕組み上届かない・2026-08-06）
+    photo_notice = []
+    if "写真：あり" in (row.get("備考", "") or ""):
+        photo_notice = [
+            "※お申し込みページで選択された写真は、仕組みの都合でこちらには届いていません。",
+            "　このメールに返信で写真を添付いただければ、写真入りの完成イメージを改めてお送りします。",
+            "",
+        ]
+
     text = "\n".join([
         f"{name} 様",
         "",
         f"{SITE}です。「さくっとPR」の完成イメージができました。",
         f"受付番号：{pid}",
         "",
+        *photo_notice,
         "▼ 記事タイトル",
         title,
         "",
