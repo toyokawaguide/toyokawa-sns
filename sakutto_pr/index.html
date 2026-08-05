@@ -78,6 +78,8 @@ html{scroll-behavior:smooth}
   border-radius:9px;color:#2e7a5e;text-decoration:none;font-size:13px;text-align:center;background:#f4faf7}
 .formhead{max-width:1000px;margin:30px auto 0;padding:14px 22px 0;font-size:16px;
   border-top:3px solid #e6e2da;letter-spacing:.04em}
+.photowarn{margin-top:8px;padding:12px 14px;background:#fff1ef;border:2px solid #e0705f;
+  border-radius:9px;font-size:13.5px;font-weight:bold;color:#b03a2e;line-height:1.8}
 
 /* ── こんな内容でOK（実例集） ── */
 .examples{max-width:1000px;margin:20px auto 0;padding:0 22px}
@@ -199,9 +201,9 @@ html{scroll-behavior:smooth}
     <label>写真（任意・なくても大丈夫です）</label>
     <input type="file" id="photo" accept="image/*">
     <button class="clearbtn" id="clearPhoto">写真を外す</button>
-    <div class="hint"><b>⚠️ ここで選んだ写真は送信されません（画面プレビューの確認用です）。
-    実物はお申し込み後の受付メールに返信で添付してください。</b><br>
-    横長の写真がきれいに収まります（目安 1920×1080 くらい）。
+    <div class="photowarn">⚠️ ここで選んだ写真は送信されません（画面プレビューの確認用です）。<br>
+    写真の実物は、お申し込み後に届く<u>受付メールに返信で添付</u>してください。</div>
+    <div class="hint">横長の写真がきれいに収まります（目安 1920×1080 くらい）。
       縦長・正方形でもOKですが、枠に合わせて自動で切り抜くため端が見切れることがあります。<br>
       ここで使うのはアイキャッチ用の1枚。記事に載せる写真は、お申し込み後の受付メールに
       返信で追加できます（合計5枚まで）</div>
