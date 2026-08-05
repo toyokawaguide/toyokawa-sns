@@ -64,6 +64,17 @@ h2.sec:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .submit{margin-top:16px;width:100%;padding:13px;border:none;border-radius:9px;background:#3f9d7a;
   color:#fff;font:inherit;font-size:15px;letter-spacing:.1em;cursor:pointer}
 .submit:disabled{background:#c9c4bb;cursor:default}
+
+/* ── こんな内容でOK（実例集） ── */
+.examples{max-width:1000px;margin:20px auto 0;padding:0 22px}
+.examples h2{font-size:15px;margin:0 0 4px;letter-spacing:.04em}
+.examples>p{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.exgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.excard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.excard b{display:block;font-size:13px;margin-bottom:7px}
+.excard ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.9;color:#444}
+.exnote{margin-top:12px;font-size:12.5px;color:#444;background:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:11px 15px;line-height:1.8}
 </style>
 </head>
 <body>
@@ -72,6 +83,46 @@ h2.sec:first-of-type{border-top:none;padding-top:0;margin-top:0}
   <h1>さくっとPR 掲載のお申し込み</h1>
   <p>入力すると右のスマホ画面がその場で変わります。「この内容で申し込む」を押すまで、データは送信されません</p>
 </header>
+
+<section class="examples">
+  <h2>たとえば、こんな内容でOK</h2>
+  <p>お店に限らず、教室・個人・サークルの「知ってほしい」なら何でも。すべて無料です</p>
+  <div class="exgrid">
+    <div class="excard"><b>🏪 お店のこと</b><ul>
+      <li>新しくオープンした（開店前の告知でも・写真がなくても大丈夫）</li>
+      <li>移転した・リニューアルした</li>
+      <li>営業時間・定休日が変わった</li>
+      <li>新メニュー・季節限定メニューを始めた</li>
+      <li>ランチ・テイクアウト・デリバリー始めました</li>
+    </ul></div>
+    <div class="excard"><b>🎪 イベント・キャンペーン</b><ul>
+      <li>セール・感謝祭・周年イベントをやる</li>
+      <li>マルシェ・朝市・フリマに出店する</li>
+      <li>ワークショップ・体験会・見学会</li>
+      <li>クーポン・来店特典を出したい</li>
+    </ul></div>
+    <div class="excard"><b>🙋 募集したい</b><ul>
+      <li>スタッフ・アルバイト募集</li>
+      <li>教室・スクールの生徒募集（ピアノ・英会話・書道・そろばん…）</li>
+      <li>サークル・チームのメンバー募集（草野球・バドミントン・コーラス…）</li>
+      <li>ボランティア・お手伝い募集</li>
+    </ul></div>
+    <div class="excard"><b>🛠 個人でやっていること</b><ul>
+      <li>ハンドメイド作品を作って売っている（ネットショップの宣伝もOK）</li>
+      <li>キッチンカーの出店予定を知らせたい</li>
+      <li>農家の直売・無人販売所</li>
+      <li>自宅サロン・ネイル・整体など</li>
+      <li>カメラマン・デザイナーなどフリーランスの自己紹介</li>
+    </ul></div>
+    <div class="excard"><b>🏠 その他いろいろ</b><ul>
+      <li>テナント募集・貸店舗のお知らせ</li>
+      <li>地域のお祭り・マルシェ・こども食堂の告知</li>
+      <li>お店の10周年、感謝のメッセージ</li>
+      <li>「閉店します。今までありがとう」も大切なお知らせです</li>
+    </ul></div>
+  </div>
+  <div class="exnote">💡 <b style="font-size:12.5px">迷ったら、とりあえず申し込んでみてください。</b>掲載できるか分からない内容でも、こちらで記事の形に整えてご提案します。完成イメージを見てから「やっぱりやめる」もOKです（それまで一切公開されません）</div>
+</section>
 
 <div class="wrap">
 
