@@ -95,12 +95,25 @@ def normalize_row(idx: int, row: dict):
         v = pick("公開希望日") or pick("掲載希望日")
         if v:
             updates.append(("B", v)); row["公開希望日"] = v
+    # 備考を1行に圧縮（行が縦に広がるのが嫌・2026-08-06社長指摘）
+    # 専用列に移した項目と自動判定できる「かたち」は落とし、残り（写真・その他）だけ「／」区切りで残す
+    if biko.startswith("【申込ページから】"):
+        keep = []
+        for key in ["写真", "その他"]:
+            v = pick(key)
+            if v:
+                keep.append(f"{key}：{v}")
+        compact = "【申込ページから】" + "／".join(keep) if keep else "【申込ページから】"
+        if compact != biko:
+            updates.append(("N", compact))
+            row["備考"] = compact
+
     for col, val in updates:
         svc.spreadsheets().values().update(
             spreadsheetId=PR_SPREADSHEET_ID, range=f"{SHEET}!{col}{idx}",
             valueInputOption="RAW", body={"values": [[val]]}).execute()
     if updates:
-        log(f"備考→専用列に展開: {', '.join(c for c, _ in updates)}", 1)
+        log(f"備考→専用列に展開＋圧縮: {', '.join(c for c, _ in updates)}", 1)
 
 
 def build_preview(row: dict):
