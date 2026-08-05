@@ -108,8 +108,13 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     if tsubuyaki:
         parts.append(f"<p>💬 お店から：{tsubuyaki}</p>")
 
-    # ⑧ closing（募集導線）
+    # ⑧ closing（読者向けの注意書き＋募集導線）
+    #    ※「事業者様」に限定しない表現＝「豊川ガイドのユーザー様」（社長確定 2026-08-05）
     parts.append("<hr/>")
+    parts.append(
+        "<p><small>※本記事は「さくっとPR」（豊川ガイドのユーザー様からのお申し込みによる掲載）です。"
+        "内容は掲載時点の情報です。最新の営業時間・価格・サービス内容は各店舗にご確認ください。</small></p>"
+    )
     parts.append(
         "<p><small>「さくっとPR」は豊川ガイドの広告枠です。"
         "お店やサービスの宣伝をご希望の方は、豊川ガイドのSNSのDMからお気軽にご相談ください。</small></p>"

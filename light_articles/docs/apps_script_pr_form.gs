@@ -9,16 +9,22 @@
  * まで全部そろいます。
  *
  * ■ 使い方（1回だけ）
- *   1. スプレッドシート「ライト記事キュー_v2」を開く
- *   2. 拡張機能 → Apps Script
- *   3. このファイルの中身を全部貼り付けて保存
- *   4. 関数 setupPrForm を選んで実行（初回だけ権限の確認が出ます → 許可）
+ *   1. ブラウザで https://script.google.com/home を開く
+ *   2. 左上の「新しいプロジェクト」をクリック
+ *   3. 出てきたコードを全部消して、このファイルの中身を貼り付けて保存
+ *      （※スプレッドシート側の Apps Script は開かない。既存コードに触れないため）
+ *   4. 関数 setupPrForm を選んで実行（初回だけ権限の確認 → 許可）
  *   5. 実行ログに出てくる「公開URL」を、WPの募集ページに貼る
  *
  * ■ 2回目以降
  *   もう実行しなくてOK。項目を変えたいときだけ、フォームを直接編集してください。
  */
 
+// ★このスクリプトは「ライト記事キュー」とは独立した単体プロジェクトとして動く。
+//   スプレッドシートに付いている既存のスクリプトには一切触れない。
+var SPREADSHEET_ID = '155K-AQdLNUiYb4Z3MK-elyG1U7UIIxPeu397uZsVxdo';   // ライト記事キュー
+
+// ⚠️ 触るのはこのタブだけ。ライト記事の本番タブ「キュー」には絶対に触れない。
 var SHEET_NAME = 'PRキュー';
 var OWNER_MAIL = 'toyokawa.rentallife@gmail.com';   // 社長への通知先
 var SITE_NAME  = '豊川ガイド';
@@ -82,8 +88,8 @@ var MAP = {
 // ───────────────────────────── セットアップ ─────────────────────────────
 
 function setupPrForm() {
-  var ss = SpreadsheetApp.getActive();
-  var props = PropertiesService.getDocumentProperties();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var props = PropertiesService.getScriptProperties();
   var existing = props.getProperty('PR_FORM_ID');
   if (existing) {
     var f = FormApp.openById(existing);
@@ -151,7 +157,7 @@ function ensureSheet(ss) {
 // ───────────────────────────── 送信されたとき ─────────────────────────────
 
 function onPrFormSubmit(e) {
-  var ss = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ensureSheet(ss);
   var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 
@@ -170,7 +176,7 @@ function onPrFormSubmit(e) {
   put('ID', nextPrId(sh, head));
   put('状態', '申込');                 // 社長が確認して draft に変えると配信対象になる
   put('受付日時', Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm'));
-  put('料金区分', '未定');
+  put('料金区分', '無料');        // 当面すべて無料枠。有料商品は別途つくる予定（社長方針 2026-08-02）
   put('備考', ans['写真について'] || '');
 
   sh.appendRow(row);
