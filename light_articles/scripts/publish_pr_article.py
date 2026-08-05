@@ -35,6 +35,7 @@ import eyecatch_generator
 from eyecatch_generator import (generate_ig_feed, generate_eyecatch_photo,
                                  generate_eyecatch_simple)
 from sns_clients import (post_threads, post_instagram_feed,
+                          post_instagram_feed_carousel,
                           post_instagram_reel_resumable,
                           post_instagram_reel_by_url)
 from generate_reel import render_static_reel
@@ -204,9 +205,26 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         log(f"🧵 Threads: {r1}", 1)
     except Exception as e:
         log(f"⚠ Threads失敗（続行）: {e}", 1)
+    # === IG Feed：写真があればカルーセル（1枚目=PRカード・2枚目以降=届いた写真全部を豊川ガイド枠付きで）===
+    #     2026-08-06 社長指示「送られてきた写真は全部インスタで使いたい」。LRと同方式・枠の帯は「さくっとPR」
     try:
-        r2 = post_instagram_feed(ig_text, image_url=ig_feed_url, dry=sns_dry)
-        log(f"📸 IG Feed: {r2}", 1)
+        carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
+        ig_images = [ig_feed_url]
+        if not sns_dry and carousel_photos:
+            from photo_frame import frame_photo
+            frame_month = f"{publish_dt.year}年{publish_dt.month}月"
+            for p in carousel_photos:
+                framed = ROOT / "_sample" / f"_framed_{article_id}_{p.stem}.png"
+                frame_photo(str(p), str(framed), frame_month)
+                ig_images.append(upload_media(framed)["source_url"])
+                log(f"🖼️ 枠付け→アップ: {p.name}", 2)
+        if carousel_photos:
+            log(f"📷 IG Feed カルーセル投稿（カバー＋写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
+            r2 = post_instagram_feed_carousel(ig_text, ig_images, dry=sns_dry)
+        else:
+            log(f"📸 IG Feed 単発投稿（写真なし・dry={sns_dry}）", 1)
+            r2 = post_instagram_feed(ig_text, image_url=ig_feed_url, dry=sns_dry)
+        log(f"  → {r2}", 2)
     except Exception as e:
         log(f"⚠ IG Feed失敗（続行）: {e}", 1)
     try:
