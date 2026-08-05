@@ -1,0 +1,38 @@
+# GitHub Pages 静的配信（Jekyllなし）
+#
+# なぜこれが要るか（2026-08-05）:
+#   従来の「ブランチから配信」はJekyllという変換器が全ファイルを処理する。
+#   uranai/scripts/prompts/*.md の「---」をYAML設定と誤解してビルドが失敗し、
+#   Pagesが2026年4月から更新されていなかった（.nojekyllも無視された）。
+#   → リポジトリをそのままコピーして配るだけのこの方式なら二度と壊れない。
+#   ※有効化には Settings → Pages → Source を「GitHub Actions」にする必要あり
+name: Pages配信（静的・Jekyllなし）
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
