@@ -333,29 +333,68 @@ def render_169(row: dict, photo_path=None, output_path=None):
 
 # ───────────────────── カルーセル写真枠（1080×1350・2枚目以降）─────────────────────
 
+def _contain(ph: Image.Image, maxw: int, maxh: int) -> Image.Image:
+    s = min(maxw / ph.width, maxh / ph.height)
+    return ph.resize((int(ph.width * s), int(ph.height * s)), Image.LANCZOS)
+
+
+def _tinted_logo(color, height: int) -> Image.Image:
+    """白キツネロゴを任意色に着色（淡色背景用）"""
+    logo = Image.open(ROOT.parent / "_assets" / "toyokawaguide-logo white.png").convert("RGBA")
+    s = height / logo.height
+    logo = logo.resize((int(logo.width * s), height), Image.LANCZOS)
+    tint = Image.new("RGBA", logo.size, color)
+    tint.putalpha(logo.getchannel("A"))
+    return tint
+
+
 def render_carousel_photo(row: dict, photo_path, output_path=None) -> Image.Image:
-    """IGカルーセルの2枚目以降＝写真をさくっとPRの世界観で額装する
-    （LRの紺枠流用をやめてPR専用に・店名入り・テーマ色連動・2026-08-06社長指示）
-    カバー（一枚の札）と同じ：テーマ背景＋外枠＋アクセント縁の写真＋クレジット"""
+    """IGカルーセルの2枚目以降＝ポラロイド風（2026-08-06社長確定デザイン）
+    上=「— さくっとPR —」／中央=白い写真カード（写真ノーカット・店名大きめ）／
+    下=豊川ガイドロゴ＋文字。背景と差し色はテーマ色連動"""
+    from PIL import ImageFilter
     W, H = 1080, 1350
     st = data_from_row(row)
     t = st["theme"]
     photo = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
     im = Image.new("RGBA", (W, H), hx(t["bg"]))
     d = ImageDraw.Draw(im)
-    # 外枠（一枚の札と同じ）
     d.rounded_rectangle((40, 40, W - 40, H - 40), 22, outline=hx(t["accent"]), width=6)
-    # 店名（上部中央・アクセント下線）
-    f_s = fit_one(d, st["shop"], FONT_BOLD, 54, W - 260, 32)
-    d.text((W // 2, 138), st["shop"], font=f_s, fill=hx(t["ink"]), anchor="ms")
-    d.line((W // 2 - 90, 176, W // 2 + 90, 176), fill=hx(t["accent"]), width=3)
-    # 写真（大きく・アクセント縁）
-    PX, PY, PW, PH = 88, 226, W - 176, 990
-    rounded_photo(im, photo, PX, PY, PW, PH, 18)
-    d.rounded_rectangle((PX, PY, PX + PW, PY + PH), 18, outline=hx(t["accent"]), width=4)
-    # クレジット（枠の内側）
-    d.text((W - 78, H - 72), "豊川ガイド｜さくっとPR",
-           font=font(FONT_BOLD, 26), fill=hx(t["sub"]), anchor="rs")
+
+    # 上部：さくっとPR（飾り線つき）
+    f_top = font(FONT_BOLD, 46)
+    tw = d.textlength("さくっとPR", font=f_top)
+    d.text((W // 2, 138), "さくっとPR", font=f_top, fill=hx(t["accent"]), anchor="ms")
+    d.line((W // 2 - tw / 2 - 120, 122, W // 2 - tw / 2 - 28, 122), fill=hx(t["accent"]), width=3)
+    d.line((W // 2 + tw / 2 + 28, 122, W // 2 + tw / 2 + 120, 122), fill=hx(t["accent"]), width=3)
+
+    # 中央：ポラロイドカード（写真は切らない・店名大きめ）
+    p = _contain(photo, W - 250, 700)
+    cw, chh = p.width + 56, p.height + 190
+    cx = (W - cw) // 2
+    cy = max(200, 200 + (880 - chh) // 2)
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle((cx + 10, cy + 16, cx + cw + 10, cy + chh + 16),
+                                         10, fill=(30, 30, 30, 60))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(9)))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((cx, cy, cx + cw, cy + chh), 10, fill="white")
+    im.paste(p, (cx + 28, cy + 28))
+    f_s = fit_one(d, st["shop"], FONT_BOLD, 64, cw - 90, 36)
+    d.text((cx + cw // 2, cy + chh - 66), st["shop"], font=f_s, fill=hx(t["ink"]), anchor="ms")
+    d.line((cx + cw // 2 - 90, cy + chh - 34, cx + cw // 2 + 90, cy + chh - 34),
+           fill=hx(t["accent"]), width=3)
+
+    # 下部：豊川ガイドロゴ＋文字（ロゴは墨色に着色）
+    logo = _tinted_logo(hx(t["ink"]), 92)
+    f_g = font(FONT_BOLD, 46)
+    gw = d.textlength("豊川ガイド", font=f_g)
+    lx = int((W - (logo.width + 24 + gw)) // 2)
+    ly = 1155
+    im.alpha_composite(logo, (lx, ly))
+    d = ImageDraw.Draw(im)
+    d.text((lx + logo.width + 24, ly + 46), "豊川ガイド", font=f_g, fill=hx(t["ink"]), anchor="lm")
+
     out = im.convert("RGB")
     if output_path:
         out.save(output_path)
