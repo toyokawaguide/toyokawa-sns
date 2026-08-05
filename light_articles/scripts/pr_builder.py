@@ -116,6 +116,16 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     if tsubuyaki:
         parts.append(f"<p>💬 お店から：{tsubuyaki}</p>")
 
+    # ⑦b 豊川ガイドから一言（任意・シートT列に書いた時だけ・2026-08-05社長発案）
+    #     広告記事内の媒体コメントなので、体験・事実ベースの言い回し推奨（過度な絶賛は優良誤認リスク）
+    guide_note = (row.get("豊川ガイドから一言", "") or "").strip()
+    if guide_note:
+        parts.append(
+            '<div style="border-left:4px solid #1a3a8a;background:#f0f4ff;'
+            'border-radius:0 8px 8px 0;padding:10px 16px;margin:1.2em 0;">'
+            f'<strong>🦊 豊川ガイドから：</strong>{guide_note}</div>'
+        )
+
     # ⑧ closing（読者向けの注意書き＋募集導線）
     #    ※「事業者様」に限定しない表現＝「豊川ガイドのユーザー様」（社長確定 2026-08-05）
     parts.append("<hr/>")
