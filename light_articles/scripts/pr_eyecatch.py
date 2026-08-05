@@ -275,27 +275,42 @@ def render_169(row: dict, photo_path=None, output_path=None):
         addr_line(d, t, st["addr"], tx, 370, W - tx - 50)
         brand(d, t, W, H)
     else:                                              # ─ 写真全面（2026-08-05・見切れ対策）─
-        # 1920×1080は16:9そのままなので切れゼロ。下部グラデ＋白文字＋アクセント枠で世界観維持
+        # 1920×1080は16:9そのままなので切れゼロ。文字はテーマ色の座布団＋白文字
+        # （額ぶち版と同じ「アクセント色に白文字」＝どんな写真でも読める・社長指定 2026-08-05）
         im.paste(cover(photo, W, H), (0, 0))
-        # 白多めの写真でも読めるように：グラデ強め＋二段掛け＋文字に細い黒フチ
-        grad_dark(im, 0, H // 4, W, H - H // 4, bottom=225)
-        grad_dark(im, 0, H - 300, W, 300, bottom=120)
         d = ImageDraw.Draw(im)
         pill(d, st["badge"], 48, 44, hx(t["accent"]), "white", size=30)
-        tx = 64
-        s, lines = wrap_fit(d, st["catch"], FONT_BOLD, W - 128, 2, 72, 40)
-        y = H - 210 - (len(lines) - 1) * int(s * 1.28)
+
+        def box(text, f, x, y, pad_x=26, pad_y=13, r=10, right=False):
+            tw = d.textlength(text, font=f)
+            bw, bh = tw + pad_x * 2, f.size + pad_y * 2
+            if right:
+                x -= bw
+            d.rounded_rectangle((x, y, x + bw, y + bh), r, fill=hx(t["accent"]))
+            d.text((x + pad_x, y + bh / 2 + 2), text, font=f, fill="white", anchor="lm")
+            return bh
+
+        tx = 48
+        s, lines = wrap_fit(d, st["catch"], FONT_BOLD, W - 96 - 56, 2, 66, 40)
+        f_c = font(FONT_BOLD, s)
+        f_s = fit_one(d, st["shop"], FONT_BOLD, 38, W - 560, 26)
+        f_a = fit_one(d, st["addr"], FONT_BOLD, 28, W - 560, 20) if st["addr"] else None
+        h_c, h_s = f_c.size + 26, f_s.size + 22
+        h_a = (f_a.size + 18) if f_a else 0
+        gap = 12
+        total = len(lines) * h_c + (len(lines) - 1) * 8 + gap + h_s + ((gap + h_a) if f_a else 0)
+        y = H - 52 - total
         for ln in lines:
-            d.text((tx, y), ln, font=font(FONT_BOLD, s), fill="white", anchor="ls",
-                   stroke_width=3, stroke_fill=(25, 25, 25))
-            y += int(s * 1.28)
-        f = fit_one(d, st["shop"], FONT_BOLD, 42, W - 500, 26)
-        d.text((tx, H - 128), st["shop"], font=f, fill="white", anchor="ls",
-               stroke_width=2, stroke_fill=(25, 25, 25))
-        addr_line(d, t, st["addr"], tx, H - 64, W - 500, color=(240, 240, 240, 255), stroke=2)
+            box(ln, f_c, tx, y, pad_x=28, pad_y=13)
+            y += h_c + 8
+        y += gap - 8
+        box(st["shop"], f_s, tx, y, pad_x=22, pad_y=11)
+        y += h_s + gap
+        if f_a:
+            box(st["addr"], f_a, tx, y, pad_x=20, pad_y=9)
         d.rounded_rectangle((16, 16, W - 17, H - 17), 14, outline=hx(t["accent"]), width=6)
-        d.text((W - 60, H - 36), "豊川ガイド｜さくっとPR", font=font(FONT_BOLD, 26),
-               fill=(255, 255, 255, 255), anchor="rs", stroke_width=2, stroke_fill=(25, 25, 25))
+        box("豊川ガイド｜さくっとPR", font(FONT_BOLD, 22), W - 48, H - 52 - 40,
+            pad_x=16, pad_y=9, r=8, right=True)
 
     out = im.convert("RGB")
     if output_path:
