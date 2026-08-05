@@ -51,6 +51,16 @@ jobs:
             "$BASE_URL/NotoSansCJK-Regular.ttc"
           echo "LIGHT_FONT_DIR=$FONT_DIR" >> $GITHUB_ENV
 
+      - name: ffmpeg セットアップ（プリインストール優先・apt-getフォールバック）
+        run: |
+          if command -v ffmpeg > /dev/null; then
+            echo "ffmpeg プリインストール済み"
+          else
+            echo "ffmpeg 未検出 → apt-get で導入"
+            sudo apt-get update && sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+
       - name: ライブラリインストール
         run: pip install -r requirements.txt
 
@@ -93,7 +103,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pr-article-preview-${{ github.run_id }}
-          path: light_articles/scripts/_sample/*.png
+          path: |
+            light_articles/scripts/_sample/*.png
+            light_articles/scripts/_sample/*.mp4
           retention-days: 7
           if-no-files-found: warn
 

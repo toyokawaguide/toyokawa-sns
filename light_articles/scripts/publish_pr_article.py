@@ -34,7 +34,10 @@ series.set_label("さくっとPR")   # 記事・SNS・画像・リールすべ�
 import eyecatch_generator
 from eyecatch_generator import (generate_ig_feed, generate_eyecatch_photo,
                                  generate_eyecatch_simple)
-from sns_clients import post_threads, post_instagram_feed
+from sns_clients import (post_threads, post_instagram_feed,
+                          post_instagram_reel_resumable,
+                          post_instagram_reel_by_url)
+from generate_reel import render_static_reel
 from publish_light_article import get_article_photos, parse_publish_date
 
 PR_SHEET = "PRキュー"
@@ -95,6 +98,12 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     ig_feed_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_feed.png"
     pr_eyecatch.render_45(row, photo_path=first_photo, output_path=ig_feed_path)
     log(f"📷 IG Feed 4:5（{'一枚の札' if first_photo else '額ぶち'}）: {ig_feed_path.name}", 1)
+
+    # === リール動画（1080×1920・15秒静止・CBR 3M） ===
+    reel_path = ROOT / "_sample" / f"_tmp_{article_id}_reel.mp4"
+    reel_frame = pr_eyecatch.render_reel_frame(row, photo_path=first_photo)
+    render_static_reel(reel_frame, reel_path)
+    log(f"🎬 リール動画生成: {reel_path.name} ({reel_path.stat().st_size/1024:.0f} KB)", 1)
 
     title = build_pr_title(row)
     log(f"📰 タイトル: {title}", 1)
@@ -164,6 +173,18 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         log(f"📸 IG Feed: {r2}", 1)
     except Exception as e:
         log(f"⚠ IG Feed失敗（続行）: {e}", 1)
+    try:
+        log(f"🎬 Instagram Reels 投稿（1080×1920・dry={sns_dry}）", 1)
+        reel_result = post_instagram_reel_resumable(ig_text, reel_path, dry=sns_dry)
+        log(f"  → {reel_result}", 2)
+        # Resumable失敗時は公開URL方式でフォールバック（LR053事故と同じ対策）
+        if (not sns_dry) and reel_result.get("error"):
+            log("  ↻ Resumable失敗 → 公開URL方式でフォールバック", 2)
+            video_url = upload_media(Path(reel_path))["source_url"]
+            fb = post_instagram_reel_by_url(ig_text, video_url, dry=False)
+            log(f"  → (fallback) {fb}", 2)
+    except Exception as e:
+        log(f"⚠ Reels失敗（続行）: {e}", 1)
 
     # === Sheets 状態更新＋X文通知 ===
     x_text = build_pr_x_caption(row, wp_url)

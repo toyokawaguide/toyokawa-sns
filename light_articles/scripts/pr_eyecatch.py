@@ -319,6 +319,21 @@ def render_169(row: dict, photo_path=None, output_path=None):
     return out
 
 
+# ───────────────────────── リール静止フレーム（1080×1920）─────────────────────────
+
+def render_reel_frame(row: dict, photo_path=None, output_path=None) -> Image.Image:
+    """リール用フレーム：4:5の確定デザインを IG安全エリア（上180/下320）内に配置。
+    背景は同じテーマ色なので継ぎ目なし。動画化は generate_reel.render_static_reel に渡す"""
+    RW, RH = 1080, 1920
+    t = style_from_row(row)[0]
+    base = Image.new("RGB", (RW, RH), hx(t["bg"])[:3])
+    card = render_45(row, photo_path=photo_path)
+    base.paste(card, (0, 180 + (RH - 180 - 320 - card.height) // 2))
+    if output_path:
+        base.save(output_path)
+    return base
+
+
 # ───────────────────────── 動作見本 ─────────────────────────
 
 if __name__ == "__main__":
