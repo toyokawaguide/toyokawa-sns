@@ -219,8 +219,10 @@ def render_45(row: dict, photo_path=None, output_path=None):
         brand(d, t, W, H)
     else:                                              # ─ 一枚の札 ─
         d.rounded_rectangle((40, 40, W - 40, H - 40), 22, outline=hx(t["accent"]), width=6)
-        d.text((W // 2, 158), st["badge"], font=font(FONT_BOLD, 34),
-               fill=hx(t["accent"]), anchor="ms")
+        # バッジ＝中央ピル・大きめ（「NEW OPENが小さい」社長指摘 2026-08-05）
+        bs = 38
+        bw = d.textlength(st["badge"], font=font(FONT_BOLD, bs)) + bs * 1.33
+        pill(d, st["badge"], (W - bw) / 2, 92, hx(t["accent"]), "white", size=bs)
         s, lines = wrap_fit(d, st["catch"], FONT_BOLD, W - 200, 2, 84, 44)
         y = 310
         for ln in lines:

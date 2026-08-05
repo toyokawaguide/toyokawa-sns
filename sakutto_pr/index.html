@@ -358,8 +358,13 @@ function renderScene(c, st){
     c.strokeStyle = t.accent; c.lineWidth = 6;
     roundRect(c, 40, 40, W-80, H-80, 22); c.stroke();
     c.textAlign='center';
-    c.fillStyle = t.accent; c.font = F(700, 34);
-    c.fillText(st.badge, W/2, 158);
+    /* バッジ＝中央ピル・大きめ（「NEW OPENが小さい」社長指摘 2026-08-05） */
+    c.font = F(700, 38);
+    const bw = c.measureText(st.badge).width + 50, bh = 66, by = 92;
+    c.fillStyle = t.accent; roundRect(c, W/2 - bw/2, by, bw, bh, 33); c.fill();
+    c.fillStyle = '#fff'; c.textBaseline = 'middle';
+    c.fillText(st.badge, W/2, by + bh/2 + 2);
+    c.textBaseline = 'alphabetic';
     /* キャッチ（大・太字・墨色） */
     const r = wrapFit(c, st.catch, 700, W-200, 2, 84, 44);
     c.fillStyle = t.ink;
