@@ -38,6 +38,7 @@ from sns_clients import post_threads, post_instagram_feed
 from publish_light_article import get_article_photos, parse_publish_date
 
 PR_SHEET = "PRキュー"
+PR_SPREADSHEET_ID = "1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A"   # ★専用スプレッドシート（2026-08-05分離）
 JST = timezone(timedelta(hours=9))
 PUBLISH_HOUR = 10  # 朝10時
 
@@ -47,7 +48,7 @@ def log(msg: str, indent: int = 0):
 
 
 def get_pr_rows_for(target: date) -> list[tuple[int, dict]]:
-    rows = read_all_rows(sheet=PR_SHEET)
+    rows = read_all_rows(sheet=PR_SHEET, spreadsheet_id=PR_SPREADSHEET_ID)
     out = []
     for i, row in enumerate(rows, start=2):
         if row.get("状態", "").strip() != "draft":
@@ -186,7 +187,7 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     x_text = build_pr_x_caption(row, wp_url)
     if not use_draft:
         try:
-            update_status(row_index, "投稿済", sheet=PR_SHEET)
+            update_status(row_index, "投稿済", sheet=PR_SHEET, spreadsheet_id=PR_SPREADSHEET_ID)
             log("📋 Sheets 状態=投稿済", 1)
         except Exception as e:
             log(f"⚠ Sheets更新失敗（続行）: {e}", 1)
@@ -211,7 +212,7 @@ def main():
     target = parse_publish_date(args.date) if args.date else datetime.now(JST).date()
 
     if args.id:
-        rows = read_all_rows(sheet=PR_SHEET)
+        rows = read_all_rows(sheet=PR_SHEET, spreadsheet_id=PR_SPREADSHEET_ID)
         found = [(i, r) for i, r in enumerate(rows, start=2)
                  if r.get("ID", "").strip().upper() == args.id.upper()]
         if not found:

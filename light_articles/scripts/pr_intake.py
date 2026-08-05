@@ -39,6 +39,8 @@ import eyecatch_generator
 from notify import GMAIL_USER, GMAIL_PASS
 
 SHEET = "PRキュー"
+# ★2026-08-05 PRキューは専用スプレッドシートに分離（ライト記事の本番タブとの同居をやめた）
+PR_SPREADSHEET_ID = "1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A"
 STATUS_NEW = "申込"
 STATUS_DONE = "プレビュー送信済"
 SITE = "豊川ガイド"
@@ -150,7 +152,7 @@ def main():
     ap.add_argument("--id", help="このIDだけ処理")
     args = ap.parse_args()
 
-    rows = read_all_rows(SHEET)
+    rows = read_all_rows(SHEET, spreadsheet_id=PR_SPREADSHEET_ID)
     targets = []
     for i, r in enumerate(rows, start=2):          # 1行目はヘッダ
         if args.id:
@@ -173,7 +175,7 @@ def main():
             log(f"タイトル: {title}", 1)
             if send_preview(row, title, body, img, dry=args.dry):
                 if not args.dry:
-                    update_status(idx, STATUS_DONE, SHEET)
+                    update_status(idx, STATUS_DONE, SHEET, spreadsheet_id=PR_SPREADSHEET_ID)
                     log(f"状態を「{STATUS_DONE}」に更新", 1)
                 ok += 1
         except Exception as e:
