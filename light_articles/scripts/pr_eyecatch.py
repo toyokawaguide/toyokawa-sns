@@ -331,6 +331,37 @@ def render_169(row: dict, photo_path=None, output_path=None):
     return out
 
 
+# ───────────────────── カルーセル写真枠（1080×1350・2枚目以降）─────────────────────
+
+def render_carousel_photo(row: dict, photo_path, output_path=None) -> Image.Image:
+    """IGカルーセルの2枚目以降＝写真をさくっとPRの世界観で額装する
+    （LRの紺枠流用をやめてPR専用に・店名入り・テーマ色連動・2026-08-06社長指示）
+    カバー（一枚の札）と同じ：テーマ背景＋外枠＋アクセント縁の写真＋クレジット"""
+    W, H = 1080, 1350
+    st = data_from_row(row)
+    t = st["theme"]
+    photo = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
+    im = Image.new("RGBA", (W, H), hx(t["bg"]))
+    d = ImageDraw.Draw(im)
+    # 外枠（一枚の札と同じ）
+    d.rounded_rectangle((40, 40, W - 40, H - 40), 22, outline=hx(t["accent"]), width=6)
+    # 店名（上部中央・アクセント下線）
+    f_s = fit_one(d, st["shop"], FONT_BOLD, 54, W - 260, 32)
+    d.text((W // 2, 138), st["shop"], font=f_s, fill=hx(t["ink"]), anchor="ms")
+    d.line((W // 2 - 90, 176, W // 2 + 90, 176), fill=hx(t["accent"]), width=3)
+    # 写真（大きく・アクセント縁）
+    PX, PY, PW, PH = 88, 226, W - 176, 990
+    rounded_photo(im, photo, PX, PY, PW, PH, 18)
+    d.rounded_rectangle((PX, PY, PX + PW, PY + PH), 18, outline=hx(t["accent"]), width=4)
+    # クレジット（枠の内側）
+    d.text((W - 78, H - 72), "豊川ガイド｜さくっとPR",
+           font=font(FONT_BOLD, 26), fill=hx(t["sub"]), anchor="rs")
+    out = im.convert("RGB")
+    if output_path:
+        out.save(output_path)
+    return out
+
+
 # ───────────────────────── リール静止フレーム（1080×1920）─────────────────────────
 
 def render_reel_frame(row: dict, photo_path=None, output_path=None) -> Image.Image:

@@ -128,15 +128,12 @@ def resend_preview_with_photo(pr_id: str, folder: Path):
         if not nums:
             return
         title, body, img = pr_intake.build_preview(row, photo_path=nums[0])
-        # インスタのカルーセル並びをそのまま添付（2枚目以降=豊川ガイド枠付き・2026-08-06社長指示）
-        import series
-        series.set_label("さくっとPR")
-        from photo_frame import frame_photo
-        month = f"{datetime.now().year}年{datetime.now().month}月"
+        # インスタのカルーセル並びをそのまま添付（2枚目以降=PR専用枠・テーマ色連動・店名入り）
+        import pr_eyecatch
         framed_list = []
         for p in nums:
             framed = pr_intake.OUT_DIR / f"_framed_{pr_id}_{p.stem}.png"
-            frame_photo(str(p), str(framed), month)
+            pr_eyecatch.render_carousel_photo(row, p, framed)
             framed_list.append(framed)
         ok = pr_intake.send_preview(row, title, body, img, dry=False,
                                     extra_images=framed_list)

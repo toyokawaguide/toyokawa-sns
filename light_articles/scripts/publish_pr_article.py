@@ -211,13 +211,12 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
         ig_images = [ig_feed_url]
         if not sns_dry and carousel_photos:
-            from photo_frame import frame_photo
-            frame_month = f"{publish_dt.year}年{publish_dt.month}月"
+            # 枠はPR専用デザイン（テーマ色連動・店名入り）。LRのphoto_frameは使わない（2026-08-06社長指示）
             for p in carousel_photos:
                 framed = ROOT / "_sample" / f"_framed_{article_id}_{p.stem}.png"
-                frame_photo(str(p), str(framed), frame_month)
+                pr_eyecatch.render_carousel_photo(row, p, framed)
                 ig_images.append(upload_media(framed)["source_url"])
-                log(f"🖼️ 枠付け→アップ: {p.name}", 2)
+                log(f"🖼️ PR枠付け→アップ: {p.name}", 2)
         if carousel_photos:
             log(f"📷 IG Feed カルーセル投稿（カバー＋写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
             r2 = post_instagram_feed_carousel(ig_text, ig_images, dry=sns_dry)
