@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>さくっとPR 掲載のお申し込み｜豊川ガイド</title>
+<style>
+:root{ --ink:#2b2b2b; --muted:#7a7a7a; --line:#e6e2da; --bg:#faf8f4; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+     font-family:"Yu Gothic UI","Yu Gothic","Hiragino Sans","Noto Sans JP",sans-serif;}
+header{padding:18px 20px;border-bottom:1px solid var(--line);background:#fff}
+header h1{margin:0;font-size:17px;letter-spacing:.02em}
+header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
+.wrap{display:flex;gap:26px;padding:22px;align-items:flex-start;flex-wrap:wrap}
+.pane{flex:1 1 380px;min-width:330px;max-width:560px}
+.preview{flex:0 0 auto;position:sticky;top:16px}
+
+label{display:block;font-size:12px;color:var(--muted);margin:14px 0 5px}
+.req{color:#c0392b;font-weight:bold;margin-left:4px}
+input,textarea,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;
+  font:inherit;font-size:14px;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+.count{font-size:11px;color:var(--muted);text-align:right;margin-top:3px}
+
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.seg button{flex:0 0 auto;padding:7px 13px;border:1px solid var(--line);background:#fff;
+  border-radius:20px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid #fff;cursor:pointer;
+  box-shadow:0 0 0 1px var(--line)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
+.autobtn{padding:7px 15px;border:1px solid var(--line);background:#fff;border-radius:20px;
+  font:inherit;font-size:12.5px;cursor:pointer}
+.autobtn[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.phone{width:330px;background:#111;border-radius:34px;padding:11px 11px 16px;
+  box-shadow:0 14px 40px rgba(0,0,0,.22)}
+.phone .notch{width:96px;height:5px;background:#3a3a3a;border-radius:3px;margin:3px auto 9px}
+.phone .screen{background:#fff;border-radius:24px;overflow:hidden}
+.igbar{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:12px;border-bottom:1px solid #efefef}
+.igbar .av{width:26px;height:26px;border-radius:50%;background:#1a3a8a;flex:0 0 auto}
+.igbar b{font-size:12px}
+.igfoot{padding:8px 10px;font-size:12px;color:#333;line-height:1.5}
+.igfoot .icons{font-size:15px;letter-spacing:6px;margin-bottom:4px}
+canvas{width:100%;display:block}
+.tools{margin-top:12px;display:flex;gap:8px;justify-content:center}
+.tools button{padding:8px 14px;border:1px solid var(--line);background:#fff;border-radius:7px;
+  font:inherit;font-size:12.5px;cursor:pointer}
+h2.sec{font-size:13px;margin:22px 0 0;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);
+  letter-spacing:.08em}
+h2.sec:first-of-type{border-top:none;padding-top:0;margin-top:0}
+.clearbtn{margin-top:6px;padding:6px 12px;border:1px solid var(--line);background:#fff;border-radius:7px;
+  font:inherit;font-size:12px;cursor:pointer;display:none}
+.agree{margin-top:22px;padding:14px;border:1px solid var(--line);border-radius:9px;background:#fff;
+  font-size:12.5px;line-height:1.8;color:#444}
+.agree b{display:block;margin-bottom:6px;font-size:12.5px}
+.agree label{display:flex;gap:8px;align-items:flex-start;margin:10px 0 0;font-size:13px;color:var(--ink)}
+.agree input{width:auto;margin-top:2px}
+.submit{margin-top:16px;width:100%;padding:13px;border:none;border-radius:9px;background:#3f9d7a;
+  color:#fff;font:inherit;font-size:15px;letter-spacing:.1em;cursor:pointer}
+.submit:disabled{background:#c9c4bb;cursor:default}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>さくっとPR 掲載のお申し込み</h1>
+  <p>入力すると右のスマホ画面がその場で変わります。「この内容で申し込む」を押すまで、データは送信されません</p>
+</header>
+
+<div class="wrap">
+
+  <div class="pane">
+
+    <h2 class="sec">デザイン</h2>
+    <div class="hint">かたちは自動で切り替わります（写真なし＝ひとことが主役の色面／写真あり＝一枚の札）</div>
+    <label>色</label>
+    <div class="swatches" id="theme"></div>
+    <div class="hint">「おまかせ」なら、こちらでお店に合う色を選びます</div>
+
+    <h2 class="sec">画像に出るもの</h2>
+
+    <label>ラベル（左上に出る見出し）</label>
+    <select id="badge">
+      <option>NEW OPEN</option><option>リニューアル</option><option>移転しました</option>
+      <option>生徒 募集中</option><option>スタッフ 募集中</option><option>期間限定</option>
+      <option>はじめました</option><option>お知らせ</option><option>イベント</option>
+    </select>
+    <input id="badgeFree" placeholder="自分で書く場合はこちら（空ならプルダウンを使います）" style="margin-top:6px">
+
+    <label>お店・教室の名前<span class="req">※必須</span></label>
+    <input id="shop" value="喫茶 とよかわ" maxlength="25">
+
+    <label>ひとこと（いちばん大きく出ます・30文字まで）<span class="req">※必須</span></label>
+    <input id="catch" value="朝7時から、やってます" maxlength="30">
+    <div class="count"><span id="catchCount">10</span> / 30</div>
+
+    <label>住所<span class="req">※必須</span></label>
+    <input id="addr" value="豊川市諏訪3丁目1-2" maxlength="40">
+    <div class="hint">番地まで書いてOK。画像と記事の両方に載ります</div>
+
+    <label>写真（任意・なくても大丈夫です）</label>
+    <input type="file" id="photo" accept="image/*">
+    <button class="clearbtn" id="clearPhoto">写真を外す</button>
+    <div class="hint">横長の写真がきれいに収まります（目安 1920×1080 くらい）。
+      縦長・正方形でもOKですが、枠に合わせて自動で切り抜くため端が見切れることがあります。<br>
+      ここで使うのはアイキャッチ用の1枚。記事に載せる写真は、お申し込み後の受付メールに
+      返信で追加できます（合計5枚まで）</div>
+
+    <h2 class="sec">記事に載るもの（画像には出ません）</h2>
+
+    <label>ジャンル<span class="req">※必須</span></label>
+    <input id="genre" placeholder="例）カフェ／美容室／学習塾／整体">
+
+    <div class="row">
+      <div><label>営業時間</label><input id="hours" placeholder="例）7:00 - 18:00"></div>
+      <div><label>定休日</label><input id="closed" placeholder="例）水曜"></div>
+    </div>
+    <label>リンク（ホームページ・Instagram など）</label>
+    <input id="links" placeholder="例）https://... ／ @toyokawa_cafe">
+    <label>特典・クーポン（あれば）</label>
+    <input id="perk" placeholder="例）この記事を見たと言うと1杯サービス">
+    <label>紹介したいこと・こだわり（メモ書きでOK・文章はこちらで整えます）<span class="req">※必須</span></label>
+    <textarea id="memo" placeholder="例）自家焙煎です。モーニングが人気。駐車場3台あります"></textarea>
+    <label>読者へのひとこと（任意・店主さんの言葉としてそのまま載せます）</label>
+    <textarea id="hitokoto" placeholder="例）気軽にのぞいてください！"></textarea>
+
+    <h2 class="sec">お申し込みされる方</h2>
+    <div class="row">
+      <div><label>お名前<span class="req">※必須</span></label><input id="pname" required></div>
+      <div><label>メールアドレス<span class="req">※必須</span></label><input id="pmail" type="email" required></div>
+    </div>
+    <div class="row">
+      <div><label>電話番号（任意）</label><input id="ptel"></div>
+      <div><label>掲載希望日（任意）</label><input id="pdate" placeholder="例）8月20日ごろ"></div>
+    </div>
+    <label>そのほか伝えておきたいこと</label>
+    <textarea id="pnote"></textarea>
+
+    <div class="agree">
+      <b>掲載にあたってのお願い</b>
+      記事は公開前にメールでプレビューをお送りし、ご確認いただいてから掲載します。<br>
+      掲載後のサービス内容・価格・営業時間の変更、およびお客様とのやりとりについては、
+      各店舗様にてご対応をお願いいたします。掲載記事をきっかけとするトラブル・損害について、
+      豊川ガイドは責任を負いかねますので、あらかじめご了承ください。<br>
+      なお、内容によっては掲載をお見送り・取り下げさせていただく場合があります。
+      <label><input type="checkbox" id="agree">上記と掲載基準（アダルト・反社・法令違反・誇大表現などは掲載不可）に同意して申し込みます</label>
+    </div>
+
+    <button class="submit" id="send">この内容で申し込む</button>
+    <div class="hint" id="sendHint">押すとお申し込みが送信され、受付メールが届きます（写真はそのメールに返信で添付してください）</div>
+    <div class="agree" id="done" style="display:none">
+      <b>お申し込みを受け付けました 🎉</b>
+      受付メールをお送りしましたので、ご確認ください（届かない場合は迷惑メールフォルダもご確認を）。<br>
+      写真を載せたい場合は、<strong>その受付メールに返信で添付</strong>してください（合計5枚まで）。<br>
+      記事は公開前に完成イメージ（プレビュー）をお送りします。ご確認後の公開となりますので、ご安心ください。
+    </div>
+  </div>
+
+  <div class="preview">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+        <div class="igbar"><div class="av"></div><b>toyokawaguide</b></div>
+        <canvas id="cv" width="1080" height="1350"></canvas>
+        <div class="igfoot">
+          <div class="icons">♡ 💬 ↗</div>
+          <b>toyokawaguide</b> <span id="capPrev">＃PR …</span>
+        </div>
+      </div>
+    </div>
+    <div class="tools">
+      <button id="dl">この画像を保存</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const THEMES = [
+  {id:'cream', name:'クリーム', bg:'#fdf6ec', ink:'#3a3128', accent:'#e08a3c', sub:'#8a7a66'},
+  {id:'mint',  name:'ミント',   bg:'#f0f7f3', ink:'#25453a', accent:'#3f9d7a', sub:'#6f8f83'},
+  {id:'sky',   name:'スカイ',   bg:'#eef4fb', ink:'#1f3b57', accent:'#3d86c6', sub:'#6d8299'},
+  {id:'peach', name:'ピーチ',   bg:'#fdf0ee', ink:'#4a2b28', accent:'#e0705f', sub:'#95736e'},
+  {id:'lemon', name:'レモン',   bg:'#fdfaea', ink:'#453d1f', accent:'#d8a72a', sub:'#8b8055'},
+  {id:'white', name:'ホワイト', bg:'#ffffff', ink:'#2b2b2b', accent:'#c8a15a', sub:'#8a8a8a'}
+];
+let themeChoice = 'auto';
+let img = null;
+const currentPattern = () => img ? 'p2' : 'p1';   // ★写真なし=額ぶち／あり=一枚の札（確定仕様）
+
+const $ = id => document.getElementById(id);
+const cv = $('cv');
+const F = (w,s) => `${w} ${s}px "Yu Gothic UI","Yu Gothic","Hiragino Sans","Noto Sans JP",sans-serif`;
+
+function hashTheme(name){
+  let h = 0;
+  for (const ch of name) h = (h + ch.codePointAt(0)) % 9973;
+  return THEMES[h % THEMES.length];
+}
+/* ★おまかせの色は「店名を打ち終わったとき」だけ決め直す。
+   1文字ごとに計算すると入力中に色が次々変わって目がチカチカする（社長指摘 2026-08-05） */
+let autoTheme = hashTheme('とよかわ');
+const currentTheme = () =>
+  themeChoice === 'auto' ? autoTheme
+                         : (THEMES.find(t => t.id === themeChoice) || THEMES[0]);
+
+/* ---- UI ---- */
+const auto = document.createElement('button');
+auto.className = 'autobtn'; auto.textContent = 'おまかせ';
+auto.setAttribute('aria-pressed','true');
+auto.onclick = () => { themeChoice='auto'; syncSw(); draw(); };
+$('theme').appendChild(auto);
+THEMES.forEach(t => {
+  const b = document.createElement('button');
+  b.className = 'sw'; b.style.background = t.accent; b.title = t.name; b.dataset.id = t.id;
+  b.setAttribute('aria-pressed','false');
+  b.onclick = () => { themeChoice = t.id; syncSw(); draw(); };
+  $('theme').appendChild(b);
+});
+function syncSw(){
+  auto.setAttribute('aria-pressed', themeChoice==='auto');
+  [...document.querySelectorAll('.sw')].forEach(x =>
+    x.setAttribute('aria-pressed', x.dataset.id === themeChoice));
+}
+$('photo').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => { const i = new Image();
+    i.onload = () => { img=i; $('clearPhoto').style.display='inline-block'; draw(); };
+    i.src = ev.target.result; };
+  r.readAsDataURL(f);
+};
+$('clearPhoto').onclick = () => { img=null; $('photo').value=''; $('clearPhoto').style.display='none'; draw(); };
+
+['badge','badgeFree','shop','catch','addr'].forEach(id => $(id).addEventListener('input', draw));
+$('shop').addEventListener('change', () => {           // 欄から離れたときだけ おまかせ色を更新
+  autoTheme = hashTheme($('shop').value || 'とよかわ'); draw();
+});
+$('catch').addEventListener('input', () => { $('catchCount').textContent = $('catch').value.length; });
+
+const val = id => $(id).value.trim();
+const badgeText = () => val('badgeFree') || $('badge').value;
+
+/* ================= 描画部品 ================= */
+function roundRect(c,x,y,w,h,r){
+  c.beginPath(); c.moveTo(x+r,y);
+  c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+function coverDraw(c,im,x,y,w,h,r){
+  c.save();
+  if (r){ roundRect(c,x,y,w,h,r); c.clip(); }
+  else { c.beginPath(); c.rect(x,y,w,h); c.clip(); }
+  const s = Math.max(w/im.width, h/im.height);
+  const nw = im.width*s, nh = im.height*s;
+  c.drawImage(im, x+(w-nw)/2, y+(h-nh)/2, nw, nh); c.restore();
+}
+function wrapFit(c, text, weight, maxW, maxLines, start, min){
+  for (let s = start; s >= min; s -= 2){
+    c.font = F(weight, s);
+    const lines = []; let cur = '';
+    for (const ch of text){
+      if (c.measureText(cur + ch).width > maxW && cur){ lines.push(cur); cur = ch; }
+      else cur += ch;
+    }
+    if (cur) lines.push(cur);
+    if (lines.length <= maxLines) return {size: s, lines};
+  }
+  c.font = F(weight, min);
+  return {size: min, lines: [text.slice(0, 24) + '…']};
+}
+function fitOne(c, text, weight, start, maxW, min){
+  let s = start;
+  while (s > min){ c.font = F(weight, s); if (c.measureText(text).width <= maxW) break; s -= 2; }
+  c.font = F(weight, s); return s;
+}
+function pill(c, text, x, y, bg, fg){
+  c.font = F(700, 36);
+  const w = c.measureText(text).width + 48, h = 64;
+  c.fillStyle = bg; roundRect(c, x, y, w, h, 32); c.fill();
+  c.fillStyle = fg; c.textBaseline='middle'; c.fillText(text, x+24, y+h/2+2);
+  c.textBaseline='alphabetic';
+}
+function circles(c, t, W, TOPH){
+  c.fillStyle = 'rgba(255,255,255,.10)';
+  c.beginPath(); c.arc(W-130, 150, 240, 0, 7); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.07)';
+  c.beginPath(); c.arc(90, TOPH-70, 190, 0, 7); c.fill();
+}
+function addrLine(c, t, text, x, y, maxW, color){
+  if (!text) return;
+  c.fillStyle = t.accent;
+  c.beginPath(); c.arc(x+11, y-13, 11, 0, 7); c.fill();
+  c.fillStyle = color || t.sub;
+  fitOne(c, text, 700, 34, maxW-36, 22);
+  c.fillText(text, x+36, y);
+}
+function brand(c, t, W, H, color){
+  c.textAlign='right'; c.font = F(700, 26); c.fillStyle = color || t.sub;
+  c.fillText('豊川ガイド｜さくっとPR', W-72, H-40);
+  c.textAlign='left';
+}
+
+/* ================= 3パターン ================= */
+function renderScene(c, st){
+  const W=1080, H=1350, M=72, t=st.theme;
+  c.clearRect(0,0,W,H);
+  c.textAlign='left'; c.textBaseline='alphabetic';
+
+  /* ---- 1 額ぶち：写真ゾーンをB風の丸角枠で囲む ---- */
+  if (st.pattern === 'p1'){
+    c.fillStyle = t.bg; c.fillRect(0,0,W,H);
+    const FX=48, FY=48, FW=W-96, FH=772, R=26;
+    if (st.img){
+      coverDraw(c, st.img, FX, FY, FW, FH, R);
+      c.save(); roundRect(c, FX, FY, FW, FH, R); c.clip();
+      const g = c.createLinearGradient(0, FY+FH-360, 0, FY+FH);
+      g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.66)');
+      c.fillStyle = g; c.fillRect(FX, FY+FH-360, FW, 360);
+      c.restore();
+      const r = wrapFit(c, st.catch, 700, FW-72, 2, 58, 32);
+      c.fillStyle = '#fff';
+      let y = FY+FH-52 - (r.lines.length-1)*r.size*1.32;
+      c.font = F(700, r.size);
+      r.lines.forEach(ln => { c.fillText(ln, FX+36, y); y += r.size*1.32; });
+    } else {
+      c.fillStyle = t.accent; roundRect(c, FX, FY, FW, FH, R); c.fill();
+      /* 背景かざり＝D 白い内線（社長確定 2026-08-05） */
+      c.strokeStyle = 'rgba(255,255,255,.47)'; c.lineWidth = 3;
+      roundRect(c, FX+26, FY+26, FW-52, FH-52, R-8); c.stroke();
+      const r = wrapFit(c, st.catch, 700, FW-96, 3, 92, 42);
+      const blockH = r.lines.length * r.size * 1.34;
+      let y = FY + 170 + ((FH-260) - blockH)/2 + r.size;
+      c.fillStyle = '#fff'; c.font = F(700, r.size);
+      r.lines.forEach(ln => { c.fillText(ln, FX+48, y); y += r.size*1.34; });
+    }
+    /* 枠線（B風） */
+    c.strokeStyle = t.accent; c.lineWidth = 5;
+    roundRect(c, FX, FY, FW, FH, R); c.stroke();
+    pill(c, st.badge, FX+26, FY+26, st.img ? t.accent : '#fff', st.img ? '#fff' : t.accent);
+    /* 下段 */
+    c.fillStyle = t.ink;
+    fitOne(c, st.shop, 700, 80, W-M*2, 40);
+    c.fillText(st.shop, M, 950);
+    addrLine(c, t, st.addr, M, 1032, W-M*2);
+    brand(c, t, W, H);
+  }
+
+  /* ---- 2 一枚の札：キャッチが主役（バッジ→キャッチ大→店名→写真→住所） ---- */
+  if (st.pattern === 'p2'){
+    c.fillStyle = t.bg; c.fillRect(0,0,W,H);
+    c.strokeStyle = t.accent; c.lineWidth = 6;
+    roundRect(c, 40, 40, W-80, H-80, 22); c.stroke();
+    c.textAlign='center';
+    c.fillStyle = t.accent; c.font = F(700, 34);
+    c.fillText(st.badge, W/2, 158);
+    /* キャッチ（大・太字・墨色） */
+    const r = wrapFit(c, st.catch, 700, W-200, 2, 84, 44);
+    c.fillStyle = t.ink;
+    let y = 310; c.font = F(700, r.size);
+    r.lines.forEach(ln => { c.fillText(ln, W/2, y); y += r.size*1.3; });
+    const yd = y - r.size*1.3 + 46;
+    c.strokeStyle = t.accent; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(W/2-90, yd); c.lineTo(W/2+90, yd); c.stroke();
+    c.fillStyle = t.ink; fitOne(c, st.shop, 700, 52, W-300, 34);
+    c.fillText(st.shop, W/2, yd + 84);
+    const PX=140, PY=600, PW=W-280, PH=500;
+    if (st.img){
+      coverDraw(c, st.img, PX, PY, PW, PH, 18);
+      c.strokeStyle = t.accent; c.lineWidth = 4;
+      roundRect(c, PX, PY, PW, PH, 18); c.stroke();
+    }
+    c.textAlign='center'; c.fillStyle = t.sub;
+    fitOne(c, st.addr, 700, 34, W-300, 22);
+    if (st.addr) c.fillText(st.addr, W/2, 1180);
+    c.textAlign='left';
+    brand(c, t, W, H);
+  }
+
+  /* ---- 3 写真いっぱい：全面写真（なければ全面色） ---- */
+  if (st.pattern === 'p3'){
+    if (st.img){
+      coverDraw(c, st.img, 0, 0, W, H);
+      const g = c.createLinearGradient(0, H*0.42, 0, H);
+      g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.78)');
+      c.fillStyle = g; c.fillRect(0, H*0.42, W, H*0.58);
+      const r = wrapFit(c, st.catch, 700, W-M*2, 2, 56, 32);
+      c.fillStyle = 'rgba(255,255,255,.92)';
+      let y = H-296 - (r.lines.length-1)*r.size*1.3;
+      c.font = F(700, r.size);
+      r.lines.forEach(ln => { c.fillText(ln, M, y); y += r.size*1.3; });
+      c.fillStyle = '#fff';
+      fitOne(c, st.shop, 700, 84, W-M*2, 42);
+      c.fillText(st.shop, M, H-180);
+      addrLine(c, t, st.addr, M, H-110, W-M*2, 'rgba(255,255,255,.85)');
+      brand(c, t, W, H, 'rgba(255,255,255,.65)');
+    } else {
+      c.fillStyle = t.accent; c.fillRect(0,0,W,H);
+      circles(c, t, W, H);
+      const r = wrapFit(c, st.catch, 700, W-M*2, 3, 100, 44);
+      let y = 360; c.fillStyle = '#fff'; c.font = F(700, r.size);
+      r.lines.forEach(ln => { c.fillText(ln, M, y); y += r.size*1.34; });
+      c.fillStyle = '#fff';
+      fitOne(c, st.shop, 700, 76, W-M*2, 40);
+      c.fillText(st.shop, M, H-180);
+      addrLine(c, t, st.addr, M, H-110, W-M*2, 'rgba(255,255,255,.88)');
+      brand(c, t, W, H, 'rgba(255,255,255,.7)');
+    }
+    pill(c, st.badge, M, 64, st.img ? t.accent : '#fff', st.img ? '#fff' : t.accent);
+  }
+}
+
+function draw(){
+  renderScene(cv.getContext('2d'), {
+    pattern: currentPattern(), theme: currentTheme(), img,
+    shop: val('shop'), catch: val('catch'),
+    badge: badgeText(), addr: val('addr')
+  });
+  $('capPrev').textContent = `＃PR ${val('shop')}｜${val('catch')}`;
+}
+$('dl').onclick = () => {
+  const a = document.createElement('a');
+  a.download = 'sakutto_pr_preview.png'; a.href = cv.toDataURL('image/png'); a.click();
+};
+draw();
+$('catchCount').textContent = $('catch').value.length;
+
+/* ================= 送信（既存Googleフォームの裏口へ流す） =================
+   フォームの画面は経由しないが、裏側（シート転記・受付メール・プレビュー返信・配信）は
+   すべて今まで通り動く。entry番号は _form_entries.json と同じもの。 */
+const FORM_POST = 'https://docs.google.com/forms/d/e/1FAIpQLSdBokCnuP_IkOP7UE2R_DpDxt-HELX0bsTahMpKIONyst-2hg/formResponse';
+const FORM_FALLBACK = 'https://docs.google.com/forms/d/e/1FAIpQLSdBokCnuP_IkOP7UE2R_DpDxt-HELX0bsTahMpKIONyst-2hg/viewform';
+const ENTRY = {
+  shop:'entry.1612792693', genre:'entry.696458425', catch:'entry.1018799420',
+  addr:'entry.240652558', hours:'entry.1870495583', closed:'entry.841708176',
+  links:'entry.798930142', perk:'entry.140460482', memo:'entry.877212207',
+  hitokoto:'entry.1198446193', pname:'entry.1338460839', pmail:'entry.206209703',
+  ptel:'entry.748747876', kijun:'entry.1649581957', biko:'entry.443721495'
+};
+
+$('send').onclick = async () => {
+  const need = [['shop','お店・教室の名前'], ['catch','ひとこと'], ['addr','住所'],
+                ['genre','ジャンル'], ['memo','紹介したいこと'],
+                ['pname','お名前'], ['pmail','メールアドレス']];
+  for (const [id, name] of need){
+    if (!val(id)){ alert(name + ' を入力してください'); $(id).focus(); return; }
+  }
+  const SAMPLES = {shop:'喫茶 とよかわ', catch:'朝7時から、やってます', addr:'豊川市諏訪3丁目1-2'};
+  for (const k in SAMPLES){
+    if (val(k) === SAMPLES[k]){
+      alert('「' + SAMPLES[k] + '」は記入例のままです。実際の内容に書き換えてください');
+      $(k).focus(); return;
+    }
+  }
+  if (!/.+@.+\..+/.test(val('pmail'))){
+    alert('メールアドレスの形式をご確認ください'); $('pmail').focus(); return;
+  }
+  if (!$('agree').checked){ alert('同意のチェックをお願いします'); return; }
+
+  const t = currentTheme();
+  const biko = [
+    '【申込ページから】',
+    '色：' + (themeChoice === 'auto' ? 'おまかせ（' + t.name + '）' : t.name),
+    'かたち：' + (img ? '一枚の札（写真あり）' : '額ぶち（写真なし）'),
+    '写真：' + (img ? 'あり → 受付メールへの返信で受け取る' : 'なし'),
+    val('pdate') ? '掲載希望日：' + val('pdate') : '',
+    val('pnote') ? 'その他：' + val('pnote') : ''
+  ].filter(Boolean).join('\n');
+
+  const p = new URLSearchParams();
+  p.set(ENTRY.shop, val('shop'));   p.set(ENTRY.genre, val('genre'));
+  p.set(ENTRY.catch, val('catch')); p.set(ENTRY.addr, val('addr'));
+  p.set(ENTRY.hours, val('hours')); p.set(ENTRY.closed, val('closed'));
+  p.set(ENTRY.links, val('links')); p.set(ENTRY.perk, val('perk'));
+  p.set(ENTRY.memo, val('memo'));   p.set(ENTRY.hitokoto, val('hitokoto'));
+  p.set(ENTRY.pname, val('pname')); p.set(ENTRY.pmail, val('pmail'));
+  p.set(ENTRY.ptel, val('ptel'));
+  p.set(ENTRY.kijun, '上記の掲載基準を確認し、同意します');
+  p.set(ENTRY.biko, biko);
+
+  $('send').disabled = true; $('send').textContent = '送信中…';
+  try {
+    await fetch(FORM_POST, {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: p.toString()
+    });
+    $('send').style.display = 'none';
+    $('sendHint').style.display = 'none';
+    $('done').style.display = 'block';
+    $('done').scrollIntoView({behavior: 'smooth', block: 'center'});
+  } catch (e) {
+    $('send').disabled = false; $('send').textContent = 'この内容で申し込む';
+    alert('送信できませんでした。お手数ですが、予備の申込フォームからお願いします：\n' + FORM_FALLBACK);
+  }
+};
+
+/* ================= 一覧モード =================
+   ?sheet=1    … 今のかたちで 6色 × 写真あり/なし
+   ?patterns=1 … 3つのかたち × 写真あり/なし（クリーム固定） */
+const q = new URLSearchParams(location.search);
+if (q.get('sheet') || q.get('patterns')) buildSheet(!!q.get('patterns'));
+
+async function buildSheet(byPattern){
+  const sample = await new Promise(res => {
+    const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = 'sample.jpg';
+  });
+  const st0 = { shop:'喫茶 とよかわ', catch:'朝7時から、やってます', badge:'NEW OPEN', addr:'豊川市諏訪3丁目1-2' };
+  const tmp = document.createElement('canvas'); tmp.width = 1080; tmp.height = 1350;
+  const tc = tmp.getContext('2d');
+
+  let cols, rows;
+  if (byPattern){
+    const pats = [['1 額ぶち','p1'],['2 一枚の札','p2'],['3 写真いっぱい','p3']];
+    cols = pats.map(p => ({label: p[0], render: im => renderScene(tc, {...st0, pattern:p[1], theme:THEMES[0], img:im})}));
+    rows = [['写真なし', null], ['写真あり', sample]];
+  } else {
+    cols = THEMES.map(t => ({label: t.name, render: im => renderScene(tc, {...st0, pattern: im ? 'p2' : 'p1', theme:t, img:im})}));
+    rows = [['写真なし', null], ['写真あり', sample]];
+  }
+  const SC = byPattern ? 0.34 : 0.26;
+  const TW = Math.round(1080*SC), TH = Math.round(1350*SC), GAP = 16, LBL = 44, ROWL = 54;
+  const sheet = document.createElement('canvas');
+  sheet.width  = GAP + (TW+GAP) * cols.length;
+  sheet.height = (ROWL + TH + LBL) * rows.length + GAP * 2;
+  const sc = sheet.getContext('2d');
+  sc.fillStyle = '#191921'; sc.fillRect(0,0,sheet.width,sheet.height);
+
+  rows.forEach((row, ri) => {
+    const y0 = GAP + ri * (ROWL + TH + LBL);
+    sc.fillStyle = '#f4efe6'; sc.font = F(700, 30); sc.textAlign='left';
+    sc.fillText(row[0], GAP, y0 + 34);
+    cols.forEach((col, i) => {
+      col.render(row[1]);
+      const x = GAP + i * (TW+GAP);
+      sc.drawImage(tmp, x, y0 + ROWL, TW, TH);
+      sc.fillStyle = '#b9b2a4'; sc.font = F(400, 24); sc.textAlign='center';
+      sc.fillText(col.label, x + TW/2, y0 + ROWL + TH + 30);
+      sc.textAlign='left';
+    });
+  });
+
+  document.body.innerHTML = '';
+  document.body.style.background = '#191921';
+  document.body.style.textAlign = 'center';
+  sheet.style.maxWidth = '96%'; sheet.style.height = 'auto';
+  document.body.appendChild(sheet);
+
+  /* コピー（クリック＝実操作が必要） */
+  const b = document.createElement('button');
+  b.id = 'cpy'; b.textContent = 'コピー';
+  b.style.cssText = 'position:fixed;top:8px;left:16px;background:#3d86c6;color:#fff;padding:12px 26px;border:none;border-radius:8px;font-size:18px;z-index:99;cursor:pointer';
+  b.onclick = () => {
+    sheet.toBlob(async blob => {
+      try { await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+            b.textContent = 'コピー済'; b.style.background = '#3f9d7a'; }
+      catch(e){ b.textContent = '失敗:' + e.name; b.style.background = '#c0392b'; }
+    });
+  };
+  document.body.appendChild(b);
+}
+
+/* 親ページ(WP)へ高さを知らせる（iframe埋め込み用） */
+function reportH(){
+  try { parent.postMessage({sakuttoH: document.documentElement.scrollHeight}, '*'); } catch(e){}
+}
+setInterval(reportH, 600);
+window.addEventListener('resize', reportH);
+</script>
+</body>
+</html>
