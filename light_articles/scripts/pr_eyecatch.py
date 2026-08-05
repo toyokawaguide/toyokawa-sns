@@ -23,7 +23,7 @@ import re
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 ROOT = Path(__file__).resolve().parent
@@ -195,7 +195,7 @@ def render_45(row: dict, photo_path=None, output_path=None):
     W, H, M = 1080, 1350, 72
     st = data_from_row(row)
     t = st["theme"]
-    photo = Image.open(photo_path).convert("RGB") if photo_path else None
+    photo = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB") if photo_path else None
     im = Image.new("RGBA", (W, H), hx(t["bg"]))
     d = ImageDraw.Draw(im)
 
@@ -235,7 +235,9 @@ def render_45(row: dict, photo_path=None, output_path=None):
         if st["addr"]:
             f = fit_one(d, st["addr"], FONT_BOLD, 34, W - 300, 22)
             d.text((W // 2, 1180), st["addr"], font=f, fill=hx(t["sub"]), anchor="ms")
-        brand(d, t, W, H)
+        # クレジットは札の枠の内側に（枠かぶり対策 2026-08-05）
+        d.text((W - 78, H - 72), "豊川ガイド｜さくっとPR",
+               font=font(FONT_BOLD, 26), fill=hx(t["sub"]), anchor="rs")
 
     out = im.convert("RGB")
     if output_path:
@@ -249,7 +251,7 @@ def render_169(row: dict, photo_path=None, output_path=None):
     W, H = 1280, 720
     st = data_from_row(row)
     t = st["theme"]
-    photo = Image.open(photo_path).convert("RGB") if photo_path else None
+    photo = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB") if photo_path else None
     im = Image.new("RGBA", (W, H), hx(t["bg"]))
     d = ImageDraw.Draw(im)
 
@@ -271,23 +273,23 @@ def render_169(row: dict, photo_path=None, output_path=None):
         d.text((tx, 300), st["shop"], font=f, fill=hx(t["ink"]), anchor="ls")
         addr_line(d, t, st["addr"], tx, 370, W - tx - 50)
         brand(d, t, W, H)
-    else:                                              # ─ 一枚の札（左＝文字・右＝写真）─
-        d.rounded_rectangle((30, 30, W - 30, H - 30), 20, outline=hx(t["accent"]), width=6)
-        PX, PY, PW, PH = W - 560, 90, 470, H - 180
-        rounded_photo(im, photo, PX, PY, PW, PH, 16)
-        d.rounded_rectangle((PX, PY, PX + PW, PY + PH), 16, outline=hx(t["accent"]), width=4)
-        tx, tw = 90, W - 560 - 140
-        d.text((tx, 140), st["badge"], font=font(FONT_BOLD, 30), fill=hx(t["accent"]), anchor="ls")
-        s, lines = wrap_fit(d, st["catch"], FONT_BOLD, tw, 2, 62, 34)
-        y = 250
+    else:                                              # ─ 写真全面（2026-08-05・見切れ対策）─
+        # 1920×1080は16:9そのままなので切れゼロ。下部グラデ＋白文字＋アクセント枠で世界観維持
+        im.paste(cover(photo, W, H), (0, 0))
+        grad_dark(im, 0, H // 3, W, H - H // 3, bottom=210)
+        d = ImageDraw.Draw(im)
+        pill(d, st["badge"], 48, 44, hx(t["accent"]), "white", size=30)
+        tx = 64
+        s, lines = wrap_fit(d, st["catch"], FONT_BOLD, W - 128, 2, 72, 40)
+        y = H - 210 - (len(lines) - 1) * int(s * 1.28)
         for ln in lines:
-            d.text((tx, y), ln, font=font(FONT_BOLD, s), fill=hx(t["ink"]), anchor="ls")
-            y += int(s * 1.3)
-        d.line((tx, y + 8, tx + 150, y + 8), fill=hx(t["accent"]), width=3)
-        f = fit_one(d, st["shop"], FONT_BOLD, 44, tw, 28)
-        d.text((tx, y + 78), st["shop"], font=f, fill=hx(t["ink"]), anchor="ls")
-        addr_line(d, t, st["addr"], tx, y + 148, tw)
-        brand(d, t, W, H)
+            d.text((tx, y), ln, font=font(FONT_BOLD, s), fill="white", anchor="ls")
+            y += int(s * 1.28)
+        f = fit_one(d, st["shop"], FONT_BOLD, 42, W - 500, 26)
+        d.text((tx, H - 128), st["shop"], font=f, fill="white", anchor="ls")
+        addr_line(d, t, st["addr"], tx, H - 64, W - 500, color=(235, 235, 235, 255))
+        d.rounded_rectangle((16, 16, W - 17, H - 17), 14, outline=hx(t["accent"]), width=6)
+        brand(d, t, W, H, color=(255, 255, 255, 230))
 
     out = im.convert("RGB")
     if output_path:
