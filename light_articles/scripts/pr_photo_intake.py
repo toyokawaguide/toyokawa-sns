@@ -63,6 +63,30 @@ def load_state() -> dict:
     return {}
 
 
+def load_shop_names() -> dict:
+    """PRキューから ID→店名 の対応表を取得（フォルダ名 PR000_店名 用）"""
+    try:
+        from sheets_client import read_all_rows
+        rows = read_all_rows(sheet="PRキュー",
+                             spreadsheet_id="1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A")
+        return {(r.get("ID") or "").strip(): (r.get("店名") or "").strip()
+                for r in rows if (r.get("ID") or "").strip()}
+    except Exception as e:
+        print(f"⚠ PRキュー読込失敗（フォルダ名はID単独になります）: {e}")
+        return {}
+
+
+def target_folder(pr_id: str, shop_names: dict) -> Path:
+    """保存先フォルダ＝ PR000_店名（既存の PR000* フォルダがあればそれを使う）"""
+    existing = sorted(LIGHT_BASE.glob(f"{pr_id}*"))
+    for d in existing:
+        if d.is_dir():
+            return d
+    shop = shop_names.get(pr_id, "")
+    shop = re.sub(r'[\\/:*?"<>|]', "", shop).strip()      # Windowsフォルダ名に使えない文字を除去
+    return LIGHT_BASE / (f"{pr_id}_{shop}" if shop else pr_id)
+
+
 def next_number(folder: Path) -> int:
     nums = [int(f.stem) for f in folder.iterdir()
             if f.is_file() and f.stem.isdigit()] if folder.exists() else []
@@ -100,6 +124,7 @@ def main():
         sys.exit(1)
 
     state = load_state()
+    shop_names = load_shop_names()
     imap = imaplib.IMAP4_SSL("imap.gmail.com")
     imap.login(GMAIL_USER, GMAIL_PASS)
     imap.select("INBOX", readonly=True)
@@ -141,7 +166,7 @@ def main():
         if not atts:
             continue
 
-        folder = LIGHT_BASE / pr_id
+        folder = target_folder(pr_id, shop_names)
         print(f"\n■ {pr_id} ← {sender}")
         print(f"  件名: {subject[:60]}")
         print(f"  画像添付: {len(atts)}枚 → {folder}")
