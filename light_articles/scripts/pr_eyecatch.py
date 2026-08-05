@@ -176,12 +176,13 @@ def pill(d, text, x, y, bg, fg, size=36):
     d.text((x + size * 0.66, y + h / 2 + 2), text, font=f, fill=fg, anchor="lm")
 
 
-def addr_line(d, t, text, x, y, max_w, color=None):
+def addr_line(d, t, text, x, y, max_w, color=None, stroke=0):
     if not text:
         return
     d.ellipse((x, y - 24, x + 22, y - 2), fill=hx(t["accent"]))
     f = fit_one(d, text, FONT_BOLD, 34, max_w - 36, 22)
-    d.text((x + 36, y), text, font=f, fill=color or hx(t["sub"]), anchor="ls")
+    d.text((x + 36, y), text, font=f, fill=color or hx(t["sub"]), anchor="ls",
+           stroke_width=stroke, stroke_fill=(25, 25, 25))
 
 
 def brand(d, t, W, H, color=None):
@@ -276,20 +277,25 @@ def render_169(row: dict, photo_path=None, output_path=None):
     else:                                              # ─ 写真全面（2026-08-05・見切れ対策）─
         # 1920×1080は16:9そのままなので切れゼロ。下部グラデ＋白文字＋アクセント枠で世界観維持
         im.paste(cover(photo, W, H), (0, 0))
-        grad_dark(im, 0, H // 3, W, H - H // 3, bottom=210)
+        # 白多めの写真でも読めるように：グラデ強め＋二段掛け＋文字に細い黒フチ
+        grad_dark(im, 0, H // 4, W, H - H // 4, bottom=225)
+        grad_dark(im, 0, H - 300, W, 300, bottom=120)
         d = ImageDraw.Draw(im)
         pill(d, st["badge"], 48, 44, hx(t["accent"]), "white", size=30)
         tx = 64
         s, lines = wrap_fit(d, st["catch"], FONT_BOLD, W - 128, 2, 72, 40)
         y = H - 210 - (len(lines) - 1) * int(s * 1.28)
         for ln in lines:
-            d.text((tx, y), ln, font=font(FONT_BOLD, s), fill="white", anchor="ls")
+            d.text((tx, y), ln, font=font(FONT_BOLD, s), fill="white", anchor="ls",
+                   stroke_width=3, stroke_fill=(25, 25, 25))
             y += int(s * 1.28)
         f = fit_one(d, st["shop"], FONT_BOLD, 42, W - 500, 26)
-        d.text((tx, H - 128), st["shop"], font=f, fill="white", anchor="ls")
-        addr_line(d, t, st["addr"], tx, H - 64, W - 500, color=(235, 235, 235, 255))
+        d.text((tx, H - 128), st["shop"], font=f, fill="white", anchor="ls",
+               stroke_width=2, stroke_fill=(25, 25, 25))
+        addr_line(d, t, st["addr"], tx, H - 64, W - 500, color=(240, 240, 240, 255), stroke=2)
         d.rounded_rectangle((16, 16, W - 17, H - 17), 14, outline=hx(t["accent"]), width=6)
-        brand(d, t, W, H, color=(255, 255, 255, 230))
+        d.text((W - 60, H - 36), "豊川ガイド｜さくっとPR", font=font(FONT_BOLD, 26),
+               fill=(255, 255, 255, 255), anchor="rs", stroke_width=2, stroke_fill=(25, 25, 25))
 
     out = im.convert("RGB")
     if output_path:
