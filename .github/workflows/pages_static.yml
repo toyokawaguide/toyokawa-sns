@@ -5,12 +5,12 @@
 #   uranai/scripts/prompts/*.md の「---」をYAML設定と誤解してビルドが失敗し、
 #   Pagesが2026年4月から更新されていなかった（.nojekyllも無視された）。
 #   → リポジトリをそのままコピーして配るだけのこの方式なら二度と壊れない。
-#   ※有効化には Settings → Pages → Source を「GitHub Actions」にする必要あり
-name: Pages配信（静的・Jekyllなし）
+#   実際は .nojekyll の反映でブランチ配信が復活したため、これは【保険・手動起動のみ】。
+#   もしまたPagesが更新されなくなったら:
+#     Settings → Pages → Source を「GitHub Actions」に変更 → このworkflowをRun workflow
+name: Pages配信（静的・Jekyllなし・保険）
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
