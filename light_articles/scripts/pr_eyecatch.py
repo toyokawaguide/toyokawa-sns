@@ -23,7 +23,7 @@ import re
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 ROOT = Path(__file__).resolve().parent
@@ -275,42 +275,43 @@ def render_169(row: dict, photo_path=None, output_path=None):
         addr_line(d, t, st["addr"], tx, 370, W - tx - 50)
         brand(d, t, W, H)
     else:                                              # ─ 写真全面（2026-08-05・見切れ対策）─
-        # 1920×1080は16:9そのままなので切れゼロ。文字はテーマ色の座布団＋白文字
-        # （額ぶち版と同じ「アクセント色に白文字」＝どんな写真でも読める・社長指定 2026-08-05）
+        # 1920×1080は16:9そのままなので切れゼロ。文字は袋文字（白＋テーマ色フチ＋外白）
+        # ＝文字の形に沿った重ね文字。どんな写真でも読める（社長指定 2026-08-05）
         im.paste(cover(photo, W, H), (0, 0))
         d = ImageDraw.Draw(im)
         pill(d, st["badge"], 48, 44, hx(t["accent"]), "white", size=30)
 
-        def box(text, f, x, y, pad_x=26, pad_y=13, r=10, right=False):
-            tw = d.textlength(text, font=f)
-            bw, bh = tw + pad_x * 2, f.size + pad_y * 2
-            if right:
-                x -= bw
-            d.rounded_rectangle((x, y, x + bw, y + bh), r, fill=hx(t["accent"]))
-            d.text((x + pad_x, y + bh / 2 + 2), text, font=f, fill="white", anchor="lm")
-            return bh
+        def fukuro(text, f, x, y, anchor="ls"):
+            # 袋文字：白文字は素のまま（太らせない＝漢字の中がつぶれない）・細い色フチ
+            # ＋フチの外側にごく薄い影（白多め写真で中抜きに見える対策・社長指定）
+            k = max(2, f.size // 16)           # テーマ色フチの厚み
+            sh = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            ImageDraw.Draw(sh).text((x + 2, y + 4), text, font=f, fill=(0, 0, 0, 255),
+                                    anchor=anchor, stroke_width=k + 2,
+                                    stroke_fill=(0, 0, 0, 255))
+            sh = sh.filter(ImageFilter.GaussianBlur(5))
+            sh.putalpha(sh.getchannel("A").point(lambda v: v * 42 // 100))
+            im.alpha_composite(sh)
+            d.text((x, y), text, font=f, fill=hx(t["accent"]), anchor=anchor,
+                   stroke_width=k, stroke_fill=hx(t["accent"]))            # 色フチ
+            d.text((x, y), text, font=f, fill="white", anchor=anchor)      # 白本体（素）
 
-        tx = 48
-        s, lines = wrap_fit(d, st["catch"], FONT_BOLD, W - 96 - 56, 2, 66, 40)
+        tx = 64
+        s, lines = wrap_fit(d, st["catch"], FONT_BOLD, W - 128 - 40, 2, 70, 40)
         f_c = font(FONT_BOLD, s)
-        f_s = fit_one(d, st["shop"], FONT_BOLD, 38, W - 560, 26)
-        f_a = fit_one(d, st["addr"], FONT_BOLD, 28, W - 560, 20) if st["addr"] else None
-        h_c, h_s = f_c.size + 26, f_s.size + 22
-        h_a = (f_a.size + 18) if f_a else 0
-        gap = 12
-        total = len(lines) * h_c + (len(lines) - 1) * 8 + gap + h_s + ((gap + h_a) if f_a else 0)
-        y = H - 52 - total
+        y = H - 214 - (len(lines) - 1) * int(s * 1.34)
         for ln in lines:
-            box(ln, f_c, tx, y, pad_x=28, pad_y=13)
-            y += h_c + 8
-        y += gap - 8
-        box(st["shop"], f_s, tx, y, pad_x=22, pad_y=11)
-        y += h_s + gap
-        if f_a:
-            box(st["addr"], f_a, tx, y, pad_x=20, pad_y=9)
+            fukuro(ln, f_c, tx, y)
+            y += int(s * 1.34)
+        f_s = fit_one(d, st["shop"], FONT_BOLD, 40, W - 560, 26)
+        fukuro(st["shop"], f_s, tx, H - 126)
+        if st["addr"]:
+            f_a = fit_one(d, st["addr"], FONT_BOLD, 34, W - 560, 22)
+            d.ellipse((tx, H - 58 - 24, tx + 24, H - 58), fill=hx(t["accent"]),
+                      outline="white", width=3)
+            fukuro(st["addr"], f_a, tx + 42, H - 58)
         d.rounded_rectangle((16, 16, W - 17, H - 17), 14, outline=hx(t["accent"]), width=6)
-        box("豊川ガイド｜さくっとPR", font(FONT_BOLD, 22), W - 48, H - 52 - 40,
-            pad_x=16, pad_y=9, r=8, right=True)
+        fukuro("豊川ガイド｜さくっとPR", font(FONT_BOLD, 26), W - 60, H - 52, anchor="rs")
 
     out = im.convert("RGB")
     if output_path:
