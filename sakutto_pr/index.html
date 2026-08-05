@@ -12,7 +12,8 @@ body{margin:0;background:var(--bg);color:var(--ink);
 header{padding:18px 20px;border-bottom:1px solid var(--line);background:#fff}
 header h1{margin:0;font-size:17px;letter-spacing:.02em}
 header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
-.wrap{display:flex;gap:26px;padding:22px;align-items:flex-start;flex-wrap:wrap}
+.wrap{display:flex;gap:26px;padding:22px;align-items:flex-start;flex-wrap:wrap;
+  max-width:1000px;margin:0 auto}
 .pane{flex:1 1 380px;min-width:330px;max-width:560px}
 .preview{flex:0 0 auto;position:sticky;top:16px}
 
@@ -66,7 +67,7 @@ h2.sec:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .submit:disabled{background:#c9c4bb;cursor:default}
 
 /* ── お知らせバナー（無料・試験運用中） ── */
-.notice{max-width:1000px;margin:16px auto 0;padding:13px 18px;background:#fff8e6;
+.notice{width:min(1000px,calc(100% - 44px));margin:16px auto 0;padding:13px 18px;background:#fff8e6;
   border:1px solid #eadfc0;border-left:5px solid #d4a017;border-radius:8px;
   font-size:13px;line-height:1.95;color:#3d3629}
 .notice b{color:#2b2b2b}
