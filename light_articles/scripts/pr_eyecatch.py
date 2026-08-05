@@ -59,23 +59,33 @@ def hash_theme(name: str) -> dict:
     return THEMES[h % len(THEMES)]
 
 
+def _theme_from_name(name: str):
+    """「クリーム」「おまかせ（クリーム）」の両方を解決"""
+    name = (name or "").strip()
+    if not name:
+        return None
+    if name in NAME2THEME:
+        return NAME2THEME[name]
+    m = re.match(r"おまかせ（([^）]+)）", name)
+    if m and m.group(1) in NAME2THEME:
+        return NAME2THEME[m.group(1)]
+    return None
+
+
 def style_from_row(row: dict) -> tuple[dict, str]:
-    """備考から (テーマ, ラベル) を読む。無ければ店名ハッシュ＋'PR'"""
+    """(テーマ, ラベル) を読む。専用列（ラベル/色）優先→備考フォールバック→店名ハッシュ
+    （2026-08-05 シート列を入力欄と1:1化。旧データの備考パックも読めるよう両対応）"""
     biko = row.get("備考", "") or ""
-    theme = None
-    m = re.search(r"色：([^\n（(]+)", biko)
-    if m:
-        name = m.group(1).strip()
-        if name in NAME2THEME:
-            theme = NAME2THEME[name]
-    if theme is None:                                  # おまかせ（◯◯） の◯◯を拾う
-        m = re.search(r"色：おまかせ（([^）]+)）", biko)
-        if m and m.group(1) in NAME2THEME:
-            theme = NAME2THEME[m.group(1)]
+    theme = _theme_from_name(row.get("色", ""))
+    if theme is None:
+        m = re.search(r"色：([^\n]+)", biko)
+        theme = _theme_from_name(m.group(1)) if m else None
     if theme is None:
         theme = hash_theme(row.get("店名", "") or "とよかわ")
-    m = re.search(r"ラベル：(.+)", biko)
-    badge = m.group(1).strip() if m else "PR"
+    badge = (row.get("ラベル") or "").strip()
+    if not badge:
+        m = re.search(r"ラベル：(.+)", biko)
+        badge = m.group(1).strip() if m else "PR"
     return theme, badge
 
 

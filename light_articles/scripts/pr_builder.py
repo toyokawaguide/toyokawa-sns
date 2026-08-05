@@ -96,10 +96,11 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
                 f'<figure class="wp-block-image size-large"><img src="{u}" alt="{shop}"/></figure>'
             )
 
-    # ⑤ 店舗情報
+    # ⑤ 基本情報（お店以外＝サークル・イベント等でも自然な見出しに・2026-08-05）
+    #    空欄の項目は行ごと出ない。全部空なら表も見出しも出ない
     table = _info_table(row)
     if table:
-        parts.append("<h2>お店の情報</h2>")
+        parts.append("<h2>基本情報</h2>")
         parts.append(table)
 
     # ⑥ 特典

@@ -67,6 +67,42 @@ def strip_html(html: str) -> str:
     return t.strip()
 
 
+def normalize_row(idx: int, row: dict):
+    """備考パック（ラベル：/色：/公開希望日：）を専用列に展開する（2026-08-05 列を入力欄と1:1化）
+
+    - ラベル → U列 / 色 → V列（既に値があれば触らない＝社長の手修正を上書きしない）
+    - 公開希望日 → B列（B列が空のときだけ・最終決定は社長）
+    row 辞書にも反映するので、直後のプレビュー生成から専用列の値が使われる。
+    """
+    biko = row.get("備考", "") or ""
+    from sheets_client import get_service
+    svc = get_service()
+    updates = []
+
+    def pick(key):
+        m = re.search(rf"{key}：(.+)", biko)
+        return m.group(1).strip() if m else ""
+
+    if not (row.get("ラベル") or "").strip():
+        v = pick("ラベル")
+        if v:
+            updates.append(("U", v)); row["ラベル"] = v
+    if not (row.get("色") or "").strip():
+        v = pick("色")
+        if v:
+            updates.append(("V", v)); row["色"] = v
+    if not (row.get("公開希望日") or "").strip():
+        v = pick("公開希望日") or pick("掲載希望日")
+        if v:
+            updates.append(("B", v)); row["公開希望日"] = v
+    for col, val in updates:
+        svc.spreadsheets().values().update(
+            spreadsheetId=PR_SPREADSHEET_ID, range=f"{SHEET}!{col}{idx}",
+            valueInputOption="RAW", body={"values": [[val]]}).execute()
+    if updates:
+        log(f"備考→専用列に展開: {', '.join(c for c, _ in updates)}", 1)
+
+
 def build_preview(row: dict):
     """(タイトル, 本文テキスト, アイキャッチのパス) を返す"""
     title = pr_builder.build_pr_title(row)
@@ -169,6 +205,8 @@ def main():
         pid = row.get("ID", f"row{idx}")
         log(f"■ {pid} {row.get('店名', '')}")
         try:
+            if not args.dry:
+                normalize_row(idx, row)
             title, body, img = build_preview(row)
             log(f"タイトル: {title}", 1)
             if send_preview(row, title, body, img, dry=args.dry):

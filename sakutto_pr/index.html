@@ -185,14 +185,14 @@ html{scroll-behavior:smooth}
     </select>
     <input id="badgeFree" placeholder="自分で書く場合はこちら（空ならプルダウンを使います）" style="margin-top:6px">
 
-    <label>お店・教室の名前<span class="req">※必須</span></label>
+    <label>店名（お店・教室・団体の名前）<span class="req">※必須</span></label>
     <input id="shop" value="喫茶 とよかわ" maxlength="25">
 
-    <label>ひとこと（いちばん大きく出ます・30文字まで）<span class="req">※必須</span></label>
+    <label>ひとことキャッチ（いちばん大きく出ます・30文字まで）<span class="req">※必須</span></label>
     <input id="catch" value="朝7時から、やってます" maxlength="30">
     <div class="count"><span id="catchCount">10</span> / 30</div>
 
-    <label>住所<span class="req">※必須</span></label>
+    <label>エリア・住所<span class="req">※必須</span></label>
     <input id="addr" value="豊川市諏訪3丁目1-2" maxlength="40">
     <div class="hint">番地まで書いてOK。画像と記事の両方に載ります</div>
 
@@ -219,19 +219,19 @@ html{scroll-behavior:smooth}
     <input id="links" placeholder="例）https://... ／ @toyokawa_cafe">
     <label>特典・クーポン（あれば）</label>
     <input id="perk" placeholder="例）この記事を見たと言うと1杯サービス">
-    <label>紹介したいこと・こだわり（メモ書きでOK・文章はこちらで整えます）<span class="req">※必須</span></label>
+    <label>紹介文メモ（紹介したいこと・こだわり／メモ書きでOK・こちらで文章に整えます）<span class="req">※必須</span></label>
     <textarea id="memo" placeholder="例）自家焙煎です。モーニングが人気。駐車場3台あります"></textarea>
-    <label>読者へのひとこと（任意・店主さんの言葉としてそのまま載せます）</label>
+    <label>つぶやき（読者へのひとこと・任意・お店の言葉としてそのまま載せます）</label>
     <textarea id="hitokoto" placeholder="例）気軽にのぞいてください！"></textarea>
 
     <h2 class="sec">お申し込みされる方</h2>
     <div class="row">
-      <div><label>お名前<span class="req">※必須</span></label><input id="pname" required></div>
+      <div><label>申込者名<span class="req">※必須</span></label><input id="pname" required></div>
       <div><label>メールアドレス<span class="req">※必須</span></label><input id="pmail" type="email" required></div>
     </div>
     <div class="row">
       <div><label>電話番号（任意）</label><input id="ptel"></div>
-      <div><label>掲載希望日（任意）</label><input id="pdate" placeholder="例）8月20日ごろ"></div>
+      <div><label>公開希望日（任意・空欄ならこちらで調整します）</label><input id="pdate" placeholder="例）8月20日ごろ"></div>
     </div>
     <label>そのほか伝えておきたいこと</label>
     <textarea id="pnote"></textarea>
@@ -574,7 +574,7 @@ $('send').onclick = async () => {
     '色：' + (themeChoice === 'auto' ? 'おまかせ（' + t.name + '）' : t.name),
     'かたち：' + (img ? '一枚の札（写真あり）' : '額ぶち（写真なし）'),
     '写真：' + (img ? 'あり → 受付メールへの返信で受け取る' : 'なし'),
-    val('pdate') ? '掲載希望日：' + val('pdate') : '',
+    val('pdate') ? '公開希望日：' + val('pdate') : '',
     val('pnote') ? 'その他：' + val('pnote') : ''
   ].filter(Boolean).join('\n');
 
