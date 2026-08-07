@@ -1,16 +1,8 @@
 {
-  "captured_at": "2026-08-06T01:45:55.388033+09:00",
-  "captured_date": "2026-08-06",
+  "captured_at": "2026-08-08T01:00:31.440694+09:00",
+  "captured_date": "2026-08-08",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-06": {
-      "name": "ゲンキー",
-      "is_chain": true
-    },
-    "2026-08-07": {
-      "name": "syndi．豊川店",
-      "is_chain": false
-    },
     "2026-08-08": {
       "name": "おりがみ農園",
       "is_chain": false
@@ -124,6 +116,14 @@
       "is_chain": false
     },
     "2026-09-05": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-06": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-07": {
       "name": null,
       "is_chain": false
     }
