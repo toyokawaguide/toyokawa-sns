@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Tools Studio — Free Photo / PDF / QR Tools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-site-verification" content="Cqah2EOnVO-c0kXXYD-vHiNCKMLggjV9lEcw31aNUZI" />
+  <meta name="robots" content="index, follow">
+  <meta name="description" content="無料の写真・PDF・QR お助けツール集。完全無料・登録不要・データ送信なし。">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background: #fafafa; color: #0a0a0a; line-height: 1.6; font-feature-settings: "palt"; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    .hero { background: #0a0a0a; color: #fff; padding: 60px 24px 56px; }
+    .hero-inner { max-width: 960px; margin: 0 auto; }
+    .hero-brand { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 28px; color: #fff; }
+    .hero-brand .logo img { width: 42px; height: 42px; border-radius: 9px; display: block; }
+    .hero-brand .word { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+    .hero h1 { margin: 0 0 12px; font-size: clamp(28px, 4.5vw, 44px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+    .hero h1 .accent { color: #a3a3a3; font-weight: 400; }
+    .hero .lead { margin: 0 0 28px; font-size: 15px; color: #a3a3a3; max-width: 580px; line-height: 1.7; }
+    .hero .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hero .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 12px; font-weight: 500; letter-spacing: 0.02em; }
+    .quick-list { max-width: 960px; margin: 0 auto; padding: 32px 24px 8px; }
+    .quick-list-inner { background: #fff; border: 1px solid #e5e5e5; padding: 22px 24px; }
+    .quick-list-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: #525252; margin-bottom: 14px; text-transform: uppercase; }
+    .quick-list-body a { display: inline-block; margin-right: 16px; margin-bottom: 4px; color: #0a0a0a; text-decoration: none; font-size: 13px; transition: color 0.15s; }
+    .quick-list-body a:hover { color: #737373; }
+    .quick-list-body strong { font-weight: 700; }
+    .container { max-width: 960px; margin: 0 auto; padding: 28px 24px; }
+    h2 { font-size: 11px; font-weight: 700; color: #0a0a0a; letter-spacing: 0.18em; margin: 48px 0 16px; padding: 0; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+    h2 .h2-dot { display: inline-block; width: 6px; height: 6px; background: #0a0a0a; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1px; background: #e5e5e5; border: 1px solid #e5e5e5; }
+    .tool-card { display: block; padding: 26px 18px 22px; background: #fff; text-align: left; text-decoration: none; color: #0a0a0a; transition: background 0.15s; min-height: 130px; }
+    .tool-card:hover { background: #fafafa; }
+    .tool-card .tc-icon { margin-bottom: 14px; color: #0a0a0a; }
+    .tool-card .tc-icon svg { width: 22px; height: 22px; stroke: #0a0a0a; }
+    .tool-card .tc-name { font-size: 13px; font-weight: 600; color: #0a0a0a; letter-spacing: -0.01em; line-height: 1.4; }
+    .article-section { margin-top: 56px; padding: 28px 24px; background: #fff; border: 1px solid #e5e5e5; }
+    .article-section-head { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e5e5; display: flex; align-items: center; gap: 12px; }
+    .article-section-head svg { flex-shrink: 0; color: #0a0a0a; }
+    .article-section-head .head-text h2 { margin: 0 0 4px; font-size: 14px; letter-spacing: 0.06em; }
+    .article-section-head .head-text p { margin: 0; font-size: 12px; color: #525252; }
+    .article-list { display: flex; flex-direction: column; gap: 4px; }
+    .article-row { display: flex; align-items: center; gap: 16px; padding: 14px 16px; background: #fff; border: 1px solid #e5e5e5; border-left: 3px solid #0a0a0a; text-decoration: none; color: inherit; transition: all 0.15s; }
+    .article-row:hover { background: #fafafa; }
+    .article-row.cat-photo { border-left-color: #404040; }
+    .article-row.cat-pdf { border-left-color: #0a0a0a; }
+    .article-row.cat-util { border-left-color: #737373; }
+    .article-num { flex-shrink: 0; font-size: 11px; font-weight: 700; color: #a3a3a3; letter-spacing: 0.04em; width: 50px; font-family: 'Inter', monospace; }
+    .article-body { flex: 1; min-width: 0; }
+    .article-meta { margin-bottom: 6px; }
+    .article-cat-tag { display: inline-block; font-size: 10px; font-weight: 700; color: #525252; padding: 1px 8px; border: 1px solid #e5e5e5; letter-spacing: 0.05em; }
+    .article-title { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #0a0a0a; line-height: 1.4; letter-spacing: -0.01em; }
+    .article-excerpt { margin: 0; font-size: 12px; color: #737373; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .article-cta { flex-shrink: 0; font-size: 11px; font-weight: 600; color: #0a0a0a; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 4px; }
+    .article-row:hover .article-cta { color: #525252; }
+    .article-section-foot { text-align: center; margin-top: 18px; }
+    .article-section-foot a { font-size: 12px; color: #0a0a0a; text-decoration: none; font-weight: 600; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 4px; }
+    .article-section-foot a:hover { text-decoration: underline; }
+    @media (max-width: 640px) {
+      .article-row { flex-wrap: wrap; gap: 10px; }
+      .article-num { width: auto; }
+      .article-body { flex: 1 1 100%; }
+      .article-cta { margin-left: auto; }
+    }
+    .footer { max-width: 960px; margin: 56px auto 32px; padding: 28px 24px 0; text-align: center; font-size: 11px; color: #737373; border-top: 1px solid #e5e5e5; letter-spacing: 0.02em; }
+    .footer a { color: #525252; text-decoration: none; margin: 0 6px; }
+    .footer a:hover { color: #0a0a0a; text-decoration: underline; }
+    .footer-brand { margin-bottom: 12px; }
+    .footer-brand .logo { display: inline-block; color: #0a0a0a; vertical-align: middle; }
+    .footer-brand .logo img { width: 24px; height: 24px; border-radius: 5px; vertical-align: middle; }
+    .footer-brand .name { font-weight: 700; color: #0a0a0a; margin-left: 6px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-brand">
+        <span class="logo"><img src="/logo-96.png" alt="Tools Studio" width="28" height="28" style="border-radius:6px;display:block;" /></span>
+        <span class="word">Tools Studio</span>
+      </div>
+      <h1>Free browser tools <span class="accent">— photos, PDFs, QR codes</span></h1>
+      <p class="lead">写真・PDF・QRコードの無料お助けツール集。<br>すべてブラウザ内で完結し、ファイルがサーバーに送られることはありません。</p>
+      <div class="badges">
+        <span class="badge"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> No data upload</span>
+        <span class="badge">100% free</span>
+        <span class="badge">No sign-up</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-list">
+    <div class="quick-list-inner">
+      <div class="quick-list-title">All 14 tools — pick yours</div>
+      <div class="quick-list-body">
+        <a href="#sec-photo"><strong>Photo:</strong> 補正 / リサイズ / モザイク</a>
+        <a href="#sec-pdf"><strong>PDF:</strong> 編成 / ページ番号 / 結合 / 分割 / 圧縮 / 回転 / 変換 / トリミング / 透かし</a>
+        <a href="#sec-util"><strong>Utility:</strong> QRコード生成</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 id="sec-photo"><span class="h2-dot"></span> Photo Tools</h2>
+    <div class="grid">
+      <a href="photo_studio/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></div><div class="tc-name">写真まとめて編集<br>（明るく＋リサイズ）</div></a>
+      <a href="photo_brightener/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div><div class="tc-name">写真補正（明るく）</div></a>
+      <a href="photo_resize/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div><div class="tc-name">写真リサイズ・圧縮</div></a>
+      <a href="photo_mosaic/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div><div class="tc-name">写真モザイク</div></a>
+    </div>
+
+    <h2 id="sec-pdf"><span class="h2-dot"></span> PDF Tools</h2>
+    <div class="grid">
+      <a href="pdf_organizer/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div><div class="tc-name">PDF編成<br>（並替・回転・削除・結合）</div></a>
+      <a href="pdf_page_numberer/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div><div class="tc-name">PDFページ番号</div></a>
+      <a href="pdf_merger/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v12.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V6.5z"/><path d="M3 7.6v12.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8"/><path d="M15 2v5h5"/></svg></div><div class="tc-name">PDF結合</div></a>
+      <a href="pdf_split/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div><div class="tc-name">PDF分割</div></a>
+      <a href="pdf_compress/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="5" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg></div><div class="tc-name">PDF圧縮</div></a>
+      <a href="pdf_rotate/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div><div class="tc-name">PDF回転</div></a>
+      <a href="pdf_to_jpg/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="tc-name">PDF → JPG</div></a>
+      <a href="jpg_to_pdf/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div><div class="tc-name">JPG → PDF</div></a>
+      <a href="pdf_trimmer/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/></svg></div><div class="tc-name">PDFトリミング</div></a>
+      <a href="pdf_watermark/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div><div class="tc-name">PDF透かし挿入</div></a>
+    </div>
+
+    <h2 id="sec-util"><span class="h2-dot"></span> Utility</h2>
+    <div class="grid">
+      <a href="qr_generator/" class="tool-card"><div class="tc-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div class="tc-name">QRコード生成</div></a>
+    </div>
+
+    <div class="article-section" id="sec-guide">
+      <div class="article-section-head">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+        <div class="head-text">
+          <h2>USAGE GUIDES</h2>
+          <p>Tools Studio チームによる実用シーン別の読み物</p>
+        </div>
+      </div>
+      <div class="article-list">
+      <a href="/guide/photo-bright-fix/" class="article-row cat-photo">
+        <div class="article-num">No.01</div>
+        <div class="article-body">
+          <div class="article-meta"><span class="article-cat-tag">写真</span></div>
+          <h3 class="article-title">暗い写真を一括明るく補正する方法</h3>
+          <p class="article-excerpt">スマホで撮った暗い写真を、ブラウザだけで一括して明るく補正する無料ツールの使い方。インストール不要・登録不要・データ送信なし。</p>
+        </div>
+        <div class="article-cta">Read <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+      <a href="/guide/pdf-merge-quick/" class="article-row cat-pdf">
+        <div class="article-num">No.02</div>
+        <div class="article-body">
+          <div class="article-meta"><span class="article-cat-tag">PDF</span></div>
+          <h3 class="article-title">複数PDFを1つに結合する方法</h3>
+          <p class="article-excerpt">複数のPDFファイルを1つに結合する無料ブラウザツールの使い方。ドラッグ&ドロップで順序入れ替えOK・データ送信なし。</p>
+        </div>
+        <div class="article-cta">Read <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+      <a href="/guide/pdf-watermark-presets/" class="article-row cat-pdf">
+        <div class="article-num">No.03</div>
+        <div class="article-body">
+          <div class="article-meta"><span class="article-cat-tag">PDF</span></div>
+          <h3 class="article-title">PDFに透かしを入れる方法</h3>
+          <p class="article-excerpt">PDFに「DRAFT」「社外秘」「COPY」などの透かしを入れる無料ブラウザツールの使い方。5つのプリセット完備でワンクリック挿入。</p>
+        </div>
+        <div class="article-cta">Read <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+      <a href="/guide/qr-code-7scenes/" class="article-row cat-util">
+        <div class="article-num">No.04</div>
+        <div class="article-body">
+          <div class="article-meta"><span class="article-cat-tag">便利</span></div>
+          <h3 class="article-title">QRコード生成の7つの活用シーン</h3>
+          <p class="article-excerpt">QRコードを5秒で作る無料ブラウザツールの使い方と、URL・Wi-Fi・vCard・メール・SMSなど7つの活用シーンを解説。</p>
+        </div>
+        <div class="article-cta">Read <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+      <a href="/guide/pdf-page-numbers/" class="article-row cat-pdf">
+        <div class="article-num">No.05</div>
+        <div class="article-body">
+          <div class="article-meta"><span class="article-cat-tag">PDF</span></div>
+          <h3 class="article-title">PDFにページ番号を振る方法</h3>
+          <p class="article-excerpt">PDFのページ番号を後から自動で挿入する無料ブラウザツール。9位置・6書式・全ページ一括対応。インストール不要。</p>
+        </div>
+        <div class="article-cta">Read <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      </a>
+      </div>
+      <div class="article-section-foot">
+        <a href="/guide/">View all guides <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-brand">
+      <span class="logo"><img src="/logo-96.png" alt="Tools Studio" width="28" height="28" style="border-radius:6px;display:block;" /></span><span class="name">Tools Studio</span>
+    </div>
+    <a href="/about/">About</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/guide/">Guides</a><br>
+    <span style="opacity: 0.7;">No data upload · 100% free · No sign-up</span>
+  </div>
+</body>
+</html>
