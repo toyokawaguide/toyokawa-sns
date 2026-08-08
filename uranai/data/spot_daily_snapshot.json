@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-08-08T01:00:31.440694+09:00",
-  "captured_date": "2026-08-08",
+  "captured_at": "2026-08-09T00:35:54.162106+09:00",
+  "captured_date": "2026-08-09",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-08": {
-      "name": "おりがみ農園",
-      "is_chain": false
-    },
     "2026-08-09": {
       "name": null,
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-09-07": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-08": {
       "name": null,
       "is_chain": false
     }
