@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>部分明るく補正（影だけ明るく） — Tools Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index, follow">
+  <meta name="description" content="写真の影になった部分だけをなぞって明るく補正できる無料ブラウザツール。境界は自動でなじむので自然な仕上がり。物件写真・室内写真の影とりに。完全無料・登録不要・データ送信なし。">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background: #fafafa; color: #0a0a0a; line-height: 1.6; font-feature-settings: "palt"; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    .topbar { background: #0a0a0a; color: #fff; padding: 14px 24px; }
+    .topbar-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+    .topbar a { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+    .topbar img { width: 28px; height: 28px; border-radius: 6px; display: block; }
+    .topbar .crumb { color: #a3a3a3; font-size: 12px; font-weight: 400; }
+    .container { max-width: 960px; margin: 0 auto; padding: 36px 24px 24px; }
+    h1 { margin: 0 0 10px; font-size: clamp(22px, 3.5vw, 32px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; }
+    .lead { margin: 0 0 20px; font-size: 14px; color: #525252; max-width: 640px; }
+    .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .step { font-size: 12px; font-weight: 600; background: #fff; border: 1px solid #e5e5e5; padding: 6px 12px; color: #404040; }
+    .step b { color: #0a0a0a; margin-right: 4px; }
+    .panel { background: #fff; border: 1px solid #e5e5e5; }
+    .dropzone { padding: 56px 24px; text-align: center; cursor: pointer; transition: background 0.15s; }
+    .dropzone:hover, .dropzone.drag { background: #f5f5f5; }
+    .dropzone svg { width: 36px; height: 36px; stroke: #0a0a0a; margin-bottom: 12px; }
+    .dropzone .dz-main { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .dropzone .dz-sub { font-size: 12px; color: #737373; }
+    .editor { display: none; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #e5e5e5; }
+    .toolbar .group { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #404040; }
+    .toolbar input[type="range"] { width: 110px; accent-color: #0a0a0a; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fff; border: 1px solid #d4d4d4; color: #0a0a0a; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; letter-spacing: 0.02em; }
+    .btn:hover { background: #f5f5f5; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn.primary { background: #0a0a0a; border-color: #0a0a0a; color: #fff; }
+    .btn.primary:hover { background: #262626; }
+    .btn.toggled { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+    .canvas-wrap { position: relative; background: repeating-conic-gradient(#f5f5f5 0% 25%, #fff 0% 50%) 0 0 / 20px 20px; padding: 16px; display: flex; justify-content: center; }
+    .canvas-holder { position: relative; line-height: 0; max-width: 100%; }
+    #view { max-width: 100%; height: auto; display: block; touch-action: none; cursor: crosshair; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    #brushRing { position: absolute; border: 2px solid rgba(10,10,10,0.9); border-radius: 50%; pointer-events: none; display: none; transform: translate(-50%, -50%); box-shadow: 0 0 0 1px rgba(255,255,255,0.8); }
+    .adjust { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 16px; border-top: 1px solid #e5e5e5; }
+    .adjust .slider-block { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+    .adjust label { font-size: 12px; font-weight: 700; color: #0a0a0a; display: flex; justify-content: space-between; }
+    .adjust label .val { color: #737373; font-weight: 600; }
+    .adjust input[type="range"] { width: 100%; accent-color: #0a0a0a; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px; border-top: 1px solid #e5e5e5; align-items: center; }
+    .hint { font-size: 11px; color: #737373; margin-left: auto; }
+    .privacy-note { margin-top: 20px; font-size: 12px; color: #737373; display: flex; align-items: center; gap: 8px; }
+    .privacy-note svg { flex-shrink: 0; }
+    .usecase { margin-top: 32px; padding: 20px 22px; background: #fff; border: 1px solid #e5e5e5; }
+    .usecase h2 { margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; }
+    .usecase p { margin: 0 0 8px; font-size: 13px; color: #404040; }
+    .usecase p:last-child { margin-bottom: 0; }
+    .footer { max-width: 960px; margin: 48px auto 32px; padding: 24px 24px 0; text-align: center; font-size: 11px; color: #737373; border-top: 1px solid #e5e5e5; }
+    .footer a { color: #525252; text-decoration: none; margin: 0 6px; }
+    .footer a:hover { color: #0a0a0a; text-decoration: underline; }
+    @media (max-width: 640px) {
+      .toolbar { gap: 10px; }
+      .adjust .slider-block { min-width: 140px; flex: 1; }
+      .hint { flex-basis: 100%; margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <a href="/"><img src="/logo-96.png" alt="Tools Studio">Tools Studio</a>
+      <span class="crumb">/ 部分明るく補正</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>部分明るく補正（影だけ明るく）</h1>
+    <p class="lead">写真の暗くなった部分を指やマウスでなぞるだけ。なぞった場所とその周辺だけがふんわり明るくなります。境界は自動でなじむので、室内写真に入り込んだ影の補正も自然な仕上がりに。</p>
+    <div class="steps">
+      <span class="step"><b>1</b>写真を選ぶ</span>
+      <span class="step"><b>2</b>影の部分をなぞる</span>
+      <span class="step"><b>3</b>明るさを調整</span>
+      <span class="step"><b>4</b>ダウンロード</span>
+    </div>
+
+    <div class="panel">
+      <div class="dropzone" id="dropzone">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="dz-main">写真をここにドラッグ＆ドロップ</div>
+        <div class="dz-sub">またはクリックして選択（JPG / PNG / WebP）</div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+      </div>
+
+      <div class="editor" id="editor">
+        <div class="toolbar">
+          <span class="group">ブラシの太さ <input type="range" id="brushSize" min="12" max="140" value="48"></span>
+          <button class="btn" id="eraseBtn" title="なぞりすぎた部分を消します">消しゴム</button>
+          <button class="btn" id="undoBtn">ひとつ戻す</button>
+          <button class="btn" id="clearBtn">選択をクリア</button>
+          <span class="group"><input type="checkbox" id="overlayChk" checked style="accent-color:#0a0a0a;">選択範囲を色で表示</span>
+        </div>
+
+        <div class="canvas-wrap">
+          <div class="canvas-holder">
+            <canvas id="view"></canvas>
+            <div id="brushRing"></div>
+          </div>
+        </div>
+
+        <div class="adjust">
+          <div class="slider-block">
+            <label>明るさ <span class="val" id="strengthVal">55</span></label>
+            <input type="range" id="strength" min="0" max="100" value="55">
+          </div>
+          <div class="slider-block">
+            <label>なじませ（境界のぼかし） <span class="val" id="featherVal">14</span></label>
+            <input type="range" id="feather" min="0" max="40" value="14">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="downloadBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ダウンロード
+          </button>
+          <button class="btn" id="compareBtn">押している間、元の写真</button>
+          <button class="btn" id="newBtn">別の写真を開く</button>
+          <span class="hint">なぞった部分だけが明るくなります。画質・サイズは元のまま保存されます。</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="privacy-note">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      写真はブラウザ内だけで処理され、サーバーには一切送信されません。
+    </p>
+
+    <div class="usecase">
+      <h2>こんなときに</h2>
+      <p>・賃貸物件の室内を撮影したら、窓際は明るいのに部屋の隅や家具の陰が真っ暗になってしまった</p>
+      <p>・写真全体を明るくすると、明るい部分が白飛びしてしまう — 暗いところ「だけ」持ち上げたい</p>
+      <p>・逆光で手前が影になった外観写真を自然に直したい</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="/">Tools Studio トップ</a> · <a href="/about/">About</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a><br>
+    <span style="opacity: 0.7;">No data upload · 100% free · No sign-up</span>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  var MAX_EDIT = 1600;      // 編集プレビューの最大辺（保存時は元サイズで再処理）
+  var UNDO_LIMIT = 15;
+
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var editor = document.getElementById('editor');
+  var view = document.getElementById('view');
+  var vctx = view.getContext('2d', { willReadFrequently: true });
+  var brushRing = document.getElementById('brushRing');
+
+  var brushSize = document.getElementById('brushSize');
+  var eraseBtn = document.getElementById('eraseBtn');
+  var undoBtn = document.getElementById('undoBtn');
+  var clearBtn = document.getElementById('clearBtn');
+  var overlayChk = document.getElementById('overlayChk');
+  var strength = document.getElementById('strength');
+  var feather = document.getElementById('feather');
+  var strengthVal = document.getElementById('strengthVal');
+  var featherVal = document.getElementById('featherVal');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var compareBtn = document.getElementById('compareBtn');
+  var newBtn = document.getElementById('newBtn');
+
+  var img = null;
+  var fileBaseName = 'photo';
+  var fileType = 'image/jpeg';
+  var editW = 0, editH = 0;
+  var origData = null;                       // 編集サイズの元画像
+  var maskC = document.createElement('canvas');
+  var mctx = maskC.getContext('2d', { willReadFrequently: true });
+  var undoStack = [];
+  var painting = false;
+  var erasing = false;
+  var lastPt = null;
+  var renderQueued = false;
+  var comparing = false;
+
+  // ---------- ファイル読み込み ----------
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  newBtn.addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files && fileInput.files[0]) openFile(fileInput.files[0]);
+    fileInput.value = '';
+  });
+  ['dragover', 'dragenter'].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); dropzone.classList.add('drag'); });
+  });
+  ['dragleave', 'drop'].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); dropzone.classList.remove('drag'); });
+  });
+  document.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) openFile(e.dataTransfer.files[0]);
+  });
+
+  function openFile(file) {
+    if (!file.type || file.type.indexOf('image/') !== 0) { alert('画像ファイルを選んでください'); return; }
+    fileBaseName = (file.name || 'photo').replace(/\.[^.]+$/, '');
+    fileType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    var url = URL.createObjectURL(file);
+    var im = new Image();
+    im.onload = function () {
+      URL.revokeObjectURL(url);
+      img = im;
+      setupEditor();
+    };
+    im.onerror = function () { URL.revokeObjectURL(url); alert('この画像は読み込めませんでした'); };
+    im.src = url;
+  }
+
+  function setupEditor() {
+    var w = img.naturalWidth, h = img.naturalHeight;
+    var s = Math.min(1, MAX_EDIT / Math.max(w, h));
+    editW = Math.max(1, Math.round(w * s));
+    editH = Math.max(1, Math.round(h * s));
+    view.width = editW; view.height = editH;
+    maskC.width = editW; maskC.height = editH;
+    mctx.clearRect(0, 0, editW, editH);
+    vctx.drawImage(img, 0, 0, editW, editH);
+    origData = vctx.getImageData(0, 0, editW, editH);
+    undoStack = [];
+    setErasing(false);
+    dropzone.style.display = 'none';
+    editor.style.display = 'block';
+    updateUndoBtn();
+    render();
+  }
+
+  // ---------- マスク描画（ソフトブラシ） ----------
+
+  function canvasPoint(e) {
+    var r = view.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * view.width / r.width,
+      y: (e.clientY - r.top) * view.height / r.height
+    };
+  }
+
+  function brushRadiusCanvasPx() {
+    var r = view.getBoundingClientRect();
+    return (+brushSize.value / 2) * view.width / r.width;
+  }
+
+  function dab(x, y) {
+    var r = brushRadiusCanvasPx();
+    var g = mctx.createRadialGradient(x, y, r * 0.3, x, y, r);
+    g.addColorStop(0, 'rgba(255,255,255,0.85)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    mctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over';
+    mctx.fillStyle = g;
+    mctx.beginPath();
+    mctx.arc(x, y, r, 0, Math.PI * 2);
+    mctx.fill();
+  }
+
+  function strokeTo(pt) {
+    if (!lastPt) { dab(pt.x, pt.y); lastPt = pt; return; }
+    var dx = pt.x - lastPt.x, dy = pt.y - lastPt.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var step = Math.max(2, brushRadiusCanvasPx() / 3);
+    for (var d = step; d <= dist; d += step) {
+      dab(lastPt.x + dx * d / dist, lastPt.y + dy * d / dist);
+    }
+    if (dist > 0) dab(pt.x, pt.y);
+    lastPt = pt;
+  }
+
+  view.addEventListener('pointerdown', function (e) {
+    if (!img || comparing) return;
+    e.preventDefault();
+    view.setPointerCapture(e.pointerId);
+    pushUndo();
+    painting = true;
+    lastPt = null;
+    strokeTo(canvasPoint(e));
+    queueRender();
+  });
+  view.addEventListener('pointermove', function (e) {
+    moveRing(e);
+    if (!painting) return;
+    e.preventDefault();
+    strokeTo(canvasPoint(e));
+    queueRender();
+  });
+  function endStroke() {
+    if (!painting) return;
+    painting = false;
+    lastPt = null;
+    queueRender();
+  }
+  view.addEventListener('pointerup', endStroke);
+  view.addEventListener('pointercancel', endStroke);
+
+  // ブラシカーソル表示
+  function moveRing(e) {
+    var holder = view.parentElement.getBoundingClientRect();
+    brushRing.style.display = 'block';
+    brushRing.style.width = brushSize.value + 'px';
+    brushRing.style.height = brushSize.value + 'px';
+    brushRing.style.left = (e.clientX - holder.left) + 'px';
+    brushRing.style.top = (e.clientY - holder.top) + 'px';
+  }
+  view.addEventListener('pointerleave', function () { brushRing.style.display = 'none'; });
+
+  // ---------- 取り消し ----------
+
+  function pushUndo() {
+    undoStack.push(mctx.getImageData(0, 0, editW, editH));
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    updateUndoBtn();
+  }
+  function updateUndoBtn() { undoBtn.disabled = undoStack.length === 0; }
+
+  undoBtn.addEventListener('click', function () {
+    var prev = undoStack.pop();
+    if (prev) { mctx.globalCompositeOperation = 'source-over'; mctx.putImageData(prev, 0, 0); }
+    updateUndoBtn();
+    render();
+  });
+
+  clearBtn.addEventListener('click', function () {
+    pushUndo();
+    mctx.globalCompositeOperation = 'source-over';
+    mctx.clearRect(0, 0, editW, editH);
+    render();
+  });
+
+  eraseBtn.addEventListener('click', function () { setErasing(!erasing); });
+  function setErasing(on) {
+    erasing = on;
+    eraseBtn.classList.toggle('toggled', on);
+  }
+
+  // ---------- 明るさ適用 ----------
+
+  // 影を持ち上げるガンマ補正LUT（暗部ほど強く、明部はほぼそのまま＝白飛びしにくい）
+  function buildLUT() {
+    var s = +strength.value / 100;
+    var gamma = 1 + s * 1.8;
+    var lut = new Uint8ClampedArray(256);
+    for (var i = 0; i < 256; i++) {
+      lut[i] = Math.round(255 * Math.pow(i / 255, 1 / gamma));
+    }
+    return lut;
+  }
+
+  function blurredMask(w, h, blurPx) {
+    var t = document.createElement('canvas');
+    t.width = w; t.height = h;
+    var c = t.getContext('2d', { willReadFrequently: true });
+    if (blurPx > 0.5) c.filter = 'blur(' + blurPx + 'px)';
+    c.drawImage(maskC, 0, 0, w, h);
+    return t;
+  }
+
+  function applyBrighten(srcData, maskData, lut) {
+    var d = srcData.data, md = maskData.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var a = md[i + 3];
+      if (a) {
+        var m = a / 255;
+        d[i]     += (lut[d[i]]     - d[i])     * m;
+        d[i + 1] += (lut[d[i + 1]] - d[i + 1]) * m;
+        d[i + 2] += (lut[d[i + 2]] - d[i + 2]) * m;
+      }
+    }
+    return srcData;
+  }
+
+  function queueRender() {
+    if (renderQueued) return;
+    renderQueued = true;
+    requestAnimationFrame(function () { renderQueued = false; render(); });
+  }
+
+  function render() {
+    if (!origData || comparing) return;
+    var mc = blurredMask(editW, editH, +feather.value);
+    var md = mc.getContext('2d').getImageData(0, 0, editW, editH);
+    var out = new ImageData(new Uint8ClampedArray(origData.data), editW, editH);
+    applyBrighten(out, md, buildLUT());
+    vctx.putImageData(out, 0, 0);
+    if (overlayChk.checked) {
+      var tint = document.createElement('canvas');
+      tint.width = editW; tint.height = editH;
+      var tc = tint.getContext('2d');
+      tc.drawImage(mc, 0, 0);
+      tc.globalCompositeOperation = 'source-in';
+      tc.fillStyle = '#f59e0b';
+      tc.fillRect(0, 0, editW, editH);
+      vctx.globalAlpha = 0.28;
+      vctx.drawImage(tint, 0, 0);
+      vctx.globalAlpha = 1;
+    }
+  }
+
+  strength.addEventListener('input', function () { strengthVal.textContent = strength.value; queueRender(); });
+  feather.addEventListener('input', function () { featherVal.textContent = feather.value; queueRender(); });
+  overlayChk.addEventListener('change', render);
+
+  // ---------- 元画像と比較 ----------
+
+  function compareOn(e) { if (e) e.preventDefault(); if (!origData) return; comparing = true; vctx.putImageData(origData, 0, 0); }
+  function compareOff() { if (!comparing) return; comparing = false; render(); }
+  compareBtn.addEventListener('pointerdown', compareOn);
+  compareBtn.addEventListener('pointerup', compareOff);
+  compareBtn.addEventListener('pointerleave', compareOff);
+  compareBtn.addEventListener('pointercancel', compareOff);
+
+  // ---------- ダウンロード（元の解像度で再処理） ----------
+
+  downloadBtn.addEventListener('click', function () {
+    if (!img) return;
+    downloadBtn.disabled = true;
+    setTimeout(function () {
+      try {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var cx = c.getContext('2d', { willReadFrequently: true });
+        cx.drawImage(img, 0, 0, w, h);
+        var full = cx.getImageData(0, 0, w, h);
+        var scale = w / editW;
+        var mc = blurredMask(w, h, +feather.value * scale);
+        var md = mc.getContext('2d').getImageData(0, 0, w, h);
+        applyBrighten(full, md, buildLUT());
+        cx.putImageData(full, 0, 0);
+        var ext = fileType === 'image/png' ? '.png' : '.jpg';
+        c.toBlob(function (blob) {
+          downloadBtn.disabled = false;
+          if (!blob) { alert('保存に失敗しました'); return; }
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = fileBaseName + '_bright' + ext;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+        }, fileType, 0.92);
+      } catch (err) {
+        downloadBtn.disabled = false;
+        alert('保存に失敗しました: ' + err.message);
+      }
+    }, 30);
+  });
+})();
+</script>
+</body>
+</html>
