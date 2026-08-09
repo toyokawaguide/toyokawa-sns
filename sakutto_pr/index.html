@@ -191,8 +191,9 @@ html{scroll-behavior:smooth}
     <input id="shop" value="喫茶 とよかわ" maxlength="25">
 
     <label>ひとことキャッチ（いちばん大きく出ます・30文字まで）<span class="req">※必須</span></label>
-    <input id="catch" value="朝7時から、やってます" maxlength="30">
+    <textarea id="catch" maxlength="30" rows="2" style="min-height:52px">朝7時から、やってます</textarea>
     <div class="count"><span id="catchCount">10</span> / 30</div>
+    <div class="hint">改行すると、その位置で行が変わります（改行しなければ自動で折り返します）</div>
 
     <label>エリア・住所<span class="req">※必須</span></label>
     <input id="addr" value="豊川市諏訪3丁目1-2" maxlength="40">
@@ -366,18 +367,25 @@ function coverDraw(c,im,x,y,w,h,r){
   c.drawImage(im, x+(w-nw)/2, y+(h-nh)/2, nw, nh); c.restore();
 }
 function wrapFit(c, text, weight, maxW, maxLines, start, min){
+  // 手動改行（\n）があればその位置で必ず行を分ける。無い段落は従来どおり自動折り返し
+  const paras = String(text).split(/\r?\n/);
+  const effMax = Math.max(maxLines, paras.length);   // 手動改行した分の行は許可する
   for (let s = start; s >= min; s -= 2){
     c.font = F(weight, s);
-    const lines = []; let cur = '';
-    for (const ch of text){
-      if (c.measureText(cur + ch).width > maxW && cur){ lines.push(cur); cur = ch; }
-      else cur += ch;
+    const lines = [];
+    for (const para of paras){
+      if (para === ''){ lines.push(''); continue; }
+      let cur = '';
+      for (const ch of para){
+        if (c.measureText(cur + ch).width > maxW && cur){ lines.push(cur); cur = ch; }
+        else cur += ch;
+      }
+      if (cur) lines.push(cur);
     }
-    if (cur) lines.push(cur);
-    if (lines.length <= maxLines) return {size: s, lines};
+    if (lines.length <= effMax) return {size: s, lines};
   }
   c.font = F(weight, min);
-  return {size: min, lines: [text.slice(0, 24) + '…']};
+  return {size: min, lines: paras.length > 1 ? paras : [String(text).slice(0, 24) + '…']};
 }
 function fitOne(c, text, weight, start, maxW, min){
   let s = start;
@@ -531,7 +539,8 @@ function draw(){
     shop: val('shop'), catch: val('catch'),
     badge: badgeText(), addr: val('addr')
   });
-  $('capPrev').textContent = `＃PR ${val('shop')}｜${val('catch')}`;
+  // キャプションは1行に流すので、キャッチの改行は空白へ畳む
+  $('capPrev').textContent = `＃PR ${val('shop')}｜${val('catch').replace(/\r?\n/g, ' ')}`;
 }
 $('dl').onclick = () => {
   const a = document.createElement('a');

@@ -111,30 +111,41 @@ def font(path: str, size: int):
 
 
 def wrap_fit(d, text, fpath, max_w, max_lines, start, min_s):
-    """budouxで文節を守って折り返し（語割れ「やって/ます」防止）"""
-    words = _PARSER.parse(text) if _PARSER else list(text)
+    """budouxで文節を守って折り返し（語割れ「やって/ます」防止）
+
+    申込者が入力した手動改行（\\n）は必ずその位置で行を分ける。
+    改行のない段落は従来どおり自動折り返し（2026-08-10 社長要望）。
+    """
+    paras = re.split(r"\r?\n", str(text))
+    eff_max = max(max_lines, len(paras))   # 手動改行した分の行は許可する
     for s in range(start, min_s - 1, -2):
         f = font(fpath, s)
-        lines, cur = [], ""
-        for wd in words:
-            while d.textlength(wd, font=f) > max_w:
-                seg = ""
-                for ch in wd:
-                    if seg and d.textlength(seg + ch, font=f) > max_w:
-                        break
-                    seg += ch
-                if cur:
-                    lines.append(cur); cur = ""
-                lines.append(seg); wd = wd[len(seg):]
-            if cur and d.textlength(cur + wd, font=f) > max_w:
-                lines.append(cur); cur = wd
-            else:
-                cur += wd
-        if cur:
-            lines.append(cur)
-        if len(lines) <= max_lines:
+        lines = []
+        for para in paras:
+            if para == "":
+                lines.append("")
+                continue
+            words = _PARSER.parse(para) if _PARSER else list(para)
+            cur = ""
+            for wd in words:
+                while d.textlength(wd, font=f) > max_w:
+                    seg = ""
+                    for ch in wd:
+                        if seg and d.textlength(seg + ch, font=f) > max_w:
+                            break
+                        seg += ch
+                    if cur:
+                        lines.append(cur); cur = ""
+                    lines.append(seg); wd = wd[len(seg):]
+                if cur and d.textlength(cur + wd, font=f) > max_w:
+                    lines.append(cur); cur = wd
+                else:
+                    cur += wd
+            if cur:
+                lines.append(cur)
+        if len(lines) <= eff_max:
             return s, lines
-    return min_s, [text[:24] + "…"]
+    return min_s, (paras if len(paras) > 1 else [str(text)[:24] + "…"])
 
 
 def fit_one(d, text, fpath, start, max_w, min_s):
