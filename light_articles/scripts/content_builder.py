@@ -9,6 +9,31 @@ from __future__ import annotations
 
 import series
 
+# ── さくっとPR への導線（記事末尾に自動で入る・2026-08-09）
+# 開店・閉店/テナント系の記事は同業者・出店予定者が読むので、記事末尾が最も効く
+SAKUTTO_PR_URL = "https://toyokawa-rentallife.com/sakutto-pr/"
+SAKUTTO_PR_BLOCK = "\n".join([
+    "<!-- wp:separator -->",
+    '<hr class="wp-block-separator has-alpha-channel-opacity"/>',
+    "<!-- /wp:separator -->",
+    "",
+    "<!-- wp:heading {\"level\":3} -->",
+    '<h3 class="wp-block-heading">お店やイベントの告知、載せませんか？</h3>',
+    "<!-- /wp:heading -->",
+    "",
+    "<!-- wp:paragraph -->",
+    "<p>豊川ガイドでは、お店・イベント・サービスの告知を掲載する"
+    "<strong>「さくっとPR」</strong>をやっています。"
+    "記事＋Instagram（フィード・リール）＋Threads＋Xでまとめてお知らせします。"
+    "<strong>当面すべて無料</strong>・写真は無くてもOK・"
+    "記事の下書きを見てから決められます。</p>",
+    "<!-- /wp:paragraph -->",
+    "",
+    "<!-- wp:paragraph -->",
+    f'<p><a href="{SAKUTTO_PR_URL}">▶ さくっとPR の詳細・お申し込みはこちら</a></p>',
+    "<!-- /wp:paragraph -->",
+])
+
 
 def get_sub(row: dict) -> str:
     """その後（1段目）+ その後（2段目）を結合（後方互換：旧サブ列も対応）
@@ -215,6 +240,11 @@ def build_content(row: dict, eyecatch_id: int = None,
     parts.append(f'<li><a href="{URL_LINE}" target="_blank" rel="noopener">ＬＩＮＥ（非公式）</a></li>')
     parts.append(f"</ul>")
     parts.append(f"<!-- /wp:list -->")
+    parts.append("")
+
+    # ── さくっとPR への導線（2026-08-09 追加）
+    # 開店・閉店/テナント系の記事は同業者・出店予定者が読むので、記事末尾が最も効く
+    parts.append(SAKUTTO_PR_BLOCK)
 
     return "\n".join(parts)
 
