@@ -1,34 +1,30 @@
 {
-  "captured_at": "2026-08-09T00:35:54.162106+09:00",
-  "captured_date": "2026-08-09",
+  "captured_at": "2026-08-10T00:37:47.541291+09:00",
+  "captured_date": "2026-08-10",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-09": {
-      "name": null,
-      "is_chain": false
-    },
     "2026-08-10": {
-      "name": null,
+      "name": "門前テラス縁福",
       "is_chain": false
     },
     "2026-08-11": {
-      "name": null,
+      "name": "喫茶室イノマ",
       "is_chain": false
     },
     "2026-08-12": {
-      "name": null,
+      "name": "中国料理 清龍",
       "is_chain": false
     },
     "2026-08-13": {
-      "name": null,
-      "is_chain": false
+      "name": "スパゲッ亭チャオ",
+      "is_chain": true
     },
     "2026-08-14": {
-      "name": null,
+      "name": "門前横丁",
       "is_chain": false
     },
     "2026-08-15": {
-      "name": null,
+      "name": "焼豚ラーメン 弥太郎",
       "is_chain": false
     },
     "2026-08-16": {
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-09-08": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-09": {
       "name": null,
       "is_chain": false
     }
