@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-08-11T01:03:54.446324+09:00",
-  "captured_date": "2026-08-11",
+  "captured_at": "2026-08-12T01:04:13.292985+09:00",
+  "captured_date": "2026-08-12",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-11": {
-      "name": "喫茶室イノマ",
-      "is_chain": false
-    },
     "2026-08-12": {
       "name": "中国料理 清龍",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-09-10": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-11": {
       "name": null,
       "is_chain": false
     }
