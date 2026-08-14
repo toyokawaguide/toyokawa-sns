@@ -209,6 +209,14 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     #     2026-08-06 社長指示「送られてきた写真は全部インスタで使いたい」。LRと同方式・枠の帯は「さくっとPR」
     try:
         carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
+        # IGカルーセルは1投稿10枚まで。1枚目がPRカードなので写真は9枚が上限で、
+        # それを超えた分は post_instagram_feed_carousel 側で黙って切られる。
+        # 気づかないまま「送ったのに載っていない」が起きるので警告を出す（2026-08-14）
+        if len(carousel_photos) > 9:
+            dropped = [p.name for p in carousel_photos[9:]]
+            log(f"⚠️ 写真が{len(carousel_photos)}枚あります。IGカルーセルの上限（カバー＋9枚）を超えるため "
+                f"{len(dropped)}枚はInstagramに載りません: {', '.join(dropped)}"
+                f"（WP記事には全部載ります）", 1)
         ig_images = [ig_feed_url]
         if not sns_dry and carousel_photos:
             # 枠はPR専用デザイン（テーマ色連動・店名入り）。LRのphoto_frameは使わない（2026-08-06社長指示）
