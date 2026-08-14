@@ -293,7 +293,9 @@ const THEMES = [
   {id:'sky',   name:'スカイ',   bg:'#eef4fb', ink:'#1f3b57', accent:'#3d86c6', sub:'#6d8299'},
   {id:'peach', name:'ピーチ',   bg:'#fdf0ee', ink:'#4a2b28', accent:'#e0705f', sub:'#95736e'},
   {id:'lemon', name:'レモン',   bg:'#fdfaea', ink:'#453d1f', accent:'#d8a72a', sub:'#8b8055'},
-  {id:'white', name:'ホワイト', bg:'#ffffff', ink:'#2b2b2b', accent:'#c8a15a', sub:'#8a8a8a'}
+  /* panel:'light' … 写真なし（額ぶち）のとき面を差し色ではなく白で塗り、文字を濃くする
+     （2026-08-14 社長判断。差し色で塗ると「ホワイト」なのに金色の面になり名前と食い違うため） */
+  {id:'white', name:'ホワイト', bg:'#ffffff', ink:'#2b2b2b', accent:'#c8a15a', sub:'#8a8a8a', panel:'light'}
 ];
 let themeChoice = 'auto';
 let img = null;
@@ -442,20 +444,27 @@ function renderScene(c, st){
       c.font = F(700, r.size);
       r.lines.forEach(ln => { c.fillText(ln, FX+36, y); y += r.size*1.32; });
     } else {
-      c.fillStyle = t.accent; roundRect(c, FX, FY, FW, FH, R); c.fill();
-      /* 背景かざり＝D 白い内線（社長確定 2026-08-05） */
-      c.strokeStyle = 'rgba(255,255,255,.47)'; c.lineWidth = 3;
-      roundRect(c, FX+26, FY+26, FW-52, FH-52, R-8); c.stroke();
+      const light = t.panel === 'light';        /* ホワイトだけ面も白にする */
+      c.fillStyle = light ? '#fff' : t.accent; roundRect(c, FX, FY, FW, FH, R); c.fill();
+      if (!light){                              /* 白面に白の内線を引いても見えない */
+        /* 背景かざり＝D 白い内線（社長確定 2026-08-05） */
+        c.strokeStyle = 'rgba(255,255,255,.47)'; c.lineWidth = 3;
+        roundRect(c, FX+26, FY+26, FW-52, FH-52, R-8); c.stroke();
+      }
       const r = wrapFit(c, st.catch, 700, FW-96, 3, 92, 42);
       const blockH = r.lines.length * r.size * 1.34;
       let y = FY + 170 + ((FH-260) - blockH)/2 + r.size;
-      c.fillStyle = '#fff'; c.font = F(700, r.size);
+      c.fillStyle = light ? t.ink : '#fff'; c.font = F(700, r.size);
       r.lines.forEach(ln => { c.fillText(ln, FX+48, y); y += r.size*1.34; });
     }
     /* 枠線（B風） */
-    c.strokeStyle = t.accent; c.lineWidth = 5;
+    c.strokeStyle = t.accent; c.lineWidth = (!st.img && t.panel === 'light') ? 6 : 5;
     roundRect(c, FX, FY, FW, FH, R); c.stroke();
-    pill(c, st.badge, FX+26, FY+26, st.img ? t.accent : '#fff', st.img ? '#fff' : t.accent);
+    /* 白面のときは白いピルが埋もれるので反転させる */
+    const pillLight = !st.img && t.panel === 'light';
+    pill(c, st.badge, FX+26, FY+26,
+         (st.img || pillLight) ? t.accent : '#fff',
+         (st.img || pillLight) ? '#fff' : t.accent);
     /* 下段 */
     c.fillStyle = t.ink;
     fitOne(c, st.shop, 700, 80, W-M*2, 40);

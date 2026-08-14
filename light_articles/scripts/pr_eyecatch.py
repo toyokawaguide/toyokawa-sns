@@ -38,7 +38,9 @@ THEMES = [
     dict(id="sky",   name="スカイ",   bg="#eef4fb", ink="#1f3b57", accent="#3d86c6", sub="#6d8299"),
     dict(id="peach", name="ピーチ",   bg="#fdf0ee", ink="#4a2b28", accent="#e0705f", sub="#95736e"),
     dict(id="lemon", name="レモン",   bg="#fdfaea", ink="#453d1f", accent="#d8a72a", sub="#8b8055"),
-    dict(id="white", name="ホワイト", bg="#ffffff", ink="#2b2b2b", accent="#c8a15a", sub="#8a8a8a"),
+    # panel="light" … 写真なし（額ぶち）のとき、面を差し色ではなく白で塗り文字を濃くする
+    dict(id="white", name="ホワイト", bg="#ffffff", ink="#2b2b2b", accent="#c8a15a",
+         sub="#8a8a8a", panel="light"),
 ]
 NAME2THEME = {t["name"]: t for t in THEMES}
 
@@ -222,18 +224,28 @@ def render_45(row: dict, photo_path=None, output_path=None):
     d = ImageDraw.Draw(im)
 
     if not photo:                                      # ─ 額ぶち ─
+        # ホワイトだけは面も白にして文字を濃くする（2026-08-14 社長判断）。
+        # 面を差し色で塗ると「ホワイト」なのに金色の面になり、名前と見た目が食い違うため。
+        light = t.get("panel") == "light"
         FX, FY, FW, FH, R = 48, 48, W - 96, 772, 26
-        d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R, fill=hx(t["accent"]))
-        inner_border(im, FX, FY, FW, FH, R)
+        d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R,
+                            fill=hx("#ffffff") if light else hx(t["accent"]))
+        if not light:                                  # 白面に白の内枠を引いても見えない
+            inner_border(im, FX, FY, FW, FH, R)
         d = ImageDraw.Draw(im)
         s, lines = wrap_fit(d, st["catch"], FONT_BOLD, FW - 96, 3, 92, 42)
         bh = len(lines) * int(s * 1.34)
         y = FY + 170 + ((FH - 260) - bh) // 2 + s
         for ln in lines:
-            d.text((FX + 48, y), ln, font=font(FONT_BOLD, s), fill="white", anchor="ls")
+            d.text((FX + 48, y), ln, font=font(FONT_BOLD, s),
+                   fill=hx(t["ink"]) if light else "white", anchor="ls")
             y += int(s * 1.34)
-        d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R, outline=hx(t["accent"]), width=5)
-        pill(d, st["badge"], FX + 26, FY + 26, "white", hx(t["accent"]))
+        d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R, outline=hx(t["accent"]),
+                            width=6 if light else 5)   # 白面は枠がないと輪郭が消える
+        if light:                                      # 白いピルは白面に埋もれるので反転
+            pill(d, st["badge"], FX + 26, FY + 26, hx(t["accent"]), "white")
+        else:
+            pill(d, st["badge"], FX + 26, FY + 26, "white", hx(t["accent"]))
         f = fit_one(d, st["shop"], FONT_BOLD, 80, W - M * 2, 40)
         d.text((M, 950), st["shop"], font=f, fill=hx(t["ink"]), anchor="ls")
         addr_line(d, t, st["addr"], M, 1032, W - M * 2)
