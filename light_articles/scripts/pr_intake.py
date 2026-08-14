@@ -226,6 +226,13 @@ def main():
         elif (r.get("状態") or "").strip() == STATUS_NEW:
             targets.append((i, r))
 
+    # 処理対象の件数を残す。GHAの失敗通知が「申込ゼロの空振り回か / 実際に申込を
+    # 処理していて落ちたのか」を判別するために使う（2026-08-14 追加）
+    try:
+        Path("_intake_pending_count.txt").write_text(str(len(targets)), encoding="utf-8")
+    except OSError:
+        pass
+
     if not targets:
         log("📭 新しい申込はありません")
         return

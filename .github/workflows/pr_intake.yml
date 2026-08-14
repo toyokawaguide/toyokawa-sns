@@ -73,17 +73,52 @@ jobs:
           echo "実行: python pr_intake.py $ARGS"
           python pr_intake.py $ARGS
 
-      - name: 失敗通知（Gmail）
+      # 失敗しても毎回メールを飛ばさない（2026-08-14）。
+      # 10分に1回×144回/日 動くので、単発の一時エラーまで通知すると通知が意味を失う。
+      #   通知するのは次のどちらかに当てはまる時だけ:
+      #     (A) 実際に処理すべき申込が1件以上あった＝申込者を待たせている可能性がある
+      #     (B) 前回の実行も失敗している＝一時エラーではなく本当に壊れている
+      - name: 通知が必要か判定
+        id: judge
         if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COUNT=$(cat _intake_pending_count.txt 2>/dev/null || echo "-1")
+          PREV=$(gh run list --workflow pr_intake.yml --limit 5 \
+                   --json status,conclusion \
+                   --jq '[.[] | select(.status=="completed")] | .[0].conclusion' 2>/dev/null || echo "unknown")
+          echo "処理対象の申込件数: $COUNT（-1 = 読み取り前に落ちた）"
+          echo "前回の実行結果: $PREV"
+          NOTIFY=no
+          if [ "$COUNT" != "0" ] && [ "$COUNT" != "-1" ]; then NOTIFY=yes; REASON="申込 ${COUNT}件を処理中に失敗"; fi
+          if [ "$PREV" = "failure" ]; then NOTIFY=yes; REASON="${REASON:-一時エラーではない}（前回も失敗＝連続失敗）"; fi
+          echo "notify=$NOTIFY" >> $GITHUB_OUTPUT
+          echo "reason=${REASON:-}" >> $GITHUB_OUTPUT
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          if [ "$NOTIFY" = "no" ]; then
+            echo "::notice::申込ゼロの空振り回＋前回は成功のため、メール通知はしません（次の回で自動復旧する想定）"
+          fi
+
+      - name: 失敗通知（Gmail）
+        if: failure() && steps.judge.outputs.notify == 'yes'
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          FAIL_REASON: ${{ steps.judge.outputs.reason }}
+          PENDING_COUNT: ${{ steps.judge.outputs.count }}
         run: |
           python -c "
           import os, smtplib
           from email.mime.text import MIMEText
-          msg = MIMEText('さくっとPR 申込受付ワークフローが失敗しました。申込者へのプレビュー返信が止まっている可能性があります。\n\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}', 'plain', 'utf-8')
-          msg['Subject'] = '[豊川ガイド] さくっとPR 申込受付が失敗'
+          body = (
+              'さくっとPR 申込受付ワークフローが失敗しました。\n'
+              '理由: ' + os.environ.get('FAIL_REASON', '') + '\n'
+              '処理対象だった申込: ' + os.environ.get('PENDING_COUNT', '?') + '件（-1 は申込を読む前に落ちた）\n\n'
+              'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          )
+          msg = MIMEText(body, 'plain', 'utf-8')
+          msg['Subject'] = '[豊川ガイド] さくっとPR 申込受付が失敗（要対応）'
           msg['From'] = os.environ['GMAIL_USER']
           msg['To'] = os.environ['GMAIL_USER']
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
