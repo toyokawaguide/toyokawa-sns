@@ -325,15 +325,31 @@ auto.onclick = () => { themeChoice='auto'; syncSw(); draw(); };
 $('theme').appendChild(auto);
 THEMES.forEach(t => {
   const b = document.createElement('button');
-  b.className = 'sw'; b.style.background = t.accent; b.title = t.name; b.dataset.id = t.id;
+  b.className = 'sw'; b.title = t.name; b.dataset.id = t.id;
+  /* ホワイトは丸も白にする（差し色で塗ると金色に見えて名前と食い違う・2026-08-14）。
+     白いままだと背景に溶けるので、まわりの線だけ差し色にして輪郭を出す */
+  if (t.panel === 'light'){
+    b.style.background = '#fff';
+    b.style.boxShadow = '0 0 0 2px ' + t.accent;
+  } else {
+    b.style.background = t.accent;
+  }
   b.setAttribute('aria-pressed','false');
   b.onclick = () => { themeChoice = t.id; syncSw(); draw(); };
   $('theme').appendChild(b);
 });
 function syncSw(){
   auto.setAttribute('aria-pressed', themeChoice==='auto');
-  [...document.querySelectorAll('.sw')].forEach(x =>
-    x.setAttribute('aria-pressed', x.dataset.id === themeChoice));
+  [...document.querySelectorAll('.sw')].forEach(x => {
+    const on = x.dataset.id === themeChoice;
+    x.setAttribute('aria-pressed', on);
+    /* 白い丸はインラインの box-shadow で輪郭を出しているため、CSSの選択リングが効かない。
+       選ばれている間だけ濃い色のリングに差し替える（2026-08-14） */
+    const t = THEMES.find(v => v.id === x.dataset.id);
+    if (t && t.panel === 'light'){
+      x.style.boxShadow = on ? '0 0 0 2px #2b2b2b' : '0 0 0 2px ' + t.accent;
+    }
+  });
 }
 $('photo').onchange = e => {
   const f = e.target.files[0]; if(!f) return;
