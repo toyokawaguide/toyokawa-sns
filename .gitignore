@@ -35,3 +35,4 @@ light_articles/scripts/_footer_compare.png
 
 # さくっとPR 申込受付の一時マーカー（通知判定用・コミット不要）
 light_articles/scripts/_intake_pending_count.txt
+light_articles/scripts/_intake_fail_streak

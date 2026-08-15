@@ -57,7 +57,18 @@ jobs:
           mkdir -p _assets
           echo "${{ secrets.LIGHT_GOOGLE_TOKEN_B64 }}" | base64 -d > _assets/sheets_token.json
 
+      # 連続失敗の回数を持ち回る（キャッシュ）。無害な失敗は緑で終わらせる方針にしたため、
+      # 「前回の実行結果」では連続failureを判定できなくなった。その代わりの仕組み（2026-08-15）
+      - name: 連続失敗カウンタを復元
+        uses: actions/cache@v4
+        with:
+          path: light_articles/scripts/_intake_fail_streak
+          key: pr-intake-streak-${{ github.run_id }}
+          restore-keys: pr-intake-streak-
+
       - name: 申込の受付処理
+        id: intake
+        continue-on-error: true      # ← ここで即赤にしない。赤にするかは次のステップが決める
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -73,35 +84,50 @@ jobs:
           echo "実行: python pr_intake.py $ARGS"
           python pr_intake.py $ARGS
 
-      # 失敗しても毎回メールを飛ばさない（2026-08-14）。
-      # 10分に1回×144回/日 動くので、単発の一時エラーまで通知すると通知が意味を失う。
-      #   通知するのは次のどちらかに当てはまる時だけ:
+      # 10分に1回×144回/日 動くので、単発の一時エラーまで知らせると通知が意味を失う。
+      # 「無害な失敗」は**ジョブを緑で終わらせて**GitHub純正の失敗メールも出さない（2026-08-15）。
+      #   赤にする（＝GitHubからも自作Gmailからも通知が飛ぶ）のは次のどれかだけ:
       #     (A) 実際に処理すべき申込が1件以上あった＝申込者を待たせている可能性がある
-      #     (B) 前回の実行も失敗している＝一時エラーではなく本当に壊れている
+      #     (B) 失敗が6回続いた（≒1時間直っていない）＝一時エラーではなく本当に壊れている
       - name: 通知が必要か判定
         id: judge
-        if: failure()
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          STREAK_FILE=_intake_fail_streak
+          PREV_STREAK=$(cat "$STREAK_FILE" 2>/dev/null || echo 0)
+
+          if [ "${{ steps.intake.outcome }}" = "success" ]; then
+            echo 0 > "$STREAK_FILE"
+            echo "受付処理は成功。連続失敗カウンタを 0 に戻しました"
+            echo "notify=no" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           COUNT=$(cat _intake_pending_count.txt 2>/dev/null || echo "-1")
-          PREV=$(gh run list --workflow pr_intake.yml --limit 5 \
-                   --json status,conclusion \
-                   --jq '[.[] | select(.status=="completed")] | .[0].conclusion' 2>/dev/null || echo "unknown")
-          echo "処理対象の申込件数: $COUNT（-1 = 読み取り前に落ちた）"
-          echo "前回の実行結果: $PREV"
+          STREAK=$((PREV_STREAK + 1))
+          echo "$STREAK" > "$STREAK_FILE"
+          echo "処理対象の申込件数: $COUNT（-1 = 申込を読む前に落ちた）"
+          echo "連続失敗: ${STREAK}回目"
+
           NOTIFY=no
-          if [ "$COUNT" != "0" ] && [ "$COUNT" != "-1" ]; then NOTIFY=yes; REASON="申込 ${COUNT}件を処理中に失敗"; fi
-          if [ "$PREV" = "failure" ]; then NOTIFY=yes; REASON="${REASON:-一時エラーではない}（前回も失敗＝連続失敗）"; fi
+          if [ "$COUNT" != "0" ] && [ "$COUNT" != "-1" ]; then
+            NOTIFY=yes; REASON="申込 ${COUNT}件を処理中に失敗"
+          fi
+          if [ "$STREAK" -ge 6 ]; then
+            NOTIFY=yes; REASON="${REASON:-受付処理が失敗}（${STREAK}回連続＝約1時間直っていない）"
+          fi
           echo "notify=$NOTIFY" >> $GITHUB_OUTPUT
           echo "reason=${REASON:-}" >> $GITHUB_OUTPUT
           echo "count=$COUNT" >> $GITHUB_OUTPUT
+          echo "streak=$STREAK" >> $GITHUB_OUTPUT
           if [ "$NOTIFY" = "no" ]; then
-            echo "::notice::申込ゼロの空振り回＋前回は成功のため、メール通知はしません（次の回で自動復旧する想定）"
+            echo "::notice::申込ゼロの空振り回で、連続${STREAK}回目（6回未満）のため通知しません。次の回で自動復旧する想定です"
           fi
 
       - name: 失敗通知（Gmail）
-        if: failure() && steps.judge.outputs.notify == 'yes'
+        if: always() && steps.judge.outputs.notify == 'yes'
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -125,3 +151,16 @@ jobs:
               s.login(os.environ['GMAIL_USER'], os.environ['GMAIL_APP_PASSWORD'])
               s.send_message(msg)
           "
+
+      # ここで初めて赤／緑を決める。無害な失敗は緑のまま終わらせ、
+      # GitHub純正の「Run failed」メールも出さない（社長への通知は本当に要る時だけ）
+      - name: 結果を確定
+        if: always()
+        run: |
+          if [ "${{ steps.intake.outcome }}" = "success" ]; then exit 0; fi
+          if [ "${{ steps.judge.outputs.notify }}" = "yes" ]; then
+            echo "::error::受付処理が失敗しました（要対応）: ${{ steps.judge.outputs.reason }}"
+            exit 1
+          fi
+          echo "::warning::受付処理は失敗しましたが、申込ゼロ・連続${{ steps.judge.outputs.streak }}回目のため成功扱いにします（次の回で復旧見込み）"
+          exit 0
