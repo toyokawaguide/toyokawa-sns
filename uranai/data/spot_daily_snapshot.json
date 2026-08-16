@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-08-16T00:27:10.851196+09:00",
-  "captured_date": "2026-08-16",
+  "captured_at": "2026-08-17T00:27:28.247030+09:00",
+  "captured_date": "2026-08-17",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-16": {
-      "name": null,
-      "is_chain": false
-    },
     "2026-08-17": {
       "name": "ドクターストレッチ",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-09-15": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-16": {
       "name": null,
       "is_chain": false
     }
