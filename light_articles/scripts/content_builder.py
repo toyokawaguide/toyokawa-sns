@@ -333,10 +333,24 @@ def _x_weight(text: str) -> int:
     return w
 
 
+X_LIMIT = 280
+
+
 def build_x_caption(row: dict, wp_url: str) -> str:
     """X（Twitter）予約投稿用テキスト（手動コピペ用）
 
-    280 weight を超える場合はつぶやきを省略してフォールバック。
+    2026-08-15 改訂：
+      以前は「つぶやき抜き」の1段しか逃げ道が無く、見出しや「その後」が長い記事は
+      280 weight を超えたまま返っていた（LR083 が 300 で、Xに貼れなかった）。
+      情報量の多い順に候補を並べ、280 に収まる最初のものを返す方式にする。
+
+    削る順番（社長B案・2026-08-15 承認）:
+      1. つぶやきあり（従来のフル）
+      2. つぶやき抜き
+      3. place と その後 を改行で分ける＋リード文を落とす  ← B案の形
+      4. さらに締めの一言を落とす
+      5. その後を1段目だけにする
+    最後まで収まらない場合は場所名を詰めて必ず 280 以内で返す。
     """
     place = row.get("場所", "").strip()
     sub = get_sub(row)
@@ -351,16 +365,40 @@ def build_x_caption(row: dict, wp_url: str) -> str:
 
     closing = "豊川市のちょっとした変化、見つけたらDMで教えてね👀"
     hashtags = f"#豊川市 #豊川ガイド #とよサポ {series.hashtag()}"
-
-    # まずはつぶやきあり版を試算
+    detail = f"▼ 詳細\n{wp_url}"
     ts = _tsubuyaki_block(row)
-    if ts:
-        full = (f"{title}\n\n{lead}\n\n{ts[0]}\n{ts[1]}"
-                f"\n\n▼ 詳細\n{wp_url}\n\n{closing}\n\n{hashtags}")
-        if _x_weight(full) <= 280:
-            return full
-        # オーバーする場合はつぶやき抜き
-    return f"{title}\n\n{lead}\n\n▼ 詳細\n{wp_url}\n\n{closing}\n\n{hashtags}"
+
+    def join(*blocks) -> str:
+        return "\n\n".join(b for b in blocks if b)
+
+    # B案の見出し：ラベルと場所を改行で分け、その後は独立ブロックにする
+    sub1 = row.get("その後（1段目）", "").strip()
+    sub2 = row.get("その後（2段目）", "").strip()
+    if sub1 == place:
+        sub1 = ""
+    head_b = f"【{series.LABEL}】\n{place}"
+    body_b = "\n".join(x for x in (sub1, sub2) if x)
+    body_b1 = sub1 or sub2
+
+    candidates = [
+        join(title, lead, "\n".join(ts) if ts else "", detail, closing, hashtags),
+        join(title, lead, detail, closing, hashtags),
+        join(head_b, body_b, detail, closing, hashtags),          # ← B案
+        join(head_b, body_b, detail, hashtags),
+        join(head_b, body_b1, detail, hashtags),
+    ]
+    for c in candidates:
+        if _x_weight(c) <= X_LIMIT:
+            return c
+
+    # ここまで来るのは場所名が極端に長い場合だけ。場所を詰めて必ず収める
+    shortest = candidates[-1]
+    over = _x_weight(shortest) - X_LIMIT
+    if over > 0 and len(place) > 8:
+        keep = max(8, len(place) - (over + 1) // 2)
+        head_b = f"【{series.LABEL}】\n{place[:keep]}…"
+        shortest = join(head_b, body_b1, detail, hashtags)
+    return shortest
 
 
 def build_threads_caption(row: dict, wp_url: str) -> str:
