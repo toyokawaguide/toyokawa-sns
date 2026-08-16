@@ -27,7 +27,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from sheets_client import get_draft_rows, get_pending_rows, update_status, SPREADSHEET_ID, get_row_by_id
+from sheets_client import (get_draft_rows, get_pending_rows, update_status, SPREADSHEET_ID,
+                           get_row_by_id, get_sns_done, add_sns_done)
 from content_builder import (build_title, build_content, build_photo_html,
                               build_x_caption, build_threads_caption,
                               build_instagram_caption, get_sub)
@@ -476,14 +477,42 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     ig_caption = build_instagram_caption(row, wp_url)
     x_text = build_x_caption(row, wp_url)
 
-    log(f"🧵 Threads 投稿（dry={sns_dry}）", 1)
-    threads_result = post_threads(threads_caption, dry=sns_dry)
-    log(f"  → {threads_result}", 2)
+    # 2026-08-16: 媒体ごとに「もう投稿できたか」を見る。
+    # 以前は1媒体でも失敗すると次の発火で全媒体に送り直し、成功していたIGに
+    # 重複が積み上がった（LR081で6件）。成功済みは二度と送らない。
+    done = set()
+    if not sns_dry and not dry_run:
+        try:
+            done = get_sns_done(row_index)
+            if done:
+                log(f"↩ 既に投稿済みの媒体はとばします: {', '.join(sorted(done))}", 1)
+        except Exception as e:
+            log(f"⚠ 投稿済み記録を読めませんでした（全媒体に投稿します）: {e}", 1)
+
+    def mark(media):
+        if sns_dry or dry_run:
+            return
+        try:
+            add_sns_done(row_index, media)
+        except Exception as e:
+            log(f"⚠ 「{media}」の投稿済み記録に失敗: {e}", 2)
+
+    if "threads" in done:
+        log("🧵 Threads … 投稿済みなのでスキップ", 1)
+        threads_result = {"status": "skipped"}
+    else:
+        log(f"🧵 Threads 投稿（dry={sns_dry}）", 1)
+        threads_result = post_threads(threads_caption, dry=sns_dry)
+        log(f"  → {threads_result}", 2)
+        if not threads_result.get("error"):
+            mark("threads")
 
     # === IG Feed カルーセル：1枚目=生成カバー、2枚目以降=番号写真(1から・豊川ガイド枠付き) ===
     # 番号写真は通常SNS記事と同じ豊川ガイド枠(上下フレーム・1080×1350)に入れてからアップ
     carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
     ig_images = [ig_feed_url] if ig_feed_url else [ig_post_image_url]
+    if "ig_feed" in done:
+        carousel_photos = []          # 枠付けとアップの処理も丸ごと省く
     if not sns_dry and carousel_photos:
         from photo_frame import frame_photo
         frame_month = f"{publish_dt.year}年{publish_dt.month}月"
@@ -494,13 +523,23 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
             frame_photo(str(p), str(framed), frame_month)
             ig_images.append(upload_media(framed)["source_url"])
             log(f"  🖼️ 枠付け→アップ: {p.name}", 2)
-    log(f"📷 Instagram Feed カルーセル投稿（カバー＋番号写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
-    ig_feed_result = post_instagram_feed_carousel(ig_caption, ig_images, dry=sns_dry)
-    log(f"  → {ig_feed_result}", 2)
+    if "ig_feed" in done:
+        log("📷 Instagram Feed … 投稿済みなのでスキップ", 1)
+        ig_feed_result = {"status": "skipped"}
+    else:
+        log(f"📷 Instagram Feed カルーセル投稿（カバー＋番号写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
+        ig_feed_result = post_instagram_feed_carousel(ig_caption, ig_images, dry=sns_dry)
+        log(f"  → {ig_feed_result}", 2)
+        if not ig_feed_result.get("error"):
+            mark("ig_feed")
 
-    log(f"🎬 Instagram Reels 投稿（1080×1920・dry={sns_dry}）", 1)
-    reel_result = post_instagram_reel_resumable(ig_caption, reel_path, dry=sns_dry)
-    log(f"  → {reel_result}", 2)
+    if "ig_reel" in done:
+        log("🎬 Instagram Reels … 投稿済みなのでスキップ", 1)
+        reel_result = {"status": "skipped"}
+    else:
+        log(f"🎬 Instagram Reels 投稿（1080×1920・dry={sns_dry}）", 1)
+        reel_result = post_instagram_reel_resumable(ig_caption, reel_path, dry=sns_dry)
+        log(f"  → {reel_result}", 2)
     # Resumable が ProcessingFailedError 等で失敗したら公開URL方式で再挑戦
     # （2026-07-19 LR053: Resumable が5回とも 400 ProcessingFailedError になった）
     if (not sns_dry) and reel_result.get("error"):
@@ -512,6 +551,7 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
             log(f"  → (fallback) {fb}", 2)
             if fb.get("status") == "ok":
                 reel_result = fb
+                mark("ig_reel")
         except Exception as _e:
             log(f"  ⚠ フォールバックも失敗: {_e}", 2)
 

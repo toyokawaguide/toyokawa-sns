@@ -140,6 +140,51 @@ def update_status(row_index: int, new_status: str, sheet: str = None, spreadshee
     ).execute()
 
 
+SNS_DONE_COL = "SNS済"
+
+
+def get_sns_done(row_index: int, sheet: str = None, spreadsheet_id: str = None) -> set:
+    """その記事で既に投稿が成功した媒体を返す（例 {"threads","ig_feed","ig_reel"}）
+
+    2026-08-16: 1媒体でも失敗すると状態が draft のまま残り、次の発火で
+    全媒体に投稿し直していたため、成功済みの Instagram に重複が積み上がった
+    （LR081 天婦羅二条で6件）。媒体ごとに記録して二度と送らないようにする。
+    """
+    service = get_service()
+    sheet_name = sheet or SHEET_NAME
+    sid = spreadsheet_id or SPREADSHEET_ID
+    headers = service.spreadsheets().values().get(
+        spreadsheetId=sid, range=f"{sheet_name}!1:1").execute().get("values", [[]])[0]
+    if SNS_DONE_COL not in headers:
+        return set()
+    col = _column_letter(headers.index(SNS_DONE_COL) + 1)
+    v = service.spreadsheets().values().get(
+        spreadsheetId=sid, range=f"{sheet_name}!{col}{row_index}").execute().get("values")
+    if not v or not v[0]:
+        return set()
+    return {s.strip() for s in str(v[0][0]).split(",") if s.strip()}
+
+
+def add_sns_done(row_index: int, media: str, sheet: str = None, spreadsheet_id: str = None):
+    """媒体1つを「投稿済み」として記録する（投稿が成功した直後に呼ぶ）"""
+    done = get_sns_done(row_index, sheet, spreadsheet_id)
+    if media in done:
+        return
+    done.add(media)
+    service = get_service()
+    sheet_name = sheet or SHEET_NAME
+    sid = spreadsheet_id or SPREADSHEET_ID
+    headers = service.spreadsheets().values().get(
+        spreadsheetId=sid, range=f"{sheet_name}!1:1").execute().get("values", [[]])[0]
+    if SNS_DONE_COL not in headers:
+        raise RuntimeError(f"「{SNS_DONE_COL}」列が見つかりません")
+    col = _column_letter(headers.index(SNS_DONE_COL) + 1)
+    service.spreadsheets().values().update(
+        spreadsheetId=sid, range=f"{sheet_name}!{col}{row_index}",
+        valueInputOption="RAW",
+        body={"values": [[",".join(sorted(done))]]}).execute()
+
+
 def get_draft_rows() -> list[tuple[int, dict]]:
     """状態=draft の行を取得（古い順＝行番号昇順）
     朝5時 wp_only cron 用：未処理の draft のみ拾う（予約済は再登録不要）
