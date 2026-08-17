@@ -540,6 +540,11 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         log(f"🎬 Instagram Reels 投稿（1080×1920・dry={sns_dry}）", 1)
         reel_result = post_instagram_reel_resumable(ig_caption, reel_path, dry=sns_dry)
         log(f"  → {reel_result}", 2)
+        # 2026-08-17: 通常ルートの成功時に記録が抜けていて、他媒体が失敗した回の
+        # 次の発火でリールだけ二重投稿された（LR082で実害・IGに2本並んだ）。
+        # 記録はフォールバック成功時だけでなく、ここでも必ず書く。
+        if not sns_dry and reel_result.get("status") == "ok":
+            mark("ig_reel")
     # Resumable が ProcessingFailedError 等で失敗したら公開URL方式で再挑戦
     # （2026-07-19 LR053: Resumable が5回とも 400 ProcessingFailedError になった）
     if (not sns_dry) and reel_result.get("error"):
