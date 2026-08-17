@@ -174,8 +174,19 @@ def main():
     lines.append("  更新先 : toyokawa-sns ＋ toyokawa-article-sns の Secrets 両方")
     body = "\n".join(lines)
     warn = "❌至急" if hard else "⚠️要注意"
-    if send_gmail(f"[豊川ガイド]{warn} SNSトークン健康診断", body):
+    sent = send_gmail(f"[豊川ガイド]{warn} SNSトークン健康診断", body)
+    if sent:
         print("Gmail通知 送信完了")
+    else:
+        print("⚠ Gmail通知を送れませんでした（GMAIL未設定 or 送信失敗）")
+
+    # 2026-08-17: これまで invalid を検出していたのに、Gmail が埋もれて3日気づかなかった。
+    # 「invalid / missing」があればワークフロー自体を赤(failure)で終わらせる。
+    # そうすれば GitHub 純正の「Run failed」メールも自動で飛び、Gmail送信が失敗しても
+    # 気づける二重の通知網になる。warn（14日前予告）は緑のまま（急ぎではないため）。
+    if hard:
+        print("::error::SNSトークンが無効/未設定です。至急、再発行と Secret 更新を。")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
