@@ -123,13 +123,19 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     # === 写真（G:\マイドライブ\さくっとPR\{PRID}_{店名}\・ライト記事と分離） ===
     photos = get_pr_photos(article_id, shop)
 
+    # 「0」番＝16:9アイキャッチ専用写真（任意）。全面crop で文字が欠ける写真のときに
+    # 手動で切り出した16:9版を 0.jpg として置く。本文・カルーセル・IGカードには出さない
+    # （2026-08-19 PR003: 受賞写真の焼き込み文字が16:9cropで欠けた対策）
+    ec_photo = next((p for p in photos if int(p.stem) == 0), None)
+    photos = [p for p in photos if int(p.stem) != 0]
+
     # === アイキャッチ＆IG Feed（2026-08-05 確定デザイン：額ぶち／一枚の札） ===
     #     色・ラベルは備考の「色：／ラベル：」を読む（無ければ店名から自動＝申込プレビューと同じ色）
     import pr_eyecatch
     first_photo = photos[0] if photos else None
     eyecatch_path = ROOT / "_sample" / f"_tmp_{article_id}_eyecatch.png"
     eyecatch_path.parent.mkdir(exist_ok=True)
-    pr_eyecatch.render_169(row, photo_path=first_photo, output_path=eyecatch_path)
+    pr_eyecatch.render_169(row, photo_path=(ec_photo or first_photo), output_path=eyecatch_path)
     log(f"🎨 アイキャッチ16:9（{'一枚の札' if first_photo else '額ぶち'}）: {eyecatch_path.name}", 1)
 
     ig_feed_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_feed.png"
