@@ -96,6 +96,11 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
                 f'<figure class="wp-block-image size-large" style="margin:0 0 2em;">'
                 f'<img src="{u}" alt="{shop}"/></figure>'
             )
+        # 写真の出所を明示（提供許諾があることの表明・2026-08-19 PR002を機に全記事標準化）
+        parts.append(
+            '<p style="font-size:0.85em;color:#666;">'
+            '※掲載写真はご依頼者さまより提供いただいたものです。無断転載はご遠慮ください。</p>'
+        )
 
     # ⑤ 基本情報（お店以外＝サークル・イベント等でも自然な見出しに・2026-08-05）
     #    空欄の項目は行ごと出ない。全部空なら表も見出しも出ない
