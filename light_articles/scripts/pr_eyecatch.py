@@ -128,26 +128,54 @@ def wrap_fit(d, text, fpath, max_w, max_lines, start, min_s):
                 lines.append("")
                 continue
             words = _PARSER.parse(para) if _PARSER else list(para)
-            cur = ""
-            for wd in words:
-                while d.textlength(wd, font=f) > max_w:
-                    seg = ""
-                    for ch in wd:
-                        if seg and d.textlength(seg + ch, font=f) > max_w:
-                            break
-                        seg += ch
-                    if cur:
-                        lines.append(cur); cur = ""
-                    lines.append(seg); wd = wd[len(seg):]
-                if cur and d.textlength(cur + wd, font=f) > max_w:
-                    lines.append(cur); cur = wd
-                else:
-                    cur += wd
-            if cur:
-                lines.append(cur)
+            plines = _wrap_greedy(d, words, f, max_w)
+            # 1段落が2行になるときは、左右の幅が釣り合う分割点に置き直す
+            # （「元気いっぱい 踊って / 遊ぼう」→「元気いっぱい / 踊って 遊ぼう」2026-08-19 社長指摘）
+            if len(plines) == 2:
+                bal = _balance_two(d, words, f, max_w)
+                if bal:
+                    plines = bal
+            lines.extend(plines)
         if len(lines) <= eff_max:
             return s, lines
     return min_s, (paras if len(paras) > 1 else [str(text)[:24] + "…"])
+
+
+def _wrap_greedy(d, words, f, max_w):
+    """従来の貪欲折返し（1段落分）。"""
+    lines, cur = [], ""
+    for wd in words:
+        while d.textlength(wd, font=f) > max_w:
+            seg = ""
+            for ch in wd:
+                if seg and d.textlength(seg + ch, font=f) > max_w:
+                    break
+                seg += ch
+            if cur:
+                lines.append(cur); cur = ""
+            lines.append(seg); wd = wd[len(seg):]
+        if cur and d.textlength(cur + wd, font=f) > max_w:
+            lines.append(cur); cur = wd
+        else:
+            cur += wd
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def _balance_two(d, words, f, max_w):
+    """budoux境界の中から、2行の幅の差が最小になる分割を選ぶ。収まる分割が無ければNone。"""
+    best = None
+    for i in range(1, len(words)):
+        l1 = "".join(words[:i]).strip()
+        l2 = "".join(words[i:]).strip()
+        w1, w2 = d.textlength(l1, font=f), d.textlength(l2, font=f)
+        if w1 > max_w or w2 > max_w:
+            continue
+        diff = abs(w1 - w2)
+        if best is None or diff < best[0]:
+            best = (diff, [l1, l2])
+    return best[1] if best else None
 
 
 def fit_one(d, text, fpath, start, max_w, min_s):
