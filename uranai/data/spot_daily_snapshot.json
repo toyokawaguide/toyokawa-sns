@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-08-19T00:37:20.566875+09:00",
-  "captured_date": "2026-08-19",
+  "captured_at": "2026-08-20T00:37:30.737164+09:00",
+  "captured_date": "2026-08-20",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-19": {
-      "name": "赤虎",
-      "is_chain": false
-    },
     "2026-08-20": {
       "name": "アエナ",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-09-18": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-19": {
       "name": null,
       "is_chain": false
     }
