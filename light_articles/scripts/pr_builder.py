@@ -133,6 +133,19 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
             f'<strong>🦊 豊川ガイドから：</strong>{guide_note}</div>'
         )
 
+    # ⑦c 法定表示（任意・シート「法定表示」列に書いた時だけ・2026-08-19 PR003動物取扱業を機に新設）
+    #     1行目=見出し・2行目以降=表示項目。動物取扱業の標識など、広告に表示義務がある情報をそのまま載せる
+    houtei = (row.get("法定表示", "") or "").strip()
+    if houtei:
+        h_lines = [ln.strip() for ln in houtei.split("\n") if ln.strip()]
+        if h_lines:
+            body_lines = "<br/>".join(h_lines[1:])
+            parts.append(
+                '<div style="border:1px solid #999;border-radius:8px;padding:12px 16px;'
+                'background:#fafafa;font-size:0.85em;margin:1.2em 0;">'
+                f'<strong>{h_lines[0]}</strong><br/>{body_lines}</div>'
+            )
+
     # ⑧ closing（読者向けの注意書き＋募集導線）
     #    ※「事業者様」に限定しない表現＝「豊川ガイドのユーザー様」（社長確定 2026-08-05）
     parts.append("<hr/>")
