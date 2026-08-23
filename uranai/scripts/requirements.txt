@@ -2,7 +2,8 @@
 # 最終更新: 2026-05-07
 
 # Claude API（記事生成）
-anthropic>=0.40.0
+# 破壊的更新を自動取得しない。更新時はdry-run確認後に固定版を変更する。
+anthropic==1.0.0
 
 # 環境変数
 python-dotenv>=1.0.0

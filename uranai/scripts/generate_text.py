@@ -160,10 +160,12 @@ def call_claude_api(system_prompt: str, user_prompt: str) -> str:
     _budget_guard()
     from anthropic import Anthropic
     client = Anthropic(api_key=api_key)
+    # anthropic 1.0.0 では Messages.create() から temperature 引数が
+    # 削除されたため、SDK更新で毎朝の配信が全停止した（2026-08-22）。
+    # 占い本文はプロンプト側で出力形式を固定しているので、SDK既定値で生成する。
     response = client.messages.create(
         model=config.ANTHROPIC_MODEL,
         max_tokens=config.ANTHROPIC_MAX_TOKENS,
-        temperature=config.ANTHROPIC_TEMPERATURE,
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     )
