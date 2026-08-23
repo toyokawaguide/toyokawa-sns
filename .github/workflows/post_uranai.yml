@@ -25,10 +25,11 @@ on:
         description: '対象日 YYYY-MM-DD（空ならJSTの今日）'
         required: false
       mode:
-        description: '実行モード（publish=フル復旧 / dry-run=テスト）'
+        description: '実行モード（publish=フル復旧 / wp-only=WPのみ / dry-run=テスト）'
         type: choice
         options:
           - publish
+          - wp-only
           - dry-run
         default: 'publish'
 
@@ -136,6 +137,8 @@ jobs:
             esac
           elif [ "${{ github.event.inputs.mode }}" = "publish" ]; then
             FLAGS="--publish"                                  # 手動フル復旧（WP+SNS一括）
+          elif [ "${{ github.event.inputs.mode }}" = "wp-only" ]; then
+            FLAGS="--publish --wp-only --skip-if-published"    # 手動WPのみ（SNS投稿なし）
           else
             FLAGS="--dry --skip-wp"                            # 手動テスト
           fi
