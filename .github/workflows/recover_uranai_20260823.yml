@@ -1,0 +1,62 @@
+name: 占い8月23日 一回限り復旧
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/recover_uranai_20260823.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    if: github.event.head_commit.message == 'recovery: publish uranai 2026-08-23'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: uranai/scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: uranai/scripts/requirements.txt
+      - name: 日本語フォント
+        run: |
+          SAFE_FONT_DIR=/tmp/uranai_fonts
+          mkdir -p "$SAFE_FONT_DIR"
+          BASE_URL="https://github.com/notofonts/noto-cjk/raw/main/Sans/OTC"
+          curl -fsSL --retry 3 --max-time 180 -o "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc" "$BASE_URL/NotoSansCJK-Bold.ttc"
+          curl -fsSL --retry 3 --max-time 180 -o "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc" "$BASE_URL/NotoSansCJK-Regular.ttc"
+          cp "$SAFE_FONT_DIR/NotoSansCJK-Bold.ttc" "$SAFE_FONT_DIR/NotoSansCJK-Black.ttc"
+          cp "$SAFE_FONT_DIR/NotoSansCJK-Regular.ttc" "$SAFE_FONT_DIR/NotoSansCJK-Medium.ttc"
+          echo "URANAI_FONT_DIR=$SAFE_FONT_DIR" >> "$GITHUB_ENV"
+      - name: ffmpeg確認
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: ライブラリ
+        run: pip install -r requirements.txt
+      - name: 8月23日を全媒体へ復旧
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          SNS_LOG_WEBHOOK_URL: ${{ secrets.SNS_LOG_WEBHOOK_URL }}
+          SNS_LOG_SECRET: ${{ secrets.SNS_LOG_SECRET }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          URANAI_SHEETS_URL: ${{ secrets.URANAI_SHEETS_URL }}
+          URANAI_SHEETS_SECRET: ${{ secrets.URANAI_SHEETS_SECRET }}
+        run: python main.py --date 2026-08-23 --publish
