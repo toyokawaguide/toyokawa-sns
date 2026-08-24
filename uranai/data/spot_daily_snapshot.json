@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-08-24T00:28:14.955141+09:00",
-  "captured_date": "2026-08-24",
+  "captured_at": "2026-08-25T00:45:00.543987+09:00",
+  "captured_date": "2026-08-25",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-24": {
-      "name": "粋 〜ＩＫＩ〜",
-      "is_chain": false
-    },
     "2026-08-25": {
       "name": "蒙古タンメン中本",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-09-23": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-24": {
       "name": null,
       "is_chain": false
     }
