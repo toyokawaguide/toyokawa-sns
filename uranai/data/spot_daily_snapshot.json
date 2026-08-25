@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-08-25T00:45:00.543987+09:00",
-  "captured_date": "2026-08-25",
+  "captured_at": "2026-08-26T00:49:53.588260+09:00",
+  "captured_date": "2026-08-26",
   "lookahead_days": 30,
   "spots": {
-    "2026-08-25": {
-      "name": "蒙古タンメン中本",
-      "is_chain": false
-    },
     "2026-08-26": {
       "name": "ホワイトニングショップ豊川店",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-09-24": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-09-25": {
       "name": null,
       "is_chain": false
     }
