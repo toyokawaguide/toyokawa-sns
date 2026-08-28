@@ -478,6 +478,26 @@ def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, r
     return sns_results
 
 
+def _threads_already_posted(target_date: date, weekday_jp: str) -> bool:
+    """Threadsの実投稿一覧に本日の占いがあるか（曜日付き日付キーで判定・全曜日対応）。
+    チェック失敗時は False（従来動作で投稿続行・安全側=投稿優先）。"""
+    tok = os.environ.get("THREADS_ACCESS_TOKEN")
+    if not tok:
+        return False
+    try:
+        import requests as _rq
+        r = _rq.get("https://graph.threads.net/v1.0/me/threads",
+                    params={"fields": "text,timestamp", "limit": 10, "access_token": tok},
+                    timeout=30)
+        key = f"{target_date.month}/{target_date.day}({weekday_jp})"
+        for m in r.json().get("data", []):
+            if key in (m.get("text") or ""):
+                return True
+    except Exception as e:
+        print(f"  [warn] Threads実投稿チェック失敗（続行）: {e}")
+    return False
+
+
 def run_sns_only(target_date: date) -> dict:
     """別ジョブ（6:00）：WP公開ジョブが保存した bridge を読み、SNSのみ投稿する。
     bridge が無ければSNSはスキップ（記事は既に公開済＝Xリンクは生きてる）＋失敗通知。"""
@@ -485,6 +505,14 @@ def run_sns_only(target_date: date) -> dict:
     weekday_key = WEEKDAY_KEYS[target_date.weekday()]
     weekday_jp = WEEKDAY_JP[target_date.weekday()]
     print(f"\n{'='*60}\n占い SNS投稿のみ  {target_date} ({weekday_jp})\n{'='*60}\n")
+
+    # ── 実投稿ガード（2026-08-28 二重投稿の恒久対策）──
+    # GHA内マーカーはローカル復旧を知らない。GitHub障害で溜まったcronが昼に遅延発火し、
+    # 朝のローカル復旧分と二重投稿になった（8/28 Threads/IG各2件）。
+    # 投稿先そのもの（Threads実投稿一覧）を確認し、当日の占いが既にあれば環境を問わずスキップする。
+    if _threads_already_posted(target_date, weekday_jp):
+        print("  ✅ Threadsに本日の占いが既に存在（ローカル復旧等） → 二重投稿防止でSNSスキップ")
+        return {"status": "already_posted_live_check"}
 
     bridge_file = OUTPUT_DIR / f"bridge_{target_date}.json"
     if not bridge_file.exists():
