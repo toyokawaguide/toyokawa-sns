@@ -5,6 +5,7 @@
 ⚠️ ステマ規制（景品表示法）対応：タイトル・本文・全SNSキャプションに広告表記を必ず入れる。
 """
 from __future__ import annotations
+import re
 import unicodedata
 
 HASHTAGS_BASE = "#PR #豊川市 #豊川ガイド #とよサポ #さくっとPR"
@@ -161,18 +162,35 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
 
 
 def build_pr_x_caption(row: dict, wp_url: str) -> str:
+    """X投稿文（2026-09-01 社長確定形式）
+    タイトル1行（キャッチの手動改行は除去）＋紹介文メモ＋つぶやき＋詳細＋タグ。
+    280 weight 超過時は 紹介文メモの後ろの行→つぶやき→特典 の順で落とす。"""
     shop = row.get("店名", "").strip()
-    catch = row.get("ひとことキャッチ", "").strip()
+    catch = re.sub(r"\s*\r?\n\s*", "", row.get("ひとことキャッチ", "").strip())
     tokuten = (row.get("特典・クーポン", "") or "").strip()
+    memo_lines = [l.strip() for l in (row.get("紹介文メモ", "") or "").splitlines() if l.strip()]
+    tweet = (row.get("つぶやき", "") or "").strip()
     title = f"【PR】{shop}" + (f"｜{catch}" if catch else "")
-    lines = [title, ""]
-    if tokuten:
-        lines += [f"🎁 {tokuten}", ""]
-    lines += ["▼ 詳細", wp_url, "", _hashtags(row)]
-    full = "\n".join(lines)
+
+    def assemble(memos, tw, tk):
+        lines = [title, ""]
+        body = list(memos) + ([tw] if tw else [])
+        if body:
+            lines += body + [""]
+        if tk:
+            lines += [f"🎁 {tk}", ""]
+        lines += ["▼ 詳細", wp_url, "", _hashtags(row)]
+        return "\n".join(lines)
+
+    memos = list(memo_lines)
+    full = assemble(memos, tweet, tokuten)
+    while _x_weight(full) > 280 and memos:
+        memos.pop()
+        full = assemble(memos, tweet, tokuten)
+    if _x_weight(full) > 280 and tweet:
+        full = assemble(memos, "", tokuten)
     if _x_weight(full) > 280 and tokuten:
-        lines = [title, "", "▼ 詳細", wp_url, "", _hashtags(row)]
-        full = "\n".join(lines)
+        full = assemble(memos, "", "")
     return full
 
 
