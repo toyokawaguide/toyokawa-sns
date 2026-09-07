@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-09-07T02:34:17.408723+09:00",
-  "captured_date": "2026-09-07",
+  "captured_at": "2026-09-08T04:04:14.141349+09:00",
+  "captured_date": "2026-09-08",
   "lookahead_days": 30,
   "spots": {
-    "2026-09-07": {
-      "name": "茶房 遊菴",
-      "is_chain": false
-    },
     "2026-09-08": {
       "name": "からあげ カラコ",
       "is_chain": false
@@ -32,11 +28,11 @@
       "is_chain": false
     },
     "2026-09-14": {
-      "name": null,
+      "name": "はらや MAZE SOBA",
       "is_chain": false
     },
     "2026-09-15": {
-      "name": null,
+      "name": "はれる屋食堂",
       "is_chain": false
     },
     "2026-09-16": {
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-10-07": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-10-08": {
       "name": null,
       "is_chain": false
     }
