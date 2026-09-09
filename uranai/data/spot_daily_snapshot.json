@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-09-09T03:27:24.171685+09:00",
-  "captured_date": "2026-09-09",
+  "captured_at": "2026-09-10T03:26:35.762987+09:00",
+  "captured_date": "2026-09-10",
   "lookahead_days": 30,
   "spots": {
-    "2026-09-09": {
-      "name": "ハイボール酒場 水屋",
-      "is_chain": false
-    },
     "2026-09-10": {
       "name": "長谷川餃子",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-10-09": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-10-10": {
       "name": null,
       "is_chain": false
     }
