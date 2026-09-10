@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-09-10T03:26:35.762987+09:00",
-  "captured_date": "2026-09-10",
+  "captured_at": "2026-09-11T03:15:41.399976+09:00",
+  "captured_date": "2026-09-11",
   "lookahead_days": 30,
   "spots": {
-    "2026-09-10": {
-      "name": "長谷川餃子",
-      "is_chain": false
-    },
     "2026-09-11": {
       "name": "あらびか",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-10-10": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-10-11": {
       "name": null,
       "is_chain": false
     }
