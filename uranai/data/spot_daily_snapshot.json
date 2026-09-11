@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-09-11T03:15:41.399976+09:00",
-  "captured_date": "2026-09-11",
+  "captured_at": "2026-09-12T03:19:44.090520+09:00",
+  "captured_date": "2026-09-12",
   "lookahead_days": 30,
   "spots": {
-    "2026-09-11": {
-      "name": "あらびか",
-      "is_chain": false
-    },
     "2026-09-12": {
       "name": "お好み焼き うめ",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-10-11": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-10-12": {
       "name": null,
       "is_chain": false
     }
