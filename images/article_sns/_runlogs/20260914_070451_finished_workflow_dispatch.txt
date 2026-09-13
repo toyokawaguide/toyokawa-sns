@@ -1,0 +1,39 @@
+time=2026-09-14T07:04:51.536015+09:00
+event=workflow_dispatch
+run_id=34785503595
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS095 【解体工事費3億4534万円】萩山町にある「旧・総合保健セン… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS095_* サブフォルダ検索中...
+✅ Drive: SNS095_2026.09.14【解体工事費3億4534万円】萩山町にある「旧・総合保健センター」の解体工事が始まりそう！解体後の跡地活用は未定らしいよ。何がいい？ (id=11i_XX-l73...)
+  📥 DL: 0.jpg (297 KB)
+  📥 DL: 1.jpg (657 KB)
+  📥 DL: 2.jpg (994 KB)
+  📥 DL: 3.jpg (758 KB)
+  📥 DL: 4.jpg (554 KB)
+  📷 フィード 6枚生成
+    📤 Pages へ 6枚 commit 389128c（反映待ち…）
+    ✅ Pages 配信確認 6枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS095_* サブフォルダ検索中...
+✅ Drive: SNS095_2026.09.14【解体工事費3億4534万円】萩山町にある「旧・総合保健センター」の解体工事が始まりそう！解体後の跡地活用は未定らしいよ。何がいい？ (id=11i_XX-l73...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18598339102066397', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18341306548249682', 'dry': False}
+  🎬 IG Reels
+  container_id=17953102398254312 file_size=5,610,735 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18078199994344370', 'media_type': 'REELS'}
+  📊 状態→投稿済
