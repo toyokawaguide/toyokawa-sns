@@ -38,6 +38,18 @@ def _flatten_catch(catch: str) -> str:
     return out
 
 
+def _catch_head(catch: str) -> str:
+    """空行で区切ったキャッチの前半だけ（例:【主演】寺島しのぶ・常盤貴子）。空行が無ければ全体"""
+    c = (catch or "").strip()
+    if chr(10) + chr(10) in c:
+        c = c.split(chr(10) + chr(10))[0]
+    return _flatten_catch(c)
+
+def _when_short(when: str) -> str:
+    """日時から（…）の補足を外す（X の字数対策）"""
+    return re.sub("[（(][^）)]{4,}[）)]", "", when or "").strip()   # （日）のような短い補足は残す
+
+
 def build_pr_title(row: dict) -> str:
     shop = row.get("店名", "").strip()
     catch = _flatten_catch(row.get("ひとことキャッチ", ""))
@@ -216,10 +228,11 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     title = f"【PR】{shop}" + (f"｜{catch}" if catch else "")
 
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
+    when_ref = [when]
     def assemble(memos, tw, tk, ttl=None):
         lines = [ttl or title, ""]
         if when:   # ★イベント系：日時と会場を最優先（2026-09-15 社長）
-            lines += [f"📅 {when}", f"📍 {venue}", ""]
+            lines += [f"📅 {when_ref[0]}", f"📍 {venue}", ""]
         body = list(memos) + ([tw] if tw else [])
         if body:
             lines += body + [""]
@@ -240,7 +253,13 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
         full = assemble(memos, "", tokuten)
     if _x_weight(full) > 280 and tokuten:
         full = assemble(memos, "", "")
-    if _x_weight(full) > 280 and when and catch:   # ★イベント系：それでも超えたらキャッチを外し店名だけに（日時・会場・©を守る）
+    if _x_weight(full) > 280 and when:   # ★イベント系：日時の（…）を外す → キャッチを前半だけに → それでも超えたら店名だけ
+        when_ref[0] = _when_short(when)
+        full = assemble(memos, "", "")
+    if _x_weight(full) > 280 and when and catch:
+        head = _catch_head(row.get("ひとことキャッチ", ""))
+        full = assemble(memos, "", "", ttl=f"【PR】{shop}｜{head}")
+    if _x_weight(full) > 280 and when and catch:
         full = assemble(memos, "", "", ttl=f"【PR】{shop}")
     return full
 
@@ -252,6 +271,7 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
+    note = (row.get("豊川ガイドから一言", "") or "").strip()
     if genre:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
     if when:
@@ -259,6 +279,8 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
     lines += ["▼ 詳細", wp_url, ""]
+    if note:
+        lines += [f"💬 豊川ガイドから：{note}", ""]
     if credit:
         lines += [f"📷 {credit}", ""]
     lines += [_hashtags(row)]
@@ -273,14 +295,20 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
+    note = (row.get("豊川ガイドから一言", "") or "").strip()
+    memo_lines = [l.strip() for l in (row.get("紹介文メモ", "") or "").splitlines() if l.strip()]
     if genre:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
-    if when:
+    if when and not any("日時" in l for l in memo_lines):
         lines += [f"📅 {when}", ""]
+    if memo_lines:   # ★IGは字数に余裕があるので紹介文メモを全部載せる（2026-09-15 社長「なるべく情報を」）
+        lines += memo_lines + [""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
     if addr:
         lines += [f"📍 {addr}", ""]
+    if note:
+        lines += [f"💬 豊川ガイドから：{note}", ""]
     if credit:
         lines += [f"📷 {credit}", ""]
     lines += [
