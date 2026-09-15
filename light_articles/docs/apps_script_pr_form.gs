@@ -22,7 +22,7 @@
 
 // ★このスクリプトは「ライト記事キュー」とは独立した単体プロジェクトとして動く。
 //   スプレッドシートに付いている既存のスクリプトには一切触れない。
-var SPREADSHEET_ID = '155K-AQdLNUiYb4Z3MK-elyG1U7UIIxPeu397uZsVxdo';   // ライト記事キュー
+var SPREADSHEET_ID = '1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A';   // ★さくっとPRキュー（専用シート・2026-08-05分離）。旧IDに戻すと旧シートに空タブを作って PR001 から採番し直す事故になる（2026-09-15）
 
 // ⚠️ 触るのはこのタブだけ。ライト記事の本番タブ「キュー」には絶対に触れない。
 var SHEET_NAME = 'PRキュー';
@@ -139,10 +139,8 @@ function setupPrForm() {
 
 function ensureSheet(ss) {
   var sh = ss.getSheetByName(SHEET_NAME);
-  if (!sh) {
-    sh = ss.insertSheet(SHEET_NAME);
-    sh.getRange(1, 1, 1, COLS.length).setValues([COLS]);
-    return sh;
+  if (!sh) {   // ★2026-09-15: 勝手に作らない。タブが無い＝参照先が間違っている
+    throw new Error('PRキュー タブが見つかりません。SPREADSHEET_ID が「さくっとPRキュー」を指しているか確認: ' + SPREADSHEET_ID);
   }
   var head = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0];
   COLS.forEach(function (c) {                       // 足りない列だけ後ろに追加（既存は触らない）
@@ -249,7 +247,8 @@ function onPrFormSubmit(e) {
 
 function nextPrId(sh, head) {
   var i = head.indexOf('ID');
-  if (i < 0 || sh.getLastRow() < 2) return 'PR001';
+  if (i < 0) throw new Error('ID 列がありません');
+  if (sh.getLastRow() < 2) throw new Error('PRキューが空です（本番は必ず PR000 サンプル行がある）。参照先のシートを確認: ' + SPREADSHEET_ID);   // ★2026-09-15 PR001 からの振り直し事故を防ぐ
   var vals = sh.getRange(2, i + 1, sh.getLastRow() - 1, 1).getValues();
   var max = 0;
   vals.forEach(function (v) {

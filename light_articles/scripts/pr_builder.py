@@ -25,10 +25,22 @@ def _x_weight(text: str) -> int:
     t = re.sub(r"https?://\S+", "x" * 23, text)
     return sum(1 if unicodedata.east_asian_width(c) in ("Na", "H", "N") else 2 for c in t)
 
+def _flatten_catch(catch: str) -> str:
+    """カード用の手動改行入りキャッチを1行にする（タイトル/X/Threads/IG共通・2026-09-15）。
+    行末の句読点は二重にしない。【…】や：、助詞（を・に・の…）で終わる行の直後は句の途中なので「、」を入れない。"""
+    catch = (catch or "").strip()
+    if chr(10) not in catch:
+        return catch
+    out = ""
+    for part in [l.strip().rstrip("、。") for l in catch.splitlines() if l.strip()]:
+        joiner = "" if (not out or out.endswith(("】", "：", ":", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から"))) else "、"
+        out += joiner + part
+    return out
+
 
 def build_pr_title(row: dict) -> str:
     shop = row.get("店名", "").strip()
-    catch = row.get("ひとことキャッチ", "").strip()
+    catch = _flatten_catch(row.get("ひとことキャッチ", ""))
     if catch:
         return f"【PR】{shop}｜{catch}"
     return f"【PR】{shop}のご紹介"
@@ -59,6 +71,14 @@ def _info_table(row: dict) -> str:
             + "".join(rows_html) + "</table></figure>")
 
 
+_EVENT_WORDS = ("上映会", "講演会", "イベント", "フェス", "祭り", "まつり", "コンサート", "発表会", "展示会", "作品展", "個展", "説明会", "体験会", "ワークショップ", "マルシェ")
+
+def _is_event(shop: str) -> bool:
+    """店名欄が「〇〇上映会」「〇〇フェス」のようなイベント名なら True（2026-09-15）"""
+    s = (shop or "").strip()
+    return any(s.endswith(w) or s.endswith(w + "！") for w in _EVENT_WORDS)
+
+
 def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     shop = row.get("店名", "").strip()
     catch = row.get("ひとことキャッチ", "").strip()
@@ -78,10 +98,15 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     )
 
     # ② リード
-    lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は{('、' + genre + 'の' if genre else '、')}<strong>{shop}</strong>さんをご紹介します！"
+    # ★2026-09-15 イベント系（上映会/講演会/展/フェス等）は「〇〇さん」「映画の映画…」にならない言い回しにする（PR005 上映会）
+    if _is_event(shop):
+        lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は<strong>{shop}</strong>のご案内です！"
+    else:
+        lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は{('、' + genre + 'の' if genre else '、')}<strong>{shop}</strong>さんをご紹介します！"
     parts.append(f"<p>{lead}</p>")
     if catch:
-        parts.append(f"<h2>{catch}</h2>")
+        _h2 = "<br/>".join(l.strip() for l in catch.splitlines() if l.strip())   # 手動改行は <br/>・空行（区切り）は詰める（2026-09-15）
+        parts.append(f"<h2>{_h2}</h2>")
 
     # ③ 紹介文（社長・お店からのメモをそのまま整形）
     if memo:
@@ -122,7 +147,7 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     #    ※申込フォームで集めるのは「店主さんの言葉」なので、管理人の言葉として出さない。
     #      広告記事で媒体が推薦しているように読めると、ステマ規制の観点で問題になる（社長判断 2026-08-02）
     if tsubuyaki:
-        parts.append(f"<p>💬 お店から：{tsubuyaki}</p>")
+        parts.append(f"<p>💬 {'主催者から' if _is_event(shop) else 'お店から'}：{tsubuyaki}</p>")
 
     # ⑦b 豊川ガイドから一言（任意・シートT列に書いた時だけ・2026-08-05社長発案）
     #     広告記事内の媒体コメントなので、体験・事実ベースの言い回し推奨（過度な絶賛は優良誤認リスク）
@@ -152,7 +177,7 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     parts.append("<hr/>")
     parts.append(
         "<p><small>※本記事は「さくっとPR」（豊川ガイドのユーザー様からのお申し込みによる掲載）です。"
-        "内容は掲載時点の情報です。最新の営業時間・価格・サービス内容は各店舗にご確認ください。</small></p>"
+        "内容は掲載時点の情報です。最新の営業時間・価格・サービス内容は" + ("主催者" if _is_event(shop) else "各店舗") + "にご確認ください。</small></p>"
     )
     parts.append(
         "<p><small>「さくっとPR」は豊川ガイドの広告枠です。"
@@ -166,7 +191,7 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     タイトル1行（キャッチの手動改行は除去）＋紹介文メモ＋つぶやき＋詳細＋タグ。
     280 weight 超過時は 紹介文メモの後ろの行→つぶやき→特典 の順で落とす。"""
     shop = row.get("店名", "").strip()
-    catch = re.sub(r"\s*\r?\n\s*", "", row.get("ひとことキャッチ", "").strip())
+    catch = _flatten_catch(row.get("ひとことキャッチ", ""))
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     memo_lines = [l.strip() for l in (row.get("紹介文メモ", "") or "").splitlines() if l.strip()]
     tweet = (row.get("つぶやき", "") or "").strip()
@@ -196,12 +221,12 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
 
 def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     shop = row.get("店名", "").strip()
-    catch = row.get("ひとことキャッチ", "").strip()
+    catch = _flatten_catch(row.get("ひとことキャッチ", ""))
     genre = row.get("ジャンル", "").strip()
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
     if genre:
-        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。{genre}の{shop}さんの紹介です！", ""]
+        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
     lines += ["▼ 詳細", wp_url, "", _hashtags(row)]
@@ -210,13 +235,13 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
 
 def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     shop = row.get("店名", "").strip()
-    catch = row.get("ひとことキャッチ", "").strip()
+    catch = _flatten_catch(row.get("ひとことキャッチ", ""))
     genre = row.get("ジャンル", "").strip()
     addr = (row.get("エリア・住所", "") or "").strip()
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
     if genre:
-        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。{genre}の{shop}さんの紹介です！", ""]
+        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
     if addr:

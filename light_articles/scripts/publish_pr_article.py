@@ -133,6 +133,11 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     #     色・ラベルは備考の「色：／ラベル：」を読む（無ければ店名から自動＝申込プレビューと同じ色）
     import pr_eyecatch
     first_photo = photos[0] if photos else None
+    # ★2026-09-15 備考に「カード写真なし」があれば、写真は本文にだけ載せてカード類（16:9/4:5/リール）には使わない。
+    #   ポスター・キービジュアルなど「文字を重ねる・切り抜く」ができない画像用（PR005 映画上映会）
+    if "カード写真なし" in (row.get("備考") or ""):
+        first_photo = None
+        log("🚫 備考「カード写真なし」→ 写真は本文のみ・カード類は額ぶち", 1)
     eyecatch_path = ROOT / "_sample" / f"_tmp_{article_id}_eyecatch.png"
     eyecatch_path.parent.mkdir(exist_ok=True)
     pr_eyecatch.render_169(row, photo_path=(ec_photo or first_photo), output_path=eyecatch_path)

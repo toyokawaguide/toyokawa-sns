@@ -242,6 +242,19 @@ def brand(d, t, W, H, color=None):
 
 
 # ───────────────────────── 4:5（1080×1350）─────────────────────────
+def _tiered(lines, s):
+    """空行で前後を分ける。前半＝等倍（主役）、後半＝0.72倍。空行自体は高さ0で代わりに 0.85s の間隔。
+    戻り値 (各行のサイズ, 各行の前に足す余白)。空行が無ければ全行 s・余白0（従来どおり）（2026-09-15）"""
+    if "" not in lines:
+        return [s] * len(lines), [0] * len(lines)
+    cut = lines.index("")
+    sizes, gaps = [], []
+    for i, ln in enumerate(lines):
+        if ln == "":
+            sizes.append(0); gaps.append(int(s * 0.85)); continue
+        sizes.append(s if i < cut else int(s * 0.72)); gaps.append(0)   # ★空行より前＝主役（等倍）／後＝小さめ（2026-09-15 社長「逆にして」）
+    return sizes, gaps
+
 
 def render_45(row: dict, photo_path=None, output_path=None):
     W, H, M = 1080, 1350, 72
@@ -262,12 +275,17 @@ def render_45(row: dict, photo_path=None, output_path=None):
             inner_border(im, FX, FY, FW, FH, R)
         d = ImageDraw.Draw(im)
         s, lines = wrap_fit(d, st["catch"], FONT_BOLD, FW - 96, 3, 92, 42)
-        bh = len(lines) * int(s * 1.34)
-        y = FY + 170 + ((FH - 260) - bh) // 2 + s
-        for ln in lines:
-            d.text((FX + 48, y), ln, font=font(FONT_BOLD, s),
-                   fill=hx(t["ink"]) if light else "white", anchor="ls")
-            y += int(s * 1.34)
+        centered = chr(10) in st["catch"]   # ★2026-09-15 手動改行の見出し型キャッチは中央寄せ（社長指定）
+        # ★空行で区切ると、空行より前＝小さめの前置き（例:【主演】名前）／後＝主役の一言。間を広めに空ける
+        sizes, gaps = _tiered(lines, s)
+        bh = sum(int(sz * 1.34) for sz in sizes) + sum(gaps)
+        y = FY + 170 + ((FH - 260) - bh) // 2 + sizes[0]
+        for ln, sz, g in zip(lines, sizes, gaps):
+            y += g
+            if ln:
+                d.text((FX + FW // 2, y) if centered else (FX + 48, y), ln, font=font(FONT_BOLD, sz),
+                       fill=hx(t["ink"]) if light else "white", anchor="ms" if centered else "ls")
+            y += int(sz * 1.34)
         d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R, outline=hx(t["accent"]),
                             width=6 if light else 5)   # 白面は枠がないと輪郭が消える
         if light:                                      # 白いピルは白面に埋もれるので反転
@@ -325,11 +343,15 @@ def render_169(row: dict, photo_path=None, output_path=None):
         inner_border(im, FX, FY, FW, FH, R)
         d = ImageDraw.Draw(im)
         s, lines = wrap_fit(d, st["catch"], FONT_BOLD, FW - 96, 3, 72, 36)
-        bh = len(lines) * int(s * 1.34)
-        y = FY + 120 + ((FH - 200) - bh) // 2 + s
-        for ln in lines:
-            d.text((FX + 48, y), ln, font=font(FONT_BOLD, s), fill="white", anchor="ls")
-            y += int(s * 1.34)
+        centered = chr(10) in st["catch"]   # ★2026-09-15 手動改行の見出し型は中央寄せ
+        sizes, gaps = _tiered(lines, s)
+        bh = sum(int(sz * 1.34) for sz in sizes) + sum(gaps)
+        y = FY + 120 + ((FH - 200) - bh) // 2 + sizes[0]
+        for ln, sz, g in zip(lines, sizes, gaps):
+            y += g
+            if ln:
+                d.text((FX + FW // 2, y) if centered else (FX + 48, y), ln, font=font(FONT_BOLD, sz), fill="white", anchor="ms" if centered else "ls")
+            y += int(sz * 1.34)
         d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R, outline=hx(t["accent"]), width=5)
         pill(d, st["badge"], FX + 22, FY + 22, "white", hx(t["accent"]), size=30)
         tx = FX + FW + 44
@@ -421,7 +443,9 @@ def render_carousel_photo(row: dict, photo_path, output_path=None) -> Image.Imag
 
     # 中央：ポラロイドカード（写真は切らない・店名大きめ）
     p = _contain(photo, W - 250, 700)
-    cw, chh = p.width + 56, p.height + 190
+    # ★2026-09-15 縦長写真（ポスター等）だとカードが細くなり店名が収まらない→店名が読める幅までカードを広げ、写真は中央に置く
+    need_w = int(d.textlength(st["shop"], font=font(FONT_BOLD, 44))) + 90
+    cw, chh = max(p.width + 56, min(W - 120, need_w)), p.height + 190
     cx = (W - cw) // 2
     cy = max(200, 200 + (880 - chh) // 2)
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -430,7 +454,7 @@ def render_carousel_photo(row: dict, photo_path, output_path=None) -> Image.Imag
     im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(9)))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle((cx, cy, cx + cw, cy + chh), 10, fill="white")
-    im.paste(p, (cx + 28, cy + 28))
+    im.paste(p, (cx + (cw - p.width) // 2, cy + 28))
     f_s = fit_one(d, st["shop"], FONT_BOLD, 64, cw - 90, 36)
     d.text((cx + cw // 2, cy + chh - 66), st["shop"], font=f_s, fill=hx(t["ink"]), anchor="ms")
     d.line((cx + cw // 2 - 90, cy + chh - 34, cx + cw // 2 + 90, cy + chh - 34),
