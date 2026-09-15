@@ -50,8 +50,8 @@ def _info_table(row: dict) -> str:
     """店舗情報テーブル（空欄の行は出さない）"""
     items = [
         ("📍 場所", row.get("エリア・住所", "")),
-        ("🕐 営業時間", row.get("営業時間", "")),
-        ("📅 定休日", row.get("定休日", "")),
+        ("📅 日時" if _is_event(row.get("店名", "")) else "🕐 営業時間", row.get("営業時間", "")),
+        ("", "") if _is_event(row.get("店名", "")) else ("📅 定休日", row.get("定休日", "")),
         ("🔗 リンク", row.get("リンク", "")),
     ]
     rows_html = []
@@ -77,6 +77,24 @@ def _is_event(shop: str) -> bool:
     """店名欄が「〇〇上映会」「〇〇フェス」のようなイベント名なら True（2026-09-15）"""
     s = (shop or "").strip()
     return any(s.endswith(w) or s.endswith(w + "！") for w in _EVENT_WORDS)
+
+
+def _event_when(row: dict) -> str:
+    """イベント系は「営業時間」欄を日時として使う（2026-09-15）"""
+    return (row.get("営業時間", "") or "").strip() if _is_event(row.get("店名", "")) else ""
+
+def _venue_short(row: dict) -> str:
+    """住所の（…）内＝会場名。無ければ住所そのもの"""
+    addr = (row.get("エリア・住所", "") or "").strip()
+    m = re.search("[（(]([^）)]+)[）)]" + chr(92) + "s*$", addr)
+    return m.group(1) if m else addr
+
+def _credit_line(row: dict) -> str:
+    """法定表示(W列)に「©」を含む行があればSNSにも出す（例: 掲載画像 ©現代ぷろだくしょん）"""
+    for l in (row.get("法定表示", "") or "").splitlines():
+        if "©" in l or "(c)" in l.lower():
+            return l.strip()
+    return ""
 
 
 def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
@@ -197,17 +215,23 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     tweet = (row.get("つぶやき", "") or "").strip()
     title = f"【PR】{shop}" + (f"｜{catch}" if catch else "")
 
-    def assemble(memos, tw, tk):
-        lines = [title, ""]
+    when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
+    def assemble(memos, tw, tk, ttl=None):
+        lines = [ttl or title, ""]
+        if when:   # ★イベント系：日時と会場を最優先（2026-09-15 社長）
+            lines += [f"📅 {when}", f"📍 {venue}", ""]
         body = list(memos) + ([tw] if tw else [])
         if body:
             lines += body + [""]
         if tk:
             lines += [f"🎁 {tk}", ""]
-        lines += ["▼ 詳細", wp_url, "", _hashtags(row)]
-        return "\n".join(lines)
+        lines += ["▼ 詳細", wp_url, ""]
+        if credit:
+            lines += [f"📷 {credit}"]
+        lines += [_hashtags(row)]
+        return chr(10).join(lines)
 
-    memos = list(memo_lines)
+    memos = [] if when else list(memo_lines)   # イベントは日時/会場で言い切る（メモは記事で）
     full = assemble(memos, tweet, tokuten)
     while _x_weight(full) > 280 and memos:
         memos.pop()
@@ -216,6 +240,8 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
         full = assemble(memos, "", tokuten)
     if _x_weight(full) > 280 and tokuten:
         full = assemble(memos, "", "")
+    if _x_weight(full) > 280 and when and catch:   # ★イベント系：それでも超えたらキャッチを外し店名だけに（日時・会場・©を守る）
+        full = assemble(memos, "", "", ttl=f"【PR】{shop}")
     return full
 
 
@@ -225,11 +251,17 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     genre = row.get("ジャンル", "").strip()
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
+    when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     if genre:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
+    if when:
+        lines += [f"📅 {when}", f"📍 {venue}", ""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
-    lines += ["▼ 詳細", wp_url, "", _hashtags(row)]
+    lines += ["▼ 詳細", wp_url, ""]
+    if credit:
+        lines += [f"📷 {credit}", ""]
+    lines += [_hashtags(row)]
     return "\n".join(lines)
 
 
@@ -240,12 +272,17 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     addr = (row.get("エリア・住所", "") or "").strip()
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
+    when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     if genre:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
+    if when:
+        lines += [f"📅 {when}", ""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
     if addr:
         lines += [f"📍 {addr}", ""]
+    if credit:
+        lines += [f"📷 {credit}", ""]
     lines += [
         "▼ 詳細",
         "プロフィールのリンクから本文をどうぞ",
