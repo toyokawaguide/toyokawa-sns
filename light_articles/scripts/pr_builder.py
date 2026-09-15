@@ -50,6 +50,19 @@ def _when_short(when: str) -> str:
     return re.sub("[（(][^）)]{4,}[）)]", "", when or "").strip()   # （日）のような短い補足は残す
 
 
+def _extra_tags(row: dict) -> str:
+    """備考の「タグ：#映画 #〇〇」行 → そのまま。無ければ イベント系は「#ジャンル」、お店は「#豊川グルメ」（従来）（2026-09-15 社長指摘）"""
+    for l in (row.get("備考", "") or "").splitlines():
+        l = l.strip()
+        if l.startswith(("タグ：", "タグ:")):
+            v = l.split("：", 1)[-1].split(":", 1)[-1].strip()
+            return " ".join(t if t.startswith("#") else "#" + t for t in v.split())
+    genre = (row.get("ジャンル", "") or "").strip()
+    if _is_event(row.get("店名", "")):
+        return ("#" + genre) if genre else ""
+    return "#豊川グルメ"
+
+
 def build_pr_title(row: dict) -> str:
     shop = row.get("店名", "").strip()
     catch = _flatten_catch(row.get("ひとことキャッチ", ""))
@@ -283,7 +296,7 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
         lines += [f"💬 豊川ガイドから：{note}", ""]
     if credit:
         lines += [f"📷 {credit}", ""]
-    lines += [_hashtags(row)]
+    lines += [(_hashtags(row) + " " + _extra_tags(row)).strip()]
     return "\n".join(lines)
 
 
@@ -317,6 +330,6 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
         "",
         "📣 お店の宣伝をご希望の方はDMへ",
         "",
-        _hashtags(row) + " #広告 #豊川グルメ #地域メディア",
+        _hashtags(row) + " #広告 " + _extra_tags(row) + " #地域メディア",
     ]
     return "\n".join(lines)
