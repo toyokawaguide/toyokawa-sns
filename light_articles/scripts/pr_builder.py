@@ -71,20 +71,37 @@ def build_pr_title(row: dict) -> str:
     return f"【PR】{shop}のご紹介"
 
 
+def _links_of(row: dict) -> list:
+    """リンク欄（改行/空白区切りで複数可）→ [(ラベル, URL)]。YouTubeは「▶ 予告編」、最初の通常URLは「🔗 公式サイト」（2026-09-15）"""
+    urls = [u for u in re.split("[" + chr(10) + chr(13) + " 　]+", (row.get("リンク", "") or "").strip()) if u.startswith("http")]
+    out, first = [], True
+    for u in urls:
+        if "youtube.com" in u or "youtu.be" in u:
+            out.append(("▶ 予告編", u))
+        else:
+            out.append(("🔗 公式サイト" if first else "🔗 リンク", u)); first = False
+    return out
+
+def _youtube_url(row: dict) -> str:
+    for label, u in _links_of(row):
+        if label.startswith("▶"):
+            return u
+    return ""
+
+
 def _info_table(row: dict) -> str:
     """店舗情報テーブル（空欄の行は出さない）"""
     items = [
         ("📍 場所", row.get("エリア・住所", "")),
         ("📅 日時" if _is_event(row.get("店名", "")) else "🕐 営業時間", row.get("営業時間", "")),
         ("", "") if _is_event(row.get("店名", "")) else ("📅 定休日", row.get("定休日", "")),
-        ("🔗 リンク", row.get("リンク", "")),
-    ]
+    ] + _links_of(row)
     rows_html = []
     for label, val in items:
         val = (val or "").strip()
         if not val:
             continue
-        if label.startswith("🔗") and val.startswith("http"):
+        if label.startswith(("🔗", "▶")) and val.startswith("http"):
             val = f'<a href="{val}" target="_blank" rel="noopener nofollow sponsored">{val}</a>'
         rows_html.append(
             f'<tr><th style="width:9em;text-align:left;padding:8px 12px;background:#f5efe0;">{label}</th>'
@@ -157,6 +174,18 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
             para = para.strip()
             if para:
                 parts.append(f"<p>{para}</p>")
+
+    # ③b 予告編（リンク欄にYouTubeがあれば本文に埋め込む・2026-09-15）
+    yt = _youtube_url(row)
+    if yt:
+        parts.append("<p><strong>▶ 予告編</strong></p>")
+        parts.append(
+            '<!-- wp:embed {"url":"' + yt + '","type":"video","providerNameSlug":"youtube","responsive":true,'
+            '"className":"wp-embed-aspect-16-9 wp-has-aspect-ratio"} -->'
+            '<figure class="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube '
+            'wp-embed-aspect-16-9 wp-has-aspect-ratio"><div class="wp-block-embed__wrapper">' + chr(10) + yt + chr(10) + '</div></figure>'
+            '<!-- /wp:embed -->'
+        )   # Gutenbergの埋め込みブロック（他の要素と同じブロック形式・表示時にYouTubeプレーヤーになる）
 
     # ④ 写真（連続で詰まらないよう1枚ごとに下マージン・2026-08-06社長指摘）
     if photo_urls:
