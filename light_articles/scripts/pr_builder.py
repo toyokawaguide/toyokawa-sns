@@ -165,7 +165,7 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
         lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は{('、' + genre + 'の' if genre else '、')}<strong>{shop}</strong>さんをご紹介します！"
     parts.append(f"<p>{lead}</p>")
     if catch:
-        _h2 = "<br/>".join(l.strip() for l in catch.splitlines() if l.strip())   # 手動改行は <br/>・空行（区切り）は詰める（2026-09-15）
+        _h2 = _flatten_catch(catch)   # ★2026-09-16 手動改行はカード画像専用。本文の見出しはタイトルと同じ1行にする（PR005 社長指摘）
         parts.append(f"<h2>{_h2}</h2>")
 
     # ③ 紹介文（社長・お店からのメモをそのまま整形）

@@ -355,9 +355,25 @@ def render_169(row: dict, photo_path=None, output_path=None):
         d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R, outline=hx(t["accent"]), width=5)
         pill(d, st["badge"], FX + 22, FY + 22, "white", hx(t["accent"]), size=30)
         tx = FX + FW + 44
-        f = fit_one(d, st["shop"], FONT_BOLD, 60, W - tx - 50, 30)
-        d.text((tx, 300), st["shop"], font=f, fill=hx(t["ink"]), anchor="ls")
-        addr_line(d, t, st["addr"], tx, 370, W - tx - 50)
+        # ★2026-09-16 長い店名（上映会タイトル等）が右端で見切れた→店名は3行・住所は2行まで折り返す（PR005）
+        col_w = W - tx - 50
+        shop_txt = st["shop"]
+        if len(shop_txt) > 12 and chr(10) not in shop_txt:   # 『作品名―副題―』上映会 の類は語の切れ目で改行（「わたしのか/あさん」防止）
+            shop_txt = re.sub("(.)(―)", lambda m: m.group(1) + chr(10) + m.group(2), shop_txt, count=1)
+        s_sz, s_lines = wrap_fit(d, shop_txt, FONT_BOLD, col_w, 1, 60, 30)   # 手動改行の行数だけ許可＝行の途中で勝手に折らず縮める
+        addr_txt = re.sub("(?<=.)（", chr(10) + "（", st["addr"], count=1) if chr(10) not in st["addr"] else st["addr"]   # 住所（会場名）は会場名を次の行に
+        a_sz, a_lines = wrap_fit(d, addr_txt, FONT_BOLD, col_w - 36, 1, 34, 20) if st["addr"] else (0, [])
+        block_h = len(s_lines) * int(s_sz * 1.3) + (26 + len(a_lines) * int(a_sz * 1.4) if a_lines else 0)
+        y = (H - block_h) // 2 + s_sz
+        for ln in s_lines:
+            d.text((tx, y), ln, font=font(FONT_BOLD, s_sz), fill=hx(t["ink"]), anchor="ls")
+            y += int(s_sz * 1.3)
+        if a_lines:
+            y += 26
+            d.ellipse((tx, y - 24, tx + 22, y - 2), fill=hx(t["accent"]))
+            for ln in a_lines:
+                d.text((tx + 36, y), ln, font=font(FONT_BOLD, a_sz), fill=hx(t["sub"]), anchor="ls")
+                y += int(a_sz * 1.4)
         brand(d, t, W, H)
     else:                                              # ─ 写真全面（2026-08-05・見切れ対策）─
         # 1920×1080は16:9そのままなので切れゼロ。文字は袋文字（白＋テーマ色フチ＋外白）
