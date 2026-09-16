@@ -154,6 +154,12 @@ function ensureSheet(ss) {
 
 // ───────────────────────────── 送信されたとき ─────────────────────────────
 
+
+// メールアドレスの正規化（全角英数字・記号→半角、空白除去、小文字化）と厳密チェック（2026-09-17）
+var MAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+function normMail(v) {
+  return String(v || '').normalize('NFKC').replace(/[\s\u3000]/g, '').replace(/＠/g, '@').replace(/。/g, '.').toLowerCase();
+}
 function onPrFormSubmit(e) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ensureSheet(ss);
@@ -177,13 +183,19 @@ function onPrFormSubmit(e) {
   put('料金区分', '無料');        // 当面すべて無料枠。有料商品は別途つくる予定（社長方針 2026-08-02）
   put('備考', ans['写真について'] || '');
 
+  row[head.indexOf('メールアドレス')] = normMail(ans['メールアドレス'] || '');
+  if (!MAIL_RE.test(row[head.indexOf('メールアドレス')])) {
+    row[head.indexOf('備考')] = '⚠メールアドレス不正（届かない可能性）：' + (ans['メールアドレス'] || '') + '\n' + (row[head.indexOf('備考')] || '');
+  }
   sh.appendRow(row);
 
   var id = row[head.indexOf('ID')];
   var shop = ans['お店・教室のお名前'] || '';
-  var to = ans['メールアドレス'] || '';
+  // メールアドレスは全角→半角に正規化して使う（PR006不達事故の再発防止 2026-09-17）
+  var to = normMail(ans['メールアドレス'] || '');
+  var mailNg = !MAIL_RE.test(to);
 
-  if (to) {
+  if (to && !mailNg) {
     MailApp.sendEmail({
       to: to,
       subject: '【' + SITE_NAME + '】' + SERIES + ' お申し込みを受け付けました（' + id + '）',
@@ -231,6 +243,7 @@ function onPrFormSubmit(e) {
     });
   }
 
+  if (mailNg) { shop = '⚠メール不達の可能性（アドレス不正：' + (ans['メールアドレス'] || '') + '）' + shop; }
   MailApp.sendEmail(OWNER_MAIL,
     '【申込】' + SERIES + ' ' + id + '：' + shop,
     ['さくっとPRの申し込みが入りました。',

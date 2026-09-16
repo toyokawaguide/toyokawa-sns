@@ -232,7 +232,7 @@ html{scroll-behavior:smooth}
     <h2 class="sec">お申し込みされる方</h2>
     <div class="row">
       <div><label>申込者名<span class="req">※必須</span></label><input id="pname" required></div>
-      <div><label>メールアドレス<span class="req">※必須</span></label><input id="pmail" type="email" required></div>
+      <div><label>メールアドレス<span class="req">※必須</span></label><input id="pmail" type="email" inputmode="email" autocomplete="email" placeholder="半角で入力（例：example@gmail.com）" required><div class="hint" id="pmail_hint" style="font-size:12px;color:#c00;display:none">全角の文字が含まれています。半角に直しました。ご確認ください</div></div>
     </div>
     <div class="row">
       <div><label>電話番号（任意）</label><input id="ptel"></div>
@@ -587,6 +587,15 @@ const ENTRY = {
   ptel:'entry.748747876', kijun:'entry.1649581957', biko:'entry.443721495'
 };
 
+// 全角英数字・記号→半角、空白除去、小文字化。半角以外が残れば false（送信不可）
+const MAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+function normMail(v){
+  let t = String(v || '').normalize('NFKC').replace(/[\s\u3000]/g, '').replace(/＠/g, '@').replace(/。/g, '.').toLowerCase();
+  const hint = $('pmail_hint'); if (hint) hint.style.display = (t !== String(v || '').trim()) ? '' : 'none';
+  return t;
+}
+$('pmail').addEventListener('blur', () => { $('pmail').value = normMail($('pmail').value); });
+
 $('send').onclick = async () => {
   const need = [['shop','お店・教室の名前'], ['catch','ひとこと'], ['addr','住所'],
                 ['genre','ジャンル'], ['memo','紹介したいこと'],
@@ -601,8 +610,10 @@ $('send').onclick = async () => {
       $(k).focus(); return;
     }
   }
-  if (!/.+@.+\..+/.test(val('pmail'))){
-    alert('メールアドレスの形式をご確認ください'); $('pmail').focus(); return;
+  // メールアドレス：全角→半角に自動変換し、半角の正しい形式でなければ送信しない（PR006不達事故の再発防止 2026-09-17）
+  $('pmail').value = normMail($('pmail').value);
+  if (!MAIL_RE.test($('pmail').value)){
+    alert('メールアドレスは半角英数字で入力してください（例：example@gmail.com）\n全角の文字や空白が入っていると、こちらからのメールが届きません'); $('pmail').focus(); return;
   }
   if (!$('agree').checked){ alert('同意のチェックをお願いします'); return; }
 
