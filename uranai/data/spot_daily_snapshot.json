@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-09-18T03:54:32.935562+09:00",
-  "captured_date": "2026-09-18",
+  "captured_at": "2026-09-19T03:15:24.855826+09:00",
+  "captured_date": "2026-09-19",
   "lookahead_days": 30,
   "spots": {
-    "2026-09-18": {
-      "name": "三河屋製菓",
-      "is_chain": false
-    },
     "2026-09-19": {
       "name": "張闖麻辣燙",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-10-18": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-10-19": {
       "name": null,
       "is_chain": false
     }
