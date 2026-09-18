@@ -1,0 +1,27 @@
+time=2026-09-19T07:01:25.224382+09:00
+event=workflow_dispatch
+run_id=35399552329
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+Traceback (most recent call last):
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/post_sns.py", line 298, in main
+    process_one(svc, r, dry=dry, ig_only=(st==IG_ONLY_STATUS),
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/post_sns.py", line 174, in process_one
+    slide_paths,_,_=make_feed.build_feed(ID, svc)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/make_feed.py", line 85, in build_feed
+    row, rownum=_row(ID, svc)
+                ^^^^^^^^^^^^^
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/make_feed.py", line 79, in _row
+    raise RuntimeError(f"行 {ID} が見つかりません")
+RuntimeError: 行 SNS100 が見つかりません
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS100 【I LOVE たろー】え…めっちゃコスパ良くない？豊栄町に… (dry=False)
+❌ SNS100 処理中に例外: 行 SNS100 が見つかりません
