@@ -1,0 +1,40 @@
+time=2026-09-20T07:04:07.913130+09:00
+event=workflow_dispatch
+run_id=35472067122
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS101 【神サービス】みんな大好き「香月堂アウトレット」でなんとWE… (dry=False)
+  🎨 赤文字: 香月堂アウトレット
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS101_* サブフォルダ検索中...
+✅ Drive: SNS101_2026.09.20【神サービス】みんな大好き「香月堂アウトレット」でなんとWEB予約が可能になりました！さすがに1回は行ったことあるよねぇ？ (id=15yNqdu42L...)
+  📥 DL: 0.jpg (260 KB)
+  📥 DL: 1.jpg (592 KB)
+  📥 DL: 2.jpg (703 KB)
+  📥 DL: 3.jpg (746 KB)
+  📥 DL: 4.jpg (608 KB)
+  📷 フィード 6枚生成
+    📤 Pages へ 6枚 commit 1664a2a（反映待ち…）
+    ✅ Pages 配信確認 6枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS101_* サブフォルダ検索中...
+✅ Drive: SNS101_2026.09.20【神サービス】みんな大好き「香月堂アウトレット」でなんとWEB予約が可能になりました！さすがに1回は行ったことあるよねぇ？ (id=15yNqdu42L...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18162041563487819', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18026055254857930', 'dry': False}
+  🎬 IG Reels
+  container_id=17953961154254312 file_size=5,610,735 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '17880032580535031', 'media_type': 'REELS'}
+  📊 状態→投稿済
