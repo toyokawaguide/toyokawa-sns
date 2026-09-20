@@ -1,0 +1,44 @@
+time=2026-09-21T07:04:11.471471+09:00
+event=workflow_dispatch
+run_id=35540336629
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS102 【昼うなぎ】ナナガーデンに「炭焼うなぎ 一重」がオープンした… (dry=False)
+  ⚠ 書式が空で返った（1/2）→ 3秒後に取り直し
+  ⚠ 書式が空で返った（2/2）→ 3秒後に取り直し
+  🎨 赤文字: なし
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS102_* サブフォルダ検索中...
+✅ Drive: SNS102_2026.09.21【昼うなぎ】ナナガーデンに「炭焼うなぎ 一重」がオープンしたよ！なんと…「鳥七庭」の昼の顔です。「夏目商店」の豊橋うなぎだって！ (id=14ZYDzbB6o...)
+  📥 DL: 0.jpg (280 KB)
+  📥 DL: 1.jpg (621 KB)
+  📥 DL: 2.jpg (539 KB)
+  📥 DL: 3.jpg (819 KB)
+  📥 DL: 4.jpg (449 KB)
+  📷 フィード 6枚生成
+    📤 Pages へ 6枚 commit e746e09（反映待ち…）
+    ✅ Pages 配信確認 6枚
+  ⚠ 書式が空で返った（1/2）→ 3秒後に取り直し
+  ⚠ 書式が空で返った（2/2）→ 3秒後に取り直し
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS102_* サブフォルダ検索中...
+✅ Drive: SNS102_2026.09.21【昼うなぎ】ナナガーデンに「炭焼うなぎ 一重」がオープンしたよ！なんと…「鳥七庭」の昼の顔です。「夏目商店」の豊橋うなぎだって！ (id=14ZYDzbB6o...)
+カテゴリ=ニューオープン / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '17945375244071750', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18115019531000579', 'dry': False}
+  🎬 IG Reels
+  container_id=17954118420254312 file_size=5,610,736 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18475141411119170', 'media_type': 'REELS'}
+  📊 状態→投稿済
