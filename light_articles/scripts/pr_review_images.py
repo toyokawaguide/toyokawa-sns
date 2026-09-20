@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """さくっとPR 先方確認用の画像2枚を作る（2026-09-15 PR005 で確立）
   python pr_review_images.py --id PR005 [--date 2026-09-20]
-  A: _先方確認用_SNS投稿文_{ID}.png  … X / Threads / Instagram の投稿文を1枚に（URLの日付は「（公開日）」表示）
-  B: _先方確認用_Instagram画像_{ID}.png … IG 1枚目（額ぶちカード）＋2枚目（ポスター等のポラロイド枠）を左右に
+  A: {ID} 各SNS確認用-1.png  … X / Threads / Instagram の投稿文を1枚に（URLの日付は「（公開日）」表示）
+  B: {ID} Instagram確認用-N.png … IG 1枚目（額ぶちカード）＋2枚目（ポスター等のポラロイド枠）を左右に
 出力先＝ G:\マイドライブ\さくっとPR\{ID}_*\ （_完成イメージ_{ID}.png と _完成イメージ_{ID}_IGカルーセル2枚目.png が必要）
 絵文字は Segoe UI Emoji（単色）で描く。日本語は游ゴシック。
 """
@@ -69,15 +69,23 @@ def main():
         for ln in ls: draw_runs(d, PAD + 30, yy, ln, SZ, (30, 30, 30)); yy += LH
         y += ph + 30
     draw_runs(d, PAD, H - PAD - 10, "豊川ガイド｜さくっとPR", 22, (120, 120, 120))
-    outA = D / f"_先方確認用_SNS投稿文_{ID}.png"; im.save(outA); print("A:", outA)
+    # ★ 社長が毎回手で付け直していた名前に合わせた（2026-09-21）
+    outA = D / f"{ID} 各SNS確認用-1.png"; im.save(outA); print("A:", outA)
     card = Image.open(D / f"_完成イメージ_{ID}.png").convert("RGB")
     slides = sorted(D.glob(f"_完成イメージ_{ID}_IGカルーセル*.png"))
     G, T = 40, 70
     pics = [card] + [Image.open(s).convert("RGB") for s in slides]
-    B = Image.new("RGB", (card.width * len(pics) + G * (len(pics) + 1), card.height + T + G * 2), (255, 255, 255)); db = ImageDraw.Draw(B)
-    draw_runs(db, G, 22, "Instagramで使う画像（左から1枚目・2枚目…）", 32, (20, 40, 90), bold=True)
-    for k, pic in enumerate(pics): B.paste(pic, (G + k * (card.width + G), T + G))
-    outB = D / f"_先方確認用_Instagram画像_{ID}.png"; B.save(outB); print("B:", outB)
+    # 2026-09-18 社長指示「二つに分けて。見づらい」→ 1枚あたり最大4枚（カード＋写真3 …）に分割して出力
+    PER = 4
+    chunks = [pics[i:i + PER] for i in range(0, len(pics), PER)]
+    for ci, chunk in enumerate(chunks):
+        B = Image.new("RGB", (card.width * len(chunk) + G * (len(chunk) + 1), card.height + T + G * 2), (255, 255, 255)); db = ImageDraw.Draw(B)
+        a0, a1 = ci * PER + 1, ci * PER + len(chunk)
+        ttl = f"Instagramで使う画像（{a0}枚目〜{a1}枚目）" if len(chunks) > 1 else "Instagramで使う画像（左から1枚目・2枚目…）"
+        draw_runs(db, G, 22, ttl, 32, (20, 40, 90), bold=True)
+        for k, pic in enumerate(chunk): B.paste(pic, (G + k * (card.width + G), T + G))
+        outB = D / f"{ID} Instagram確認用-{ci + 1}.png"
+        B.save(outB); print("B:", outB)
 
 if __name__ == "__main__":
     main()

@@ -153,6 +153,27 @@ def _credit_line(row: dict) -> str:
     return ""
 
 
+def _caveat(row: dict) -> tuple:
+    """備考の「注意書き：〜」→ (SNS用の本文, X用の短い形)
+    特典や支援額だけを大きく書いて条件を書かないと、実際より有利に見えてしまう。
+    X は280制限があるので、入らないときは「※ 適用条件あり」だけに落とす（2026-09-21 社長）
+    """
+    biko = (row.get("備考", "") or "")
+    for mark in ("注意書き：", "注意書き:"):
+        i = biko.find(mark)
+        if i < 0:
+            continue
+        v = biko[i + len(mark):]
+        for stop in ("／", chr(10), chr(13)):
+            j = v.find(stop)
+            if j >= 0:
+                v = v[:j]
+        v = v.strip()
+        if v:
+            return ("※ " + v, "※ 適用条件あり")
+    return ("", "")
+
+
 def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     shop = row.get("店名", "").strip()
     catch = row.get("ひとことキャッチ", "").strip()
@@ -285,6 +306,8 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
 
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     when_ref = [when]
+    cav_full, cav_short = _caveat(row)   # ★ 条件の注記（2026-09-21 社長）
+    cav_ref = [cav_full]
     def assemble(memos, tw, tk, ttl=None):
         lines = [ttl or title, ""]
         if when:   # ★イベント系：日時と会場を最優先（2026-09-15 社長）
@@ -294,6 +317,8 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
             lines += body + [""]
         if tk:
             lines += [f"🎁 {tk}", ""]
+        if cav_ref[0]:
+            lines += [cav_ref[0], ""]
         lines += ["▼ 詳細", wp_url, ""]
         if credit:
             lines += [f"📷 {credit}"]
@@ -317,6 +342,9 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
         full = assemble(memos, "", "", ttl=f"【PR】{shop}｜{head}")
     if _x_weight(full) > 280 and when and catch:
         full = assemble(memos, "", "", ttl=f"【PR】{shop}")
+    if _x_weight(full) > 280 and cav_ref[0] and cav_short:
+        cav_ref[0] = cav_short          # ★ 注記は消さずに短くする
+        full = assemble(memos, "", "")
     return full
 
 
@@ -334,6 +362,9 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
         lines += [f"📅 {when}", f"📍 {venue}", ""]
     if tokuten:
         lines += [f"🎁 {tokuten}", ""]
+    cav, _ = _caveat(row)
+    if cav:
+        lines += [cav, ""]
     lines += ["▼ 詳細", wp_url, ""]
     if note:
         lines += [f"💬 豊川ガイドから：{note}", ""]
@@ -367,6 +398,9 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
         lines += [f"💬 豊川ガイドから：{note}", ""]
     if credit:
         lines += [f"📷 {credit}", ""]
+    cav, _ = _caveat(row)
+    if cav:
+        lines += [cav, ""]
     lines += [
         "▼ 詳細",
         "プロフィールのリンクから本文をどうぞ",
