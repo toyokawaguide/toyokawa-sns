@@ -52,11 +52,17 @@ def _when_short(when: str) -> str:
 
 def _extra_tags(row: dict) -> str:
     """備考の「タグ：#映画 #〇〇」行 → そのまま。無ければ イベント系は「#ジャンル」、お店は「#豊川グルメ」（従来）（2026-09-15 社長指摘）"""
-    for l in (row.get("備考", "") or "").splitlines():
-        l = l.strip()
-        if l.startswith(("タグ：", "タグ:")):
-            v = l.split("：", 1)[-1].split(":", 1)[-1].strip()
-            return " ".join(t if t.startswith("#") else "#" + t for t in v.split())
+    biko = (row.get("備考", "") or "")
+    for mark in ("タグ：", "タグ:"):          # ★ 備考は1行に圧縮されるので行頭限定にしない（2026-09-21 PR009）
+        i = biko.find(mark)
+        if i < 0:
+            continue
+        v = biko[i + len(mark):]
+        for stop in ("／", chr(10), chr(13)):     # 「／」か改行まで
+            j = v.find(stop)
+            if j >= 0:
+                v = v[:j]
+        return " ".join(t if t.startswith("#") else "#" + t for t in v.split())
     genre = (row.get("ジャンル", "") or "").strip()
     if _is_event(row.get("店名", "")):
         return ("#" + genre) if genre else ""
@@ -78,6 +84,14 @@ def _links_of(row: dict) -> list:
     for u in urls:
         if "youtube.com" in u or "youtu.be" in u:
             out.append(("▶ 予告編", u))
+        elif "instagram.com" in u:
+            out.append(("📷 Instagram", u))          # ★ 2026-09-21 SNSのURLはそれと分かるラベルに（PR009）
+        elif "twitter.com" in u or "://x.com" in u:
+            out.append(("𝕏 X", u))
+        elif "facebook.com" in u:
+            out.append(("📘 Facebook", u))
+        elif "lin.ee" in u or "line.me" in u:
+            out.append(("💬 LINE", u))
         else:
             out.append(("🔗 公式サイト" if first else "🔗 リンク", u)); first = False
     return out
