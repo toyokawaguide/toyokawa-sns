@@ -170,8 +170,33 @@ def _caveat(row: dict) -> tuple:
                 v = v[:j]
         v = v.strip()
         if v:
+            # 「長い説明｜Xに入れる短い説明」と書けば、Xでは後半を使う
+            if "｜" in v:
+                lo, sh = v.split("｜", 1)
+                return ("※ " + lo.strip(), "※ " + sh.strip())
             return ("※ " + v, "※ 適用条件あり")
     return ("", "")
+
+
+def _contact(row: dict) -> str:
+    """備考の「問い合わせ：〜」→ 各SNSの締めに出す誘導文（2026-09-21）
+    申込者が「DMで」「プロフィールのリンクから」と書いてきても、投稿するのは豊川ガイドの
+    アカウントなので、読者は豊川ガイド側を見てしまう。先方のアカウントを明記して逃がす。
+    """
+    biko = (row.get("備考", "") or "")
+    for mark in ("問い合わせ：", "問い合わせ:", "お問い合わせ：", "お問い合わせ:"):
+        i = biko.find(mark)
+        if i < 0:
+            continue
+        v = biko[i + len(mark):]
+        for stop in ("／", chr(10), chr(13)):
+            j = v.find(stop)
+            if j >= 0:
+                v = v[:j]
+        v = v.strip()
+        if v:
+            return "📩 " + v
+    return ""
 
 
 def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
@@ -308,6 +333,7 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     when_ref = [when]
     cav_full, cav_short = _caveat(row)   # ★ 条件の注記（2026-09-21 社長）
     cav_ref = [cav_full]
+    contact = _contact(row)
     def assemble(memos, tw, tk, ttl=None):
         lines = [ttl or title, ""]
         if when:   # ★イベント系：日時と会場を最優先（2026-09-15 社長）
@@ -320,6 +346,8 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
         if cav_ref[0]:
             lines += [cav_ref[0], ""]
         lines += ["▼ 詳細", wp_url, ""]
+        if contact and contact[2:] not in chr(10).join(lines):
+            lines += [contact, ""]
         if credit:
             lines += [f"📷 {credit}"]
         lines += [_hashtags(row)]
@@ -366,6 +394,9 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     if cav:
         lines += [cav, ""]
     lines += ["▼ 詳細", wp_url, ""]
+    contact = _contact(row)
+    if contact and contact[2:] not in chr(10).join(lines):
+        lines += [contact, ""]
     if note:
         lines += [f"💬 豊川ガイドから：{note}", ""]
     if credit:
@@ -401,6 +432,9 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     cav, _ = _caveat(row)
     if cav:
         lines += [cav, ""]
+    contact = _contact(row)
+    if contact and contact[2:] not in chr(10).join(lines):
+        lines += [contact, ""]
     lines += [
         "▼ 詳細",
         "プロフィールのリンクから本文をどうぞ",
