@@ -1,34 +1,30 @@
 {
-  "captured_at": "2026-09-20T02:54:06.403659+09:00",
-  "captured_date": "2026-09-20",
+  "captured_at": "2026-09-21T03:09:29.075309+09:00",
+  "captured_date": "2026-09-21",
   "lookahead_days": 30,
   "spots": {
-    "2026-09-20": {
-      "name": null,
-      "is_chain": false
-    },
     "2026-09-21": {
-      "name": null,
+      "name": "京菓子所 亀忠菓舗",
       "is_chain": false
     },
     "2026-09-22": {
-      "name": null,
+      "name": "洋食cottolico(コトリコ)",
       "is_chain": false
     },
     "2026-09-23": {
-      "name": null,
+      "name": "EREBOS FITNESS GYM",
       "is_chain": false
     },
     "2026-09-24": {
-      "name": null,
+      "name": "センドハピネス",
       "is_chain": false
     },
     "2026-09-25": {
-      "name": null,
+      "name": "精文館書店 豊川店",
       "is_chain": false
     },
     "2026-09-26": {
-      "name": null,
+      "name": "abeille chiffoncake",
       "is_chain": false
     },
     "2026-09-27": {
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-10-20": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-10-21": {
       "name": null,
       "is_chain": false
     }
