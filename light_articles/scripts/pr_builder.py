@@ -436,10 +436,12 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     if contact and contact[2:] not in chr(10).join(lines):
         lines += [contact, ""]
     lines += [
-        "▼ 詳細",
-        "プロフィールのリンクから本文をどうぞ",
+        "▼ この記事の全文は",
+        "豊川ガイド @toyokawaguide の",
+        "プロフィールのリンクから",
         "",
-        "📣 お店の宣伝をご希望の方はDMへ",
+        "📣 さくっとPRへの掲載をご希望の方は",
+        "豊川ガイド @toyokawaguide のDMへ",
         "",
         _hashtags(row) + " #広告 " + _extra_tags(row) + " #地域メディア",
     ]
