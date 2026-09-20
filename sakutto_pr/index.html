@@ -204,6 +204,13 @@ html{scroll-behavior:smooth}
     <button class="clearbtn" id="clearPhoto">写真を外す</button>
     <div class="photowarn">⚠️ ここで選んだ写真は送信されません（画面プレビューの確認用です）。<br>
     写真の実物は、お申し込み後に届く<u>受付メールに返信で添付</u>してください。</div>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin:10px 0 2px;font-weight:700;cursor:pointer">
+      <input type="checkbox" id="flyer" style="width:auto;margin-top:3px">
+      <span>この画像は<u>チラシ・ポスターなど文字が入ったデザイン画像</u>です（切り抜かずに載せる）</span>
+    </label>
+    <div class="hint" id="flyerhint">チェックすると、1枚目のカードは豊川ガイドのデザインになり、
+      いただいた画像は<strong>切り抜かずそのままの形</strong>で記事本文とInstagramに載ります。<br>
+      （文字入りの画像を枠に合わせて切り抜くと、上下の文字が消えてしまうためです）</div>
     <div class="hint">横長の写真がきれいに収まります（目安 1920×1080 くらい）。
       縦長・正方形でもOKですが、枠に合わせて自動で切り抜くため端が見切れることがあります。<br>
       ここで使うのはアイキャッチ用の1枚。記事に載せる写真は、お申し込み後の受付メールに
@@ -299,7 +306,9 @@ const THEMES = [
 ];
 let themeChoice = 'auto';
 let img = null;
-const currentPattern = () => img ? 'p2' : 'p1';   // ★写真なし=額ぶち／あり=一枚の札（確定仕様）
+const isFlyer = () => !!(document.getElementById('flyer') && document.getElementById('flyer').checked);
+const currentPattern = () => (img && !isFlyer()) ? 'p2' : 'p1';   // ★写真なし=額ぶち／あり=一枚の札。
+                                                                 //   文字入りデザイン画像は切り抜かない（額ぶち）… PR009で先方が心配された件
 
 const $ = id => document.getElementById(id);
 const cv = $('cv');
@@ -360,6 +369,7 @@ $('photo').onchange = e => {
   r.readAsDataURL(f);
 };
 $('clearPhoto').onclick = () => { img=null; $('photo').value=''; $('clearPhoto').style.display='none'; draw(); };
+$('flyer').addEventListener('change', draw);
 
 ['badge','badgeFree','shop','catch','addr'].forEach(id => $(id).addEventListener('input', draw));
 $('shop').addEventListener('change', () => {           // 欄から離れたときだけ おまかせ色を更新
@@ -624,6 +634,7 @@ $('send').onclick = async () => {
     '色：' + (themeChoice === 'auto' ? 'おまかせ（' + t.name + '）' : t.name),
     'かたち：' + (img ? '一枚の札（写真あり）' : '額ぶち（写真なし）'),
     '写真：' + (img ? 'あり → 受付メールへの返信で受け取る' : 'なし'),
+    isFlyer() ? '【カード写真なし】文字入りデザイン画像のため、切り抜かず全面で掲載する' : '',
     val('pdate') ? '公開希望日：' + val('pdate') : '',
     val('pnote') ? 'その他：' + val('pnote') : ''
   ].filter(Boolean).join('\n');
