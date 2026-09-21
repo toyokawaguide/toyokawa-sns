@@ -93,7 +93,7 @@ def _links_of(row: dict) -> list:
         elif "lin.ee" in u or "line.me" in u:
             out.append(("💬 LINE", u))
         else:
-            out.append(("🔗 公式サイト" if first else "🔗 リンク", u)); first = False
+            out.append(("🔗 公式サイト" if first else "🔗 詳細ページ", u)); first = False   # ★2026-09-22 2本目はキャンペーン等の詳細ページが多い（PR009）
     return out
 
 def _youtube_url(row: dict) -> str:
@@ -178,13 +178,16 @@ def _caveat(row: dict) -> tuple:
     return ("", "")
 
 
-def _contact(row: dict) -> str:
+def _contact(row: dict, medium: str = "") -> str:
     """備考の「問い合わせ：〜」→ 各SNSの締めに出す誘導文（2026-09-21）
     申込者が「DMで」「プロフィールのリンクから」と書いてきても、投稿するのは豊川ガイドの
     アカウントなので、読者は豊川ガイド側を見てしまう。先方のアカウントを明記して逃がす。
     """
     biko = (row.get("備考", "") or "")
-    for mark in ("問い合わせ：", "問い合わせ:", "お問い合わせ：", "お問い合わせ:"):
+    marks = ("問い合わせ：", "問い合わせ:", "お問い合わせ：", "お問い合わせ:")
+    if medium == "ig":   # ★2026-09-22 IGはURLが押せないので別の案内（DM等）を備考「問い合わせIG：」で指定できる（PR009）
+        marks = ("問い合わせIG：", "問い合わせIG:") + marks
+    for mark in marks:
         i = biko.find(mark)
         if i < 0:
             continue
@@ -432,7 +435,7 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     cav, _ = _caveat(row)
     if cav:
         lines += [cav, ""]
-    contact = _contact(row)
+    contact = _contact(row, medium="ig")
     if contact and contact[2:] not in chr(10).join(lines):
         lines += [contact, ""]
     lines += [
