@@ -16,6 +16,17 @@ from sheets_client import read_all_rows
 NL = chr(10)
 FB = r"C:\Windows\Fonts\YuGothB.ttc"; FM = r"C:\Windows\Fonts\YuGothM.ttc"; FE = r"C:\Windows\Fonts\seguiemj.ttf"
 
+def _versioned(path):
+    """同名ファイルがあれば -2, -3 … を足して、前回の確認用を残す（社長指示 2026-09-22：先方が前回と混同しないように）"""
+    if not path.exists():
+        return path
+    n = 2
+    while True:
+        cand = path.with_name(path.stem + "-" + str(n) + path.suffix)
+        if not cand.exists():
+            return cand
+        n += 1
+
 def is_emoji(ch):
     o = ord(ch); return o >= 0x1F000 or 0x2600 <= o <= 0x27BF or o == 0xFE0F
 def runs(text):
@@ -70,7 +81,7 @@ def main():
         y += ph + 30
     draw_runs(d, PAD, H - PAD - 10, "豊川ガイド｜さくっとPR", 22, (120, 120, 120))
     # ★ 社長が毎回手で付け直していた名前に合わせた（2026-09-21）
-    outA = D / f"{ID} 各SNS確認用-1.png"; im.save(outA); print("A:", outA)
+    outA = _versioned(D / f"{ID} 各SNS確認用-1.png"); im.save(outA); print("A:", outA)
     card = Image.open(D / f"_完成イメージ_{ID}.png").convert("RGB")
     slides = sorted(D.glob(f"_完成イメージ_{ID}_IGカルーセル*.png"))
     G, T = 40, 70
@@ -84,7 +95,7 @@ def main():
         ttl = f"Instagramで使う画像（{a0}枚目〜{a1}枚目）" if len(chunks) > 1 else "Instagramで使う画像（左から1枚目・2枚目…）"
         draw_runs(db, G, 22, ttl, 32, (20, 40, 90), bold=True)
         for k, pic in enumerate(chunk): B.paste(pic, (G + k * (card.width + G), T + G))
-        outB = D / f"{ID} Instagram確認用-{ci + 1}.png"
+        outB = _versioned(D / f"{ID} Instagram確認用-{ci + 1}.png")
         B.save(outB); print("B:", outB)
 
 if __name__ == "__main__":

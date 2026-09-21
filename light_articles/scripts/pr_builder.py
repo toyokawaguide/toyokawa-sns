@@ -202,11 +202,30 @@ def _contact(row: dict, medium: str = "") -> str:
     return ""
 
 
+ARTICLE_ONLY_MARK = "[記事のみ]"
+
+def _memo_lines_for_sns(memo: str) -> list:
+    """紹介文メモのうちSNSに載せる行。[記事のみ] で始まる行から次の「◆」見出しの手前までは除く
+    （2026-09-22 PR009：条件の詳細は記事だけに残し、SNSは短い注記だけにしたい先方要望）"""
+    out, skipping = [], False
+    for l in (memo or '').splitlines():
+        t = l.strip()
+        if not t:
+            continue
+        if t.startswith(ARTICLE_ONLY_MARK):
+            skipping = True
+            continue
+        if skipping and t.startswith('◆'):
+            skipping = False
+        if not skipping:
+            out.append(t)
+    return out
+
 def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     shop = row.get("店名", "").strip()
     catch = row.get("ひとことキャッチ", "").strip()
     genre = row.get("ジャンル", "").strip()
-    memo = (row.get("紹介文メモ", "") or "").strip()
+    memo = (row.get("紹介文メモ", "") or "").replace(ARTICLE_ONLY_MARK, "").strip()
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     tsubuyaki = (row.get("つぶやき", "") or "").strip()
 
@@ -328,7 +347,7 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     shop = row.get("店名", "").strip()
     catch = _flatten_catch(row.get("ひとことキャッチ", ""))
     tokuten = (row.get("特典・クーポン", "") or "").strip()
-    memo_lines = [l.strip() for l in (row.get("紹介文メモ", "") or "").splitlines() if l.strip()]
+    memo_lines = _memo_lines_for_sns(row.get("紹介文メモ", ""))
     tweet = (row.get("つぶやき", "") or "").strip()
     title = f"【PR】{shop}" + (f"｜{catch}" if catch else "")
 
@@ -417,7 +436,7 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     note = (row.get("豊川ガイドから一言", "") or "").strip()
-    memo_lines = [l.strip() for l in (row.get("紹介文メモ", "") or "").splitlines() if l.strip()]
+    memo_lines = _memo_lines_for_sns(row.get("紹介文メモ", ""))   # ★[記事のみ]区間は載せない
     if genre:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
     if when and not any("日時" in l for l in memo_lines):
