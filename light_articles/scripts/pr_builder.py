@@ -367,9 +367,9 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
             lines += [f"🎁 {tk}", ""]
         if cav_ref[0]:
             lines += [cav_ref[0], ""]
-        lines += ["▼ 詳細", wp_url, ""]
-        if contact and contact[2:] not in chr(10).join(lines):
+        if contact and contact[2:] not in chr(10).join(lines):   # ★X はカードが「最後のURL」に付くので、問い合わせ先は記事URLより前に置く（2026-09-22 社長「記事に飛んでほしい」）
             lines += [contact, ""]
+        lines += ["▼ 詳細", wp_url, ""]
         if credit:
             lines += [f"📷 {credit}"]
         lines += [_hashtags(row)]
