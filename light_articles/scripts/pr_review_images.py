@@ -81,7 +81,9 @@ def main():
         y += ph + 30
     draw_runs(d, PAD, H - PAD - 10, "豊川ガイド｜さくっとPR", 22, (120, 120, 120))
     # ★ 社長が毎回手で付け直していた名前に合わせた（2026-09-21）
-    outA = _versioned(D / f"{ID} 各SNS確認用-1.png"); im.save(outA); print("A:", outA)
+    _n = 1
+    while (D / f"{ID} 各SNS確認用-{_n}.png").exists(): _n += 1   # ★1枚ものは -1, -2, -3 … と版を進める（社長 2026-09-22）
+    outA = D / f"{ID} 各SNS確認用-{_n}.png"; im.save(outA); print("A:", outA)
     card = Image.open(D / f"_完成イメージ_{ID}.png").convert("RGB")
     slides = sorted(D.glob(f"_完成イメージ_{ID}_IGカルーセル*.png"))
     G, T = 40, 70
