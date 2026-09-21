@@ -510,6 +510,14 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     # === IG Feed カルーセル：1枚目=生成カバー、2枚目以降=番号写真(1から・豊川ガイド枠付き) ===
     # 番号写真は通常SNS記事と同じ豊川ガイド枠(上下フレーム・1080×1350)に入れてからアップ
     carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
+    # IGカルーセルは1投稿10枚まで（Instagram Graph APIの上限・アプリの20枚は使えない）。
+    # 1枚目が生成カバーなので写真は9枚が上限。超えた分は post_instagram_feed_carousel 側で
+    # 黙って切られるので、「送ったのに載っていない」に気づけるよう警告を出す（2026-09-21）
+    if len(carousel_photos) > 9:
+        dropped = [p.name for p in carousel_photos[9:]]
+        log(f"⚠️ 写真が{len(carousel_photos)}枚あります。IGカルーセルの上限（カバー＋9枚）を超えるため "
+            f"{len(dropped)}枚はInstagramに載りません: {chr(44).join(dropped)}"
+            f"（WP記事には全部載ります）", 1)
     ig_images = [ig_feed_url] if ig_feed_url else [ig_post_image_url]
     if "ig_feed" in done:
         carousel_photos = []          # 枠付けとアップの処理も丸ごと省く
