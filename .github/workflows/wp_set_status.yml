@@ -1,0 +1,63 @@
+name: WP記事ステータス変更（非公開/下書き/公開・手動のみ）
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_id:
+        description: 'WP投稿ID（例: 36017・slugと片方だけ指定）'
+        required: false
+      slug:
+        description: '記事slug（例: pr008・post_idと片方だけ指定）'
+        required: false
+      status:
+        description: '変更後ステータス'
+        type: choice
+        options:
+          - private
+          - draft
+          - publish
+        default: 'private'
+      dry_run:
+        description: '対象確認のみ（変更しない）'
+        type: boolean
+        default: false
+
+jobs:
+  set_status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: light_articles/scripts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: ライブラリインストール
+        run: pip install requests python-dotenv
+
+      - name: ステータス変更実行
+        env:
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
+          PYTHONIOENCODING: utf-8
+        run: |
+          TARGET=""
+          if [ -n "${{ github.event.inputs.post_id }}" ]; then
+            TARGET="--post-id ${{ github.event.inputs.post_id }}"
+          elif [ -n "${{ github.event.inputs.slug }}" ]; then
+            TARGET="--slug ${{ github.event.inputs.slug }}"
+          else
+            echo "post_id または slug を指定してください"; exit 1
+          fi
+          DRY=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            DRY="--dry-run"
+          fi
+          echo "実行コマンド: python wp_set_status.py $TARGET --status ${{ github.event.inputs.status }} $DRY"
+          python wp_set_status.py $TARGET --status ${{ github.event.inputs.status }} $DRY
