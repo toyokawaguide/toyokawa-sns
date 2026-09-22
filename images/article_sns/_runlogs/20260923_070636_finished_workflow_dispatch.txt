@@ -1,0 +1,39 @@
+time=2026-09-23T07:06:36.450757+09:00
+event=workflow_dispatch
+run_id=35790129534
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS104 【時代だね】次世代型オーダースーツブランド「FST（FUTU… (dry=False)
+  🎨 赤文字: FST / （FUTURE SUIT TECHNOLOGY）
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS104_* サブフォルダ検索中...
+✅ Drive: SNS104_2026.09.23【時代だね】次世代型オーダースーツブランド「FST（FUTURE SUIT TECHNOLOGY）」がイオンモールに出来た！手掛けるのは「コナカ」です。 (id=1WBfBLudZg...)
+  📥 DL: 0.jpg (314 KB)
+  📥 DL: 1.jpg (417 KB)
+  📥 DL: 2.jpg (415 KB)
+  📥 DL: 3.jpg (460 KB)
+  📷 フィード 5枚生成
+    📤 Pages へ 5枚 commit 08a2272（反映待ち…）
+    ✅ Pages 配信確認 5枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS104_* サブフォルダ検索中...
+✅ Drive: SNS104_2026.09.23【時代だね】次世代型オーダースーツブランド「FST（FUTURE SUIT TECHNOLOGY）」がイオンモールに出来た！手掛けるのは「コナカ」です。 (id=1WBfBLudZg...)
+カテゴリ=ニューオープン / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18216203044346849', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18125216731874151', 'dry': False}
+  🎬 IG Reels
+  container_id=17954397372254312 file_size=5,610,746 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '17969313021149782', 'media_type': 'REELS'}
+  📊 状態→投稿済
