@@ -1,0 +1,5 @@
+time=2026-09-24T07:03:05.009213+09:00
+event=workflow_dispatch
+run_id=35926023712
+label=started
+mode_input=publish
