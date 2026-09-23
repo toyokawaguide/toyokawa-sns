@@ -1,0 +1,47 @@
+time=2026-09-24T07:08:52.013089+09:00
+event=workflow_dispatch
+run_id=35926023712
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS105 【どんだけー】オープン予定を含めて4店舗目！まさかの「買取大… (dry=False)
+  …URL確認 接続失敗（1/4）→ 6秒後に再試行
+  …URL確認 接続失敗（2/4）→ 12秒後に再試行
+  …URL確認 接続失敗（3/4）→ 18秒後に再試行
+  ⚠ 記事URL確認が4回とも接続失敗: HTTPSConnectionPool(host='toyokawa-rentallife.com', port=443): Max retries exceeded with url: /2026/09/23/newopen-daikichikozakai/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='toyokawa-rentallife.com', port=443) at 0x7f8531c24310>, 'Connection to toyokawa-rentallife.com timed out. (connect timeout=20)'))
+  ⚠ URL確認が接続不能（XSERVER一時ブロックの可能性）→ 公開済み前提で投稿続行
+  ⚠ 記事本文取得失敗（タグ無しで続行）: HTTPSConnectionPool(host='toyokawa-rentallife.com', port=443): Max retries exceeded with url: /wp-json/wp/v2/posts?slug=newopen-daikichikozakai&context=edit&_fields=content (Caused by ConnectTimeoutError(<HTTPSConnection(host='toyokawa-rentallife.com', port=443) at 0x7f8531c30590>, 'Connection to toyokawa-rentallife.com timed out. (connect timeout=30)'))
+  🎨 赤文字: 買取大吉
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS105_* サブフォルダ検索中...
+✅ Drive: SNS105_2026.09.24【どんだけー】オープン予定を含めて4店舗目！まさかの「買取大吉」がドミー小坂井店の一画にオープンしてた！完全に来てます、買取店ブーム。 (id=1_Fu84mqk-...)
+  📥 DL: 0.jpg (226 KB)
+  📥 DL: 1.jpg (549 KB)
+  📥 DL: 2.jpg (609 KB)
+  📥 DL: 3.jpg (559 KB)
+  📥 DL: 4.jpg (521 KB)
+  📥 DL: 5.jpg (572 KB)
+  📷 フィード 7枚生成
+    📤 Pages へ 7枚 commit 542a818（反映待ち…）
+    ✅ Pages 配信確認 7枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS105_* サブフォルダ検索中...
+✅ Drive: SNS105_2026.09.24【どんだけー】オープン予定を含めて4店舗目！まさかの「買取大吉」がドミー小坂井店の一画にオープンしてた！完全に来てます、買取店ブーム。 (id=1_Fu84mqk-...)
+カテゴリ=ニューオープン / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18285326365295498', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18190993624392225', 'dry': False}
+  🎬 IG Reels
+  container_id=17954574105254312 file_size=5,610,739 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18117390739962532', 'media_type': 'REELS'}
+  📊 状態→投稿済
