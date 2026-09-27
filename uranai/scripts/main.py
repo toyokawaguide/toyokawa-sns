@@ -498,6 +498,33 @@ def _threads_already_posted(target_date: date, weekday_jp: str) -> bool:
     return False
 
 
+def _ig_already_posted(target_date: date, weekday_jp: str) -> bool:
+    """Instagramの実投稿一覧に本日の占いがあるか（2026-09-28追加）。
+    9/27: GHAのcronが2時間以上遅れ、朝8:15のローカル見張り番が先にIG投稿→遅れて来たGHAがもう一度IG投稿して二重になった。
+    見張り番はThreads投稿に失敗していたため、Threadsだけを見るガードをすり抜けた。IGも実物で確認する。
+    チェック失敗時は False（投稿続行＝安全側）。"""
+    tok = os.environ.get("META_ACCESS_TOKEN")
+    if not tok:
+        return False
+    try:
+        import requests as _rq
+        ig = os.environ.get("INSTAGRAM_ACCOUNT_ID") or os.environ.get("IG_USER_ID")
+        if not ig:
+            pg = _rq.get("https://graph.facebook.com/v21.0/me", params={"fields": "instagram_business_account", "access_token": tok}, timeout=30).json()
+            ig = (pg.get("instagram_business_account") or {}).get("id")
+        if not ig:
+            return False
+        r = _rq.get(f"https://graph.facebook.com/v21.0/{ig}/media",
+                    params={"fields": "caption,timestamp", "limit": 10, "access_token": tok}, timeout=30)
+        key = f"{target_date.month}/{target_date.day}({weekday_jp})"
+        for m in r.json().get("data", []):
+            if key in (m.get("caption") or ""):
+                return True
+    except Exception as e:
+        print(f"  [warn] Instagram実投稿チェック失敗（続行）: {e}")
+    return False
+
+
 def run_sns_only(target_date: date) -> dict:
     """別ジョブ（6:00）：WP公開ジョブが保存した bridge を読み、SNSのみ投稿する。
     bridge が無ければSNSはスキップ（記事は既に公開済＝Xリンクは生きてる）＋失敗通知。"""
@@ -513,6 +540,9 @@ def run_sns_only(target_date: date) -> dict:
     if _threads_already_posted(target_date, weekday_jp):
         print("  ✅ Threadsに本日の占いが既に存在（ローカル復旧等） → 二重投稿防止でSNSスキップ")
         return {"status": "already_posted_live_check"}
+    if _ig_already_posted(target_date, weekday_jp):
+        print("  ✅ Instagramに本日の占いが既に存在（ローカル復旧等） → 二重投稿防止でSNSスキップ")
+        return {"status": "already_posted_live_check_ig"}
 
     bridge_file = OUTPUT_DIR / f"bridge_{target_date}.json"
     if not bridge_file.exists():

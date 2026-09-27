@@ -70,13 +70,68 @@ def check_threads():
     except Exception:
         return None
 
-wp_ok = check_wp()
-th_ok = check_threads()
-print(f"WP: {'OK' if wp_ok else 'NG'} / Threads: {th_ok}")
+def check_ig():
+    """Instagramに今日の占いがあるか（2026-09-28追加）"""
+    tok = os.environ.get("META_ACCESS_TOKEN")
+    if not tok:
+        return None
+    try:
+        ig = os.environ.get("INSTAGRAM_ACCOUNT_ID") or os.environ.get("IG_USER_ID")
+        if not ig:
+            pg = requests.get("https://graph.facebook.com/v21.0/me", params={"fields": "instagram_business_account", "access_token": tok}, timeout=30).json()
+            ig = (pg.get("instagram_business_account") or {}).get("id")
+        r = requests.get(f"https://graph.facebook.com/v21.0/{ig}/media",
+                         params={"fields": "caption", "limit": 10, "access_token": tok}, timeout=30)
+        wd = "月火水木金土日"[today.weekday()]
+        key = f"{today.month}/{today.day}({wd})"
+        return any(key in (m.get("caption") or "") for m in r.json().get("data", []))
+    except Exception:
+        return None
 
-if wp_ok and th_ok:
-    gmail(f"✅占い正常 {today.month}/{today.day}", f"今朝の占いはWP・Threadsとも確認できました。\n{url}")
-    sys.exit(0)
+
+def gha_still_coming():
+    """GitHub側の今日の占いジョブが、まだ全部終わっていなければ True（2026-09-28追加）。
+    9/27はGitHubのcronが2時間以上遅れ（6:00のSNS投稿が8:23に発火）、8:15にこの見張り番が
+    「欠けている」と判断して自分で投稿→遅れて来たGHAがもう一度投稿して、Instagramが二重になった。
+    今日のcronは10回（3:30〜8:00）。全部発火して、実行中・待機中が無くなるまでは手を出さない。"""
+    try:
+        since = datetime.combine(today, datetime.min.time(), JST).astimezone(timezone.utc)
+        r = requests.get("https://api.github.com/repos/toyokawaguide/toyokawa-sns/actions/workflows/post_uranai.yml/runs",
+                         params={"per_page": 30, "created": ">=" + since.strftime("%Y-%m-%dT%H:%M:%SZ"), "event": "schedule"},
+                         headers={"Accept": "application/vnd.github+json"}, timeout=30)
+        runs = r.json().get("workflow_runs", [])
+        active = [x for x in runs if x.get("status") in ("queued", "in_progress", "waiting", "requested", "pending")]
+        print(f"GHA: 今日の定時実行 {len(runs)}/10 回・実行中/待機中 {len(active)}")
+        return len(runs) < 10 or bool(active)
+    except Exception as e:
+        print("GHA確認失敗（従来どおり判断）:", e)
+        return False
+
+
+import time
+DEADLINE = datetime.combine(today, datetime.min.time(), JST) + timedelta(hours=11)   # 11:00 JST までは待つ
+waited = 0
+while True:
+    wp_ok = check_wp()
+    th_ok = check_threads()
+    ig_ok = check_ig()
+    print(f"WP: {'OK' if wp_ok else 'NG'} / Threads: {th_ok} / Instagram: {ig_ok}")
+    if wp_ok and th_ok:
+        gmail(f"✅占い正常 {today.month}/{today.day}", f"今朝の占いはWP・Threadsとも確認できました。\n{url}"
+              + (f"\n（GitHubの遅れを {waited} 分待ってから確認）" if waited else ""))
+        sys.exit(0)
+    if wp_ok and ig_ok:
+        # IGは出ているのにThreadsだけ無い → ここで復旧するとIGが二重になる。触らずに知らせるだけ
+        gmail(f"⚠占い Threadsだけ未確認 {today.month}/{today.day}",
+              "WPとInstagramは出ていますが、Threadsに今日の占いが見当たりません。\n"
+              "二重投稿を避けるため自動復旧はしていません。必要ならThreadsだけ手動で投稿してください。\n" + url)
+        sys.exit(0)
+    if gha_still_coming() and datetime.now(JST) < DEADLINE:
+        print("GitHubの定時実行がまだ残っている（遅延中）→ 10分待って再確認")
+        time.sleep(600)
+        waited += 10
+        continue
+    break
 
 # ── 復旧実行 ──
 print("欠けを検知 → ローカル復旧を実行")
