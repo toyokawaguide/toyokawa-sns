@@ -1,0 +1,30 @@
+{
+  "_説明": "ブログ記事→YouTube掛け合い動画の設定。吹き出しの名前(aliases)か左右位置(side)で、どの声を使うか決まる。",
+  "characters": [
+    {
+      "key": "main",
+      "role": "メイン（語り手）",
+      "side": "left",
+      "aliases": ["管理人"],
+      "voicevox_speaker": 2,
+      "voice_name": "四国めたん",
+      "color": "#d94a7a"
+    },
+    {
+      "key": "sub",
+      "role": "ツッコミ",
+      "side": "right",
+      "aliases": [],
+      "voicevox_speaker": 3,
+      "voice_name": "ずんだもん",
+      "color": "#5aa83a"
+    }
+  ],
+  "narration_speaker": "main",
+  "include_narration": true,
+  "speed": 1.15,
+  "gap_seconds": 0.25,
+  "readings": {
+    "豊川": "とよかわ"
+  }
+}

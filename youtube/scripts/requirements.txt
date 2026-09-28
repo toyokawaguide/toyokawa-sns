@@ -1,0 +1,7 @@
+# ブログ記事 → YouTube 掛け合い動画
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+Pillow>=10.0.0
+budoux>=0.6
+# ffmpeg がPCに無い場合の予備（同梱バイナリ）
+imageio-ffmpeg>=0.5.0
