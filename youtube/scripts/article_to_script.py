@@ -223,7 +223,7 @@ def build_script(article: dict, config: dict) -> dict:
             items.append({"type": "line", "speaker": narr, "text": b["text"]})
 
     for ch in chars.values():
-        ch["display_name"] = ch["display_name"] or ch["voice_name"]
+        ch["display_name"] = ch["display_name"] or ch.get("role", ch["key"])
 
     n_lines = sum(1 for i in items if i["type"] == "line")
     n_bln = sum(1 for b in blocks if b["kind"] == "balloon")

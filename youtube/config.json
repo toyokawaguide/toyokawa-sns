@@ -1,18 +1,41 @@
 {
-  "_説明": "ブログ記事→YouTube掛け合い動画の設定。吹き出しの名前(aliases)か左右位置(side)で、どの声を使うか決まる。",
+  "_説明": "ブログ記事→YouTube掛け合い動画の設定。吹き出しの名前(aliases)か左右位置(side)でキャラが決まり、engine で使う音声エンジンを切り替える。",
+  "engine": "voicevox",
+  "engines": {
+    "voicevox": {
+      "url": "http://127.0.0.1:50021",
+      "credit_prefix": "VOICEVOX",
+      "voice_tuning": {
+        "_説明": "intonation=抑揚の強さ / pause_scale=読点の間 / pitch_jitter・speed_jitter=文ごとの声の揺らぎ / ending_stretch=「〜ね」「〜よ」の語尾の伸ばし",
+        "intonation": 1.3,
+        "pause_scale": 0.8,
+        "pitch_jitter": 0.03,
+        "speed_jitter": 0.04,
+        "ending_stretch": 1.25
+      }
+    },
+    "aivisspeech": {
+      "url": "http://127.0.0.1:10101",
+      "credit_prefix": "AivisSpeech",
+      "voice_tuning": {
+        "_説明": "intonation=感情表現の強さ(1.0が標準) / tempo_dynamics=話す速さの緩急(1.0が標準) / pause_scale=読点の間 / speed_jitter=文ごとの速さの揺らぎ",
+        "intonation": 1.2,
+        "tempo_dynamics": 1.1,
+        "pause_scale": 0.85,
+        "speed_jitter": 0.03
+      }
+    }
+  },
   "characters": [
     {
       "key": "main",
       "role": "メイン（語り手）",
       "side": "left",
-      "aliases": [
-        "管理人"
-      ],
-      "voicevox_speaker": 2,
-      "voice_name": "四国めたん",
+      "aliases": ["管理人"],
       "color": "#d94a7a",
-      "styles": {
-        "exclaim": 0
+      "voices": {
+        "voicevox": {"speaker": "四国めたん", "style": "ノーマル", "styles": {"exclaim": "あまあま"}},
+        "aivisspeech": {"speaker": "Anneli", "style": "ノーマル", "styles": {"exclaim": "上機嫌"}}
       }
     },
     {
@@ -20,25 +43,17 @@
       "role": "ツッコミ",
       "side": "right",
       "aliases": [],
-      "voicevox_speaker": 3,
-      "voice_name": "ずんだもん",
       "color": "#5aa83a",
-      "styles": {
-        "exclaim": 7
+      "voices": {
+        "voicevox": {"speaker": "ずんだもん", "style": "ノーマル", "styles": {"exclaim": "ツンツン"}},
+        "aivisspeech": {"speaker": "Anneli", "style": "テンション高め", "styles": {"exclaim": "テンション高め"}, "pitch": 0.06,
+                        "_メモ": "標準では Anneli しか入っていないため仮に同じ声を高めにしている。AivisHub の別モデルを入れたら speaker を差し替え"}
       }
     }
   ],
   "narration_speaker": "main",
   "include_narration": true,
   "speed": 1.15,
-  "voice_tuning": {
-    "_説明": "棒読み感を減らす調整。intonation=抑揚の強さ / pause_scale=読点の間 / pitch_jitter・speed_jitter=文ごとの声の揺らぎ / ending_stretch=「〜ね」「〜よ」の語尾の伸ばし",
-    "intonation": 1.3,
-    "pause_scale": 0.8,
-    "pitch_jitter": 0.03,
-    "speed_jitter": 0.04,
-    "ending_stretch": 1.25
-  },
   "timing": {
     "_説明": "台詞の間（秒）。quick_reply=相手の短いリアクション(quick_reply_chars文字以下で「！」「？」で終わる)は quick_reply_overlap 秒だけ食い気味に重ねる",
     "after_title": 0.8,
@@ -52,6 +67,5 @@
   },
   "readings": {
     "豊川": "とよかわ"
-  },
-  "credit_prefix": "VOICEVOX"
+  }
 }

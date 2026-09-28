@@ -1,7 +1,7 @@
 """
 make_video.py — ブログ記事 → 掛け合い台本 → YouTube 動画 を一括で作る
 
-【使い方】（VOICEVOX ENGINE を起動してから）
+【使い方】（音声エンジン VOICEVOX / AivisSpeech を起動してから・config.json の engine で選択）
 python make_video.py --post-id 12345
 python make_video.py --url https://toyokawa-rentallife.com/xxxx/
 python make_video.py --html ../samples/sample_article.html   # 動作確認用

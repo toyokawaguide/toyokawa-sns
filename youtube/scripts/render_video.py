@@ -2,7 +2,7 @@
 render_video.py — 掛け合い台本 JSON → 横長 YouTube 動画（1920×1080 mp4）
 
 【画面構成】
-- 上：ヘッダー帯（豊川ガイドロゴ＋記事タイトル＋VOICEVOX クレジット）
+- 上：ヘッダー帯（豊川ガイドロゴ＋記事タイトル＋音声クレジット）
 - 中央：記事の写真（なければチャプター名カード）
 - 左右：キャラクター（話している方を強調・もう一方は薄く）
 - 下：字幕（話者カラーの枠＋名前タグ）
@@ -30,7 +30,7 @@ from pathlib import Path
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-import voicevox_tts as tts
+import tts_engine as tts
 
 ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[1]
@@ -307,7 +307,7 @@ class Renderer:
         x0, y0, x1, y1 = SUB_BOX
         d.rounded_rectangle((x0, y0, x1, y1), 28, fill=COLOR_WHITE, outline=color, width=8)
         nf = font(34)
-        name = ch.get("display_name") or ch["voice_name"]
+        name = ch.get("display_name") or ch.get("role", "")
         nw = d.textlength(name, font=nf)
         side = ch.get("side", "left")
         nx = x0 + 40 if side == "left" else x1 - 40 - nw - 48
@@ -356,7 +356,7 @@ class Renderer:
 
 # ───────────────────────── 音声 ─────────────────────────
 
-SAMPLE_RATE = 24000
+SAMPLE_RATE = tts.SAMPLE_RATE
 
 
 class AudioTrack:
@@ -446,16 +446,18 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
     assets = Assets(cache / "img")
     readings = tts.load_readings(config)
     speed = float(config.get("speed", 1.0))
-    tuning = config.get("voice_tuning", {})
     timing = config.get("timing", {})
 
+    engine = tts.Engine(config)
+    print(f"音声エンジン {engine.wait()} に接続")
+    voice_of = engine.resolve_voices(script["characters"])
     voices = []
-    for c in script["characters"].values():
-        if c["voice_name"] not in voices:
-            voices.append(c["voice_name"])
-    credit = " / ".join(f"{config.get('credit_prefix', 'VOICEVOX')}:{v}" for v in voices)
+    for v in voice_of.values():
+        if v["speaker"] not in voices:
+            voices.append(v["speaker"])
+    credit_lines = [f"{engine.credit_prefix}:{v}" for v in voices]
+    credit = " / ".join(credit_lines)
 
-    print(f"音声エンジン {tts.wait_engine()} に接続")
     r = Renderer(script, assets, credit)
     audio = AudioTrack()
     segs: list[tuple[str, float]] = []   # (frame file, 表示開始秒)
@@ -466,9 +468,10 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
         img.convert("RGB").save(p, optimize=False, compress_level=1)
         segs.append((p.name, start))
 
-    def say(ch: dict, text: str, gap: float) -> float:
-        wav = tts.synthesize(tts.apply_readings(text, readings), tts.pick_style(ch, text),
-                             speed, cache / "tts", tuning)
+    def say(key: str, text: str, gap: float) -> float:
+        v = voice_of[key]
+        wav = engine.synthesize(tts.apply_readings(text, readings), v, tts.pick_style(v, text),
+                                speed, cache / "tts")
         return audio.place(wav, gap)
 
     # オープニング：タイトルカードをメインが読み上げ
@@ -476,7 +479,7 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
     tc = r.title_card()
     tc.convert("RGB").save(out_dir / "thumbnail.png")
     add_frame(tc, 0.0)
-    say(script["characters"][main_key], script["title"], 0.3)
+    say(main_key, script["title"], 0.3)
 
     image_src, chapter = None, None
     lines = [i for i in script["items"] if i["type"] == "line"]
@@ -493,9 +496,8 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
             continue
         if limit is not None and done >= limit:
             break
-        ch = script["characters"][item["speaker"]]
         for unit in split_units(item["text"]):
-            start = say(ch, unit, gap_before(prev, item["speaker"], unit, timing, new_chapter))
+            start = say(item["speaker"], unit, gap_before(prev, item["speaker"], unit, timing, new_chapter))
             if new_chapter:
                 chapters.append((start, chapter))
                 new_chapter = False
@@ -537,7 +539,7 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
             if i == 0 or s - chapters[i - 1][0] >= 10]
     if len(chap) >= 3:
         desc += ["▼ チャプター"] + [f"{fmt_ts(s)} {n}" for s, n in chap] + [""]
-    desc += ["▼ 使用音声"] + [f"{config.get('credit_prefix', 'VOICEVOX')}:{v}" for v in voices]
+    desc += ["▼ 使用音声"] + credit_lines
     (out_dir / "description.txt").write_text("\n".join(desc) + "\n", encoding="utf-8")
 
     shutil.rmtree(frames_dir)

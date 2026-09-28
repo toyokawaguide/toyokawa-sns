@@ -1,6 +1,6 @@
 name: ブログ記事 → YouTube掛け合い動画 作成（手動実行・公開はしない）
 
-# 記事の吹き出し（SWELL）を台本にして、VOICEVOX の掛け合い動画(1920×1080)を作る。
+# 記事の吹き出し（SWELL）を台本にして、掛け合い動画(1920×1080)を作る。
 # できた動画は「Artifacts」からダウンロード → 中身を確認してから YouTube に手動アップロード。
 on:
   workflow_dispatch:
@@ -11,9 +11,26 @@ on:
       url:
         description: '記事URL（post_id が空のとき使用）'
         required: false
+      engine:
+        description: '音声エンジン'
+        type: choice
+        options:
+          - aivisspeech
+          - voicevox
+        default: 'aivisspeech'
+      aivis_models:
+        description: 'AivisSpeech に追加する AivisHub モデルの UUID（空白区切り・任意）'
+        required: false
       limit:
         description: 'お試し用：先頭N台詞だけ作る（空なら全部）'
         required: false
+  # 【試験用・一時的】このブランチへの push でサンプル記事から AivisSpeech 版を作る（確認が済んだら削除）
+  push:
+    branches:
+      - claude/blog-to-youtube-video-lhxlxw
+    paths:
+      - 'youtube/**'
+      - '.github/workflows/make_youtube_video.yml'
 
 jobs:
   make_video:
@@ -22,13 +39,52 @@ jobs:
     defaults:
       run:
         working-directory: youtube/scripts
-    services:
-      voicevox:
-        image: voicevox/voicevox_engine:cpu-latest
-        ports:
-          - 50021:50021
+    env:
+      TTS_ENGINE: ${{ inputs.engine || 'aivisspeech' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: 音声エンジン起動
+        env:
+          AIVIS_MODELS: ${{ inputs.aivis_models }}
+        run: |
+          if [ "$TTS_ENGINE" = "voicevox" ]; then
+            docker run -d --name tts -p 50021:50021 voicevox/voicevox_engine:cpu-latest
+            echo "TTS_URL=http://127.0.0.1:50021" >> $GITHUB_ENV
+          else
+            # モデル置き場（標準モデル Anneli は初回起動時に自動ダウンロードされる）
+            DATA=/tmp/aivis
+            mkdir -p "$DATA/Models"
+            for id in $AIVIS_MODELS; do
+              echo "AivisHub モデル追加: $id"
+              curl -fsSL --retry 3 -o "$DATA/Models/$id.aivmx" \
+                "https://api.aivis-project.com/v1/aivm-models/$id/download?model_type=AIVMX"
+            done
+            chmod -R 777 "$DATA"
+            docker run -d --name tts -p 10101:10101 \
+              -v "$DATA:/home/user/.local/share/AivisSpeech-Engine-Dev" \
+              ghcr.io/aivis-project/aivisspeech-engine:cpu-latest
+            echo "TTS_URL=http://127.0.0.1:10101" >> $GITHUB_ENV
+          fi
+
+      - name: （参考）AivisHub の人気モデル一覧
+        if: env.TTS_ENGINE == 'aivisspeech'
+        continue-on-error: true
+        run: |
+          curl -fsSL "https://api.aivis-project.com/v1/aivm-models/search?sort=download&limit=30" -o /tmp/hub.json
+          python3 - <<'EOF'
+          import json
+          j = json.load(open("/tmp/hub.json"))
+          items = j.get("aivm_models") or j.get("items") or j.get("results") or []
+          if not items:
+              print(json.dumps(j, ensure_ascii=False)[:3000])
+          for m in items:
+              sp = " / ".join(
+                  f"{s.get('name')}({','.join(st.get('name', '') for st in s.get('styles', []))})"
+                  for s in m.get("speakers", []))
+              print(f"{m.get('aivm_model_uuid')} | {m.get('name')} | {m.get('license_type')} | "
+                    f"DL {m.get('total_download_count')} | {sp}")
+          EOF
 
       - name: Python セットアップ
         uses: actions/setup-python@v5
@@ -45,7 +101,6 @@ jobs:
           curl -fsSL --retry 3 --max-time 180 \
             -o "$FONT_DIR/NotoSansCJK-Bold.ttc" \
             "$BASE_URL/NotoSansCJK-Bold.ttc"
-          ls -la "$FONT_DIR"
           echo "LIGHT_FONT_DIR=$FONT_DIR" >> $GITHUB_ENV
 
       - name: ffmpeg セットアップ（プリインストール優先・apt-getフォールバック）
@@ -63,7 +118,6 @@ jobs:
           WP_URL: ${{ secrets.WP_URL }}
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
-          VOICEVOX_URL: http://127.0.0.1:50021
           POST_ID: ${{ inputs.post_id }}
           POST_URL: ${{ inputs.url }}
           LIMIT: ${{ inputs.limit }}
@@ -71,14 +125,19 @@ jobs:
           ARGS=()
           if [ -n "$POST_ID" ]; then ARGS+=(--post-id "$POST_ID")
           elif [ -n "$POST_URL" ]; then ARGS+=(--url "$POST_URL")
+          elif [ "${{ github.event_name }}" = "push" ]; then ARGS+=(--html ../samples/sample_article.html)
           else echo "post_id か url を指定してください"; exit 1; fi
           if [ -n "$LIMIT" ]; then ARGS+=(--limit "$LIMIT"); fi
           python make_video.py "${ARGS[@]}" -o ../output/video
 
+      - name: 音声エンジンのログ（失敗時の確認用）
+        if: failure()
+        run: docker logs tts 2>&1 | tail -80
+
       - name: 動画をダウンロード用に保存（Artifacts）
         uses: actions/upload-artifact@v4
         with:
-          name: youtube-video-${{ inputs.post_id || github.run_number }}
+          name: youtube-video-${{ env.TTS_ENGINE }}-${{ inputs.post_id || github.run_number }}
           path: |
             youtube/output/video/video.mp4
             youtube/output/video/description.txt
