@@ -35,7 +35,7 @@
       "color": "#d94a7a",
       "voices": {
         "voicevox": {"speaker": "四国めたん", "style": "ノーマル", "styles": {"exclaim": "あまあま"}},
-        "aivisspeech": {"speaker": "Anneli", "style": "ノーマル", "styles": {"exclaim": "上機嫌"}}
+        "aivisspeech": {"speaker": "コハク", "style": "ノーマル", "styles": {"exclaim": "あまあま"}}
       }
     },
     {
@@ -46,8 +46,7 @@
       "color": "#5aa83a",
       "voices": {
         "voicevox": {"speaker": "ずんだもん", "style": "ノーマル", "styles": {"exclaim": "ツンツン"}},
-        "aivisspeech": {"speaker": "Anneli", "style": "テンション高め", "styles": {"exclaim": "テンション高め"}, "pitch": 0.06,
-                        "_メモ": "標準では Anneli しか入っていないため仮に同じ声を高めにしている。AivisHub の別モデルを入れたら speaker を差し替え"}
+        "aivisspeech": {"speaker": "まお", "style": "ノーマル", "styles": {"exclaim": "からかい"}}
       }
     }
   ],
