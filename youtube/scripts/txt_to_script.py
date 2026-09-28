@@ -35,6 +35,8 @@ def convert(project_path: Path) -> Path:
         ch["display_name"] = name
         if s.get("image"):
             ch["image"] = str(base / s["image"])
+        if s.get("voices"):                 # 台本ごとに声を変える（例：{"aivisspeech": {"speaker": "阿井田 茂", ...}}）
+            ch["voices"] = {**ch.get("voices", {}), **s["voices"]}
 
     items = []
     lines = 0
@@ -54,7 +56,7 @@ def convert(project_path: Path) -> Path:
         if len(parts) < 2 or parts[0] not in speakers:
             print(f"[注意] 読めない行を飛ばしました: {line}", file=sys.stderr)
             continue
-        items.append({"type": "line", "speaker": speakers[parts[0]]["key"], "text": parts[1]})
+        items.append({"type": "line", "speaker": speakers[parts[0]]["key"], "text": parts[1].strip().rstrip("★")})
         lines += 1
 
     script = {
@@ -67,7 +69,7 @@ def convert(project_path: Path) -> Path:
         "items": items,
         "stats": {"lines": lines, "balloons": 0},
     }
-    out = base / "script.json"
+    out = base / f"script_{project_path.stem}.json"
     out.write_text(json.dumps(script, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"台本変換: 台詞 {lines} 件 → {out}")
     return out

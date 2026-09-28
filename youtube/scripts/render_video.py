@@ -384,6 +384,13 @@ class AudioTrack:
         self.cursor = start + len(data) / SAMPLE_RATE
         return start
 
+    def silence(self, sec: float, gap: float) -> float:
+        """声を出さない「間」（字幕だけ「…。」を出す沈黙のコマ）。開始秒を返す"""
+        start = max(0.0, self.cursor + gap)
+        self.cursor = start + sec
+        self.pad_to(self.cursor)
+        return start
+
     def pad_to(self, sec: float):
         n = int(round(sec * SAMPLE_RATE))
         if len(self.buf) < n:
@@ -470,6 +477,8 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
         segs.append((p.name, start))
 
     def say(key: str, text: str, gap: float) -> float:
+        if not re.sub(r"[…・。、．.\s]", "", text):   # 「…。」だけの台詞＝無言の間
+            return audio.silence(float(timing.get("silence_sec", 0.9)), gap)
         v = voice_of[key]
         wav = engine.synthesize(tts.apply_readings(text, readings), v, tts.pick_style(v, text),
                                 speed, cache / "tts")

@@ -128,8 +128,10 @@ jobs:
         run: |
           ARGS=()
           if [ -n "$PROJECT" ]; then
-            python txt_to_script.py "../projects/$PROJECT/project.json"
-            ARGS+=(--script "../projects/$PROJECT/script.json")
+            P="../projects/$PROJECT"                      # 例 36171 → project.json ／ 36171/v2_aivis_a → v2_aivis_a.json
+            if [ -d "$P" ]; then P="$P/project.json"; else P="$P.json"; fi
+            python txt_to_script.py "$P"
+            ARGS+=(--script "$(dirname "$P")/script_$(basename "$P" .json).json")
           elif [ -n "$POST_ID" ]; then ARGS+=(--post-id "$POST_ID")
           elif [ -n "$POST_URL" ]; then ARGS+=(--url "$POST_URL")
           elif [ "${{ github.event_name }}" = "push" ]; then ARGS+=(--html ../samples/sample_article.html)
@@ -144,7 +146,7 @@ jobs:
       - name: 動画をダウンロード用に保存（Artifacts）
         uses: actions/upload-artifact@v4
         with:
-          name: youtube-video-${{ env.TTS_ENGINE }}-${{ inputs.project || inputs.post_id || github.run_number }}
+          name: youtube-video-${{ env.TTS_ENGINE }}-${{ github.run_number }}
           path: |
             youtube/output/video/video.mp4
             youtube/output/video/description.txt
