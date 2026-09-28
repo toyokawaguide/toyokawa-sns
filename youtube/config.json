@@ -5,10 +5,15 @@
       "key": "main",
       "role": "メイン（語り手）",
       "side": "left",
-      "aliases": ["管理人"],
+      "aliases": [
+        "管理人"
+      ],
       "voicevox_speaker": 2,
       "voice_name": "四国めたん",
-      "color": "#d94a7a"
+      "color": "#d94a7a",
+      "styles": {
+        "exclaim": 0
+      }
     },
     {
       "key": "sub",
@@ -17,14 +22,36 @@
       "aliases": [],
       "voicevox_speaker": 3,
       "voice_name": "ずんだもん",
-      "color": "#5aa83a"
+      "color": "#5aa83a",
+      "styles": {
+        "exclaim": 7
+      }
     }
   ],
   "narration_speaker": "main",
   "include_narration": true,
   "speed": 1.15,
-  "gap_seconds": 0.25,
+  "voice_tuning": {
+    "_説明": "棒読み感を減らす調整。intonation=抑揚の強さ / pause_scale=読点の間 / pitch_jitter・speed_jitter=文ごとの声の揺らぎ / ending_stretch=「〜ね」「〜よ」の語尾の伸ばし",
+    "intonation": 1.3,
+    "pause_scale": 0.8,
+    "pitch_jitter": 0.03,
+    "speed_jitter": 0.04,
+    "ending_stretch": 1.25
+  },
+  "timing": {
+    "_説明": "台詞の間（秒）。quick_reply=相手の短いリアクション(quick_reply_chars文字以下で「！」「？」で終わる)は quick_reply_overlap 秒だけ食い気味に重ねる",
+    "after_title": 0.8,
+    "chapter_pause": 0.9,
+    "same_speaker": 0.18,
+    "hesitation": 0.45,
+    "switch": 0.3,
+    "answer": 0.15,
+    "quick_reply_chars": 18,
+    "quick_reply_overlap": 0.12
+  },
   "readings": {
     "豊川": "とよかわ"
-  }
+  },
+  "credit_prefix": "VOICEVOX"
 }

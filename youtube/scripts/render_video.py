@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import io
+from array import array
 import json
 import os
 import platform
@@ -355,42 +356,69 @@ class Renderer:
 
 # ───────────────────────── 音声 ─────────────────────────
 
+SAMPLE_RATE = 24000
+
+
 class AudioTrack:
+    """台詞を時間軸上に置いていく音声トラック（前の台詞と重ねる＝食い気味のツッコミも可）"""
+
     def __init__(self):
-        self.params = None
-        self.chunks: list[bytes] = []
-        self.frames = 0
+        self.buf = array("h")
+        self.cursor = 0.0          # 直前の台詞の終わり（秒）
 
-    @property
-    def rate(self) -> int:
-        return self.params.framerate if self.params else 24000
-
-    def add_wav(self, path: Path) -> float:
+    def place(self, path: Path, gap: float) -> float:
+        """直前の台詞の終わり + gap 秒から再生（gap がマイナスなら重ねる）。開始秒を返す"""
         with wave.open(str(path), "rb") as w:
-            if self.params is None:
-                self.params = w.getparams()
-            n = w.getnframes()
-            self.chunks.append(w.readframes(n))
-        self.frames += n
-        return n / self.rate
+            if w.getframerate() != SAMPLE_RATE or w.getnchannels() != 1 or w.getsampwidth() != 2:
+                raise RuntimeError(f"想定外の音声形式です: {path}")
+            data = array("h", w.readframes(w.getnframes()))
+        start = max(0.0, self.cursor + gap)
+        i0 = int(round(start * SAMPLE_RATE))
+        if len(self.buf) < i0:
+            self.buf.extend(array("h", bytes(2 * (i0 - len(self.buf)))))
+        overlap = min(len(self.buf) - i0, len(data))
+        for k in range(overlap):   # 重なる部分だけ足し合わせ（短いので Python ループで十分）
+            v = self.buf[i0 + k] + data[k]
+            self.buf[i0 + k] = 32767 if v > 32767 else -32768 if v < -32768 else v
+        self.buf.extend(data[overlap:])
+        self.cursor = start + len(data) / SAMPLE_RATE
+        return start
 
-    def add_silence(self, sec: float) -> float:
-        n = int(round(sec * self.rate))
-        width = (self.params.sampwidth * self.params.nchannels) if self.params else 2
-        self.chunks.append(b"\x00" * n * width)
-        self.frames += n
-        return n / self.rate
+    def pad_to(self, sec: float):
+        n = int(round(sec * SAMPLE_RATE))
+        if len(self.buf) < n:
+            self.buf.extend(array("h", bytes(2 * (n - len(self.buf)))))
 
     def save(self, path: Path):
         with wave.open(str(path), "wb") as w:
-            if self.params is not None:
-                w.setparams(self.params)
-            else:
-                w.setnchannels(1)
-                w.setsampwidth(2)
-                w.setframerate(self.rate)
-            for c in self.chunks:
-                w.writeframes(c)
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(SAMPLE_RATE)
+            w.writeframes(self.buf.tobytes())
+
+
+def gap_before(prev: tuple[str, str] | None, speaker: str, text: str, timing: dict,
+               new_chapter: bool) -> float:
+    """台詞と台詞の間（秒）。会話っぽいテンポにするため、状況で変える
+    - 話題（見出し）が変わる：長め
+    - 同じ人が続けて話す：短め（「…」で終わっていたら少し溜める）
+    - 相手の短いリアクション（「！」「？」で終わる返し）：食い気味に重ねる
+    - 質問への返事：すぐ返す"""
+    if prev is None:
+        return float(timing.get("after_title", 0.8))
+    if new_chapter:
+        return float(timing.get("chapter_pause", 0.9))
+    prev_speaker, prev_text = prev
+    if prev_speaker == speaker:
+        if prev_text.rstrip().endswith(("…", "・・・", "、")):
+            return float(timing.get("hesitation", 0.45))
+        return float(timing.get("same_speaker", 0.18))
+    # 短くて「！」「？」で終わる＝リアクション（「えっ！？」「そうなの？」など）
+    if len(text) <= int(timing.get("quick_reply_chars", 18)) and text.rstrip("」』）) ").endswith(("！", "？", "!", "?")):
+        return -float(timing.get("quick_reply_overlap", 0.12))
+    if prev_text.rstrip().endswith(("？", "?")):
+        return float(timing.get("answer", 0.15))
+    return float(timing.get("switch", 0.3))
 
 
 # ───────────────────────── メイン ─────────────────────────
@@ -418,69 +446,77 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
     assets = Assets(cache / "img")
     readings = tts.load_readings(config)
     speed = float(config.get("speed", 1.0))
-    gap = float(config.get("gap_seconds", 0.25))
+    tuning = config.get("voice_tuning", {})
+    timing = config.get("timing", {})
 
     voices = []
     for c in script["characters"].values():
         if c["voice_name"] not in voices:
             voices.append(c["voice_name"])
-    credit = " / ".join(f"VOICEVOX:{v}" for v in voices)
+    credit = " / ".join(f"{config.get('credit_prefix', 'VOICEVOX')}:{v}" for v in voices)
 
-    print(f"VOICEVOX ENGINE {tts.wait_engine()} に接続")
+    print(f"音声エンジン {tts.wait_engine()} に接続")
     r = Renderer(script, assets, credit)
     audio = AudioTrack()
-    segs: list[tuple[str, float]] = []   # (frame file, duration)
+    segs: list[tuple[str, float]] = []   # (frame file, 表示開始秒)
     chapters: list[tuple[float, str]] = [(0.0, "オープニング")]
-    t = 0.0
 
-    def add_frame(img: Image.Image, dur: float):
-        nonlocal t
+    def add_frame(img: Image.Image, start: float):
         p = frames_dir / f"f{len(segs):05d}.png"
         img.convert("RGB").save(p, optimize=False, compress_level=1)
-        segs.append((p.name, dur))
-        t += dur
+        segs.append((p.name, start))
+
+    def say(ch: dict, text: str, gap: float) -> float:
+        wav = tts.synthesize(tts.apply_readings(text, readings), tts.pick_style(ch, text),
+                             speed, cache / "tts", tuning)
+        return audio.place(wav, gap)
 
     # オープニング：タイトルカードをメインが読み上げ
     main_key = config.get("narration_speaker", "main")
-    main = script["characters"][main_key]
     tc = r.title_card()
     tc.convert("RGB").save(out_dir / "thumbnail.png")
-    wav = tts.synthesize(tts.apply_readings(script["title"], readings),
-                         main["voicevox_speaker"], speed, cache / "tts")
-    dur = audio.add_wav(wav) + audio.add_silence(0.8)
-    add_frame(tc, dur)
+    add_frame(tc, 0.0)
+    say(script["characters"][main_key], script["title"], 0.3)
 
     image_src, chapter = None, None
     lines = [i for i in script["items"] if i["type"] == "line"]
     done = 0
+    prev: tuple[str, str] | None = None
+    new_chapter = False
     for item in script["items"]:
         if item["type"] == "image":
             image_src = item["src"]
             continue
         if item["type"] == "chapter":
             chapter = item["text"]
-            chapters.append((t, chapter))
+            new_chapter = True
             continue
         if limit is not None and done >= limit:
             break
         ch = script["characters"][item["speaker"]]
         for unit in split_units(item["text"]):
-            wav = tts.synthesize(tts.apply_readings(unit, readings),
-                                 ch["voicevox_speaker"], speed, cache / "tts")
-            dur = audio.add_wav(wav) + audio.add_silence(gap)
-            add_frame(r.frame(item["speaker"], unit, image_src, chapter), dur)
+            start = say(ch, unit, gap_before(prev, item["speaker"], unit, timing, new_chapter))
+            if new_chapter:
+                chapters.append((start, chapter))
+                new_chapter = False
+            add_frame(r.frame(item["speaker"], unit, image_src, chapter), start)
+            prev = (item["speaker"], unit)
         done += 1
         print(f"\r  台詞 {done}/{len(lines)}", end="", flush=True)
     print()
 
-    add_frame(r.end_card(), audio.add_silence(END_CARD_SEC))
+    end_start = audio.cursor + 0.8
+    add_frame(r.end_card(), end_start)
+    t = end_start + END_CARD_SEC
+    audio.pad_to(t)
     audio.save(out_dir / "audio.wav")
 
     # ffmpeg concat（静止画＋長さ）
     lst = frames_dir / "list.txt"
     with lst.open("w", encoding="utf-8") as f:
-        for name, dur in segs:
-            f.write(f"file '{name}'\nduration {dur:.4f}\n")
+        for i, (name, start) in enumerate(segs):
+            end = segs[i + 1][1] if i + 1 < len(segs) else t
+            f.write(f"file '{name}'\nduration {max(end - start, 1 / FPS):.4f}\n")
         f.write(f"file '{segs[-1][0]}'\n")
     video = out_dir / "video.mp4"
     cmd = [ffmpeg_bin(), "-y", "-loglevel", "error",
@@ -501,7 +537,7 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
             if i == 0 or s - chapters[i - 1][0] >= 10]
     if len(chap) >= 3:
         desc += ["▼ チャプター"] + [f"{fmt_ts(s)} {n}" for s, n in chap] + [""]
-    desc += ["▼ 使用音声"] + [f"VOICEVOX:{v}" for v in voices]
+    desc += ["▼ 使用音声"] + [f"{config.get('credit_prefix', 'VOICEVOX')}:{v}" for v in voices]
     (out_dir / "description.txt").write_text("\n".join(desc) + "\n", encoding="utf-8")
 
     shutil.rmtree(frames_dir)

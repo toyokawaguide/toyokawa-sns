@@ -11,7 +11,9 @@ voicevox_tts.py — VOICEVOX ENGINE（HTTP API）で台詞を wav にする
 from __future__ import annotations
 
 import hashlib
+import json
 import os
+import random
 import time
 from pathlib import Path
 
@@ -47,9 +49,47 @@ def apply_readings(text: str, readings: dict[str, str]) -> str:
     return text
 
 
-def synthesize(text: str, speaker: int, speed: float, cache_dir: Path) -> Path:
+def pick_style(ch: dict, text: str) -> int:
+    """台詞の雰囲気で声色（スタイル）を切り替える。config の characters[].styles で指定
+      exclaim: 「！」で終わる・「！？」を含む（驚き・ツッコミ・盛り上がり）
+      question: 「？」で終わる
+    指定がなければノーマル（voicevox_speaker）"""
+    styles = ch.get("styles") or {}
+    t = text.rstrip("」』）)♪ 　")
+    if "！？" in t or "!?" in t or t.endswith(("！", "!")):
+        return styles.get("exclaim", ch["voicevox_speaker"])
+    if t.endswith(("？", "?")):
+        return styles.get("question", ch["voicevox_speaker"])
+    return ch["voicevox_speaker"]
+
+
+def _humanize(query: dict, text: str, tuning: dict):
+    """棒読み感を減らす調整
+    - 抑揚（intonationScale）を強めに
+    - 読点の間を少し詰める（会話はテンポが速い）
+    - 1文ごとに声の高さ・速さをほんの少し揺らす（毎回同じ調子にならないように）
+    - 「〜ね」「〜よ」などの語尾を少し伸ばす"""
+    rnd = random.Random(hashlib.sha1(text.encode("utf-8")).digest())   # 同じ台詞は同じ結果
+    query["intonationScale"] = float(tuning.get("intonation", 1.0))
+    if "pauseLengthScale" in query:
+        query["pauseLengthScale"] = float(tuning.get("pause_scale", 1.0))
+    pj, sj = float(tuning.get("pitch_jitter", 0)), float(tuning.get("speed_jitter", 0))
+    query["pitchScale"] = query.get("pitchScale", 0.0) + rnd.uniform(-pj, pj)
+    query["speedScale"] *= 1 + rnd.uniform(-sj, sj)
+    stretch = float(tuning.get("ending_stretch", 1.0))
+    phrases = query.get("accent_phrases") or []
+    if stretch != 1.0 and phrases and phrases[-1]["moras"]:
+        last = phrases[-1]["moras"][-1]
+        if last.get("text") in ("ネ", "ヨ", "ナ", "ノ", "ワ", "サ"):
+            last["vowel_length"] *= stretch
+
+
+def synthesize(text: str, speaker: int, speed: float, cache_dir: Path,
+               tuning: dict | None = None) -> Path:
+    tuning = tuning or {}
     cache_dir.mkdir(parents=True, exist_ok=True)
-    key = hashlib.sha1(f"{speaker}|{speed}|{text}".encode("utf-8")).hexdigest()[:16]
+    sig = json.dumps(tuning, sort_keys=True)
+    key = hashlib.sha1(f"{speaker}|{speed}|{sig}|{text}".encode("utf-8")).hexdigest()[:16]
     out = cache_dir / f"{key}.wav"
     if out.exists():
         return out
@@ -60,6 +100,9 @@ def synthesize(text: str, speaker: int, speed: float, cache_dir: Path) -> Path:
     query["speedScale"] = speed
     query["prePhonemeLength"] = 0.05
     query["postPhonemeLength"] = 0.05
+    query["outputSamplingRate"] = 24000   # エンジンを替えても形式をそろえる
+    query["outputStereo"] = False
+    _humanize(query, text, tuning)
     s = requests.post(f"{VOICEVOX_URL}/synthesis", params={"speaker": speaker},
                       json=query, timeout=180)
     s.raise_for_status()
