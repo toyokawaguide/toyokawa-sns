@@ -314,7 +314,7 @@ class Renderer:
         d.rounded_rectangle((nx, y0 - 30, nx + nw + 48, y0 + 26), 18, fill=color)
         d.text((nx + 24, y0 - 2), name, font=nf, fill=COLOR_WHITE, anchor="lm")
 
-        f, lines = fit_wrap(d, text, x1 - x0 - 120, 3, range(62, 41, -2))
+        f, lines = fit_wrap(d, text, x1 - x0 - 120, 2, range(62, 37, -2))   # 3行だと名札に重なる
         lh = f.size * 1.4
         top = (y0 + y1) / 2 - lh * len(lines) / 2 + 8
         for i, ln in enumerate(lines):
@@ -445,6 +445,7 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
     cache = out_dir.parent / "_cache"
     assets = Assets(cache / "img")
     readings = tts.load_readings(config)
+    readings.update(script.get("readings", {}))   # 台本ごとの読み替え（地名など）
     speed = float(config.get("speed", 1.0))
     timing = config.get("timing", {})
 
@@ -479,7 +480,7 @@ def render(script: dict, out_dir: Path, config: dict, limit: int | None = None) 
     tc = r.title_card()
     tc.convert("RGB").save(out_dir / "thumbnail.png")
     add_frame(tc, 0.0)
-    say(main_key, script["title"], 0.3)
+    say(main_key, script.get("opening_say") or script["title"], 0.3)
 
     image_src, chapter = None, None
     lines = [i for i in script["items"] if i["type"] == "line"]

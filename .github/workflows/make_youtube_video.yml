@@ -24,6 +24,9 @@ on:
       limit:
         description: 'お試し用：先頭N台詞だけ作る（空なら全部）'
         required: false
+      project:
+        description: '手書き台本から作る場合：youtube/projects/ のフォルダ名（例 36171）。指定すると post_id/url より優先'
+        required: false
   # 【試験用・一時的】このブランチへの push でサンプル記事から AivisSpeech 版を作る（確認が済んだら削除）
   push:
     branches:
@@ -121,9 +124,13 @@ jobs:
           POST_ID: ${{ inputs.post_id }}
           POST_URL: ${{ inputs.url }}
           LIMIT: ${{ inputs.limit }}
+          PROJECT: ${{ inputs.project }}
         run: |
           ARGS=()
-          if [ -n "$POST_ID" ]; then ARGS+=(--post-id "$POST_ID")
+          if [ -n "$PROJECT" ]; then
+            python txt_to_script.py "../projects/$PROJECT/project.json"
+            ARGS+=(--script "../projects/$PROJECT/script.json")
+          elif [ -n "$POST_ID" ]; then ARGS+=(--post-id "$POST_ID")
           elif [ -n "$POST_URL" ]; then ARGS+=(--url "$POST_URL")
           elif [ "${{ github.event_name }}" = "push" ]; then ARGS+=(--html ../samples/sample_article.html)
           else echo "post_id か url を指定してください"; exit 1; fi
@@ -137,7 +144,7 @@ jobs:
       - name: 動画をダウンロード用に保存（Artifacts）
         uses: actions/upload-artifact@v4
         with:
-          name: youtube-video-${{ env.TTS_ENGINE }}-${{ inputs.post_id || github.run_number }}
+          name: youtube-video-${{ env.TTS_ENGINE }}-${{ inputs.project || inputs.post_id || github.run_number }}
           path: |
             youtube/output/video/video.mp4
             youtube/output/video/description.txt
