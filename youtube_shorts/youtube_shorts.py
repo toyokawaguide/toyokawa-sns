@@ -27,8 +27,11 @@ BGM_DIR = HERE / "bgm"
 BGM = {
     "kagayaki": BGM_DIR / "kagayaki_chorus.m4a",   # とよかわ輝まつり（サビ）
     "oboe": BGM_DIR / "oboeuta_chorus.m4a",        # とよかわ、おぼえうた（サビ）
-    "lofi": BGM_DIR / "amaoto_latecafe.m4a",       # AMAOTO ローファイ
+    "hatsumode": BGM_DIR / "hatsumode_chorus.m4a", # 豊川稲荷で初詣（サビ）
+    "sakura": BGM_DIR / "sakura_chorus.m4a",       # 佐奈川の桜 出会いの春版（サビ）
+    "icho": BGM_DIR / "icho_chorus.m4a",           # 大和の大いちょう
 }
+# ※BGMは「豊川のうた」（豊川ガイドの自作曲）だけを使う（社長指示 2026-09-29）
 DEFAULT_TAGS = ["豊川市", "豊川ガイド", "とよサポ", "愛知県", "東三河"]
 FF = shutil.which("ffmpeg") or "ffmpeg"
 FP = shutil.which("ffprobe") or "ffprobe"

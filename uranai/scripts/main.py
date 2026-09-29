@@ -494,7 +494,7 @@ def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, r
                     "豊川市の地域情報サイト「豊川ガイド」が毎朝お届けする占いです。")
             yt = youtube_shorts.post_short(reel_video, title, desc,
                                            tags=["豊川市", "豊川ガイド", "とよサポ", "今日の占い", "占い", "愛知県"],
-                                           bgm=os.environ.get("YT_BGM_URANAI", "lofi"), log=lambda m: print("     " + m))
+                                           bgm=os.environ.get("YT_BGM_URANAI", "oboe"), log=lambda m: print("     " + m))
         except Exception as e:
             yt = {"status": "error", "error": str(e)[:200]}
         print(f"     status={yt.get('status')}  {yt.get('url') or yt.get('reason') or yt.get('error') or ''}")
