@@ -36,8 +36,8 @@
   "song": "oboe",
   "title": "とよかわ、おぼえうた",
   "section": "Verse 1",
-  "start": 24.83,
-  "lyric": "南は　三河湾　ひかる"
+  "start": 9.8,
+  "lyric": "東三河の　真ん中で"
  },
  {
   "file": "oboe_02.m4a",
@@ -206,5 +206,13 @@
   "section": "Bridge",
   "start": 178.27,
   "lyric": "ライトアップに　浮かぶ　夜は"
+ },
+ {
+  "file": "hatsumode_04.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "section": "Verse 1",
+  "start": 10.8,
+  "lyric": "白い　息が　のぼっていく"
  }
 ]
