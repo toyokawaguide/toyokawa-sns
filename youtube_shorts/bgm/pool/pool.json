@@ -1,0 +1,415 @@
+[
+ {
+  "file": "kagayaki_01.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 25.51,
+  "lyric": "という川公園"
+ },
+ {
+  "file": "kagayaki_02.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 44.51,
+  "lyric": "見上げた空に一発ね"
+ },
+ {
+  "file": "kagayaki_03.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 58.51,
+  "lyric": "豊川 輝き祭り"
+ },
+ {
+  "file": "kagayaki_04.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 85.51,
+  "lyric": "輝けというかは 夏の夜"
+ },
+ {
+  "file": "kagayaki_05.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 100.51,
+  "lyric": "日のこの雨が降り注ぐ"
+ },
+ {
+  "file": "kagayaki_06.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 130.51,
+  "lyric": "二人でひとく地図"
+ },
+ {
+  "file": "kagayaki_07.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 145.51,
+  "lyric": "音楽に乗せて"
+ },
+ {
+  "file": "kagayaki_08.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 164.51,
+  "lyric": "輝けというかは 夏の夜"
+ },
+ {
+  "file": "kagayaki_10.m4a",
+  "song": "kagayaki",
+  "title": "とよかわ輝まつり",
+  "start": 219.51,
+  "lyric": "届かばかがやき祭り"
+ },
+ {
+  "file": "oboe_01.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 18.75,
+  "lyric": "北には本宮山 空広く"
+ },
+ {
+  "file": "oboe_02.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 33.75,
+  "lyric": "サナ川の春には 花が咲く"
+ },
+ {
+  "file": "oboe_03.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 60.75,
+  "lyric": "東予川 東予川"
+ },
+ {
+  "file": "oboe_04.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 75.39,
+  "lyric": "歴史が生きをする"
+ },
+ {
+  "file": "oboe_05.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 100.23,
+  "lyric": "そうよかはうしくぼこやわた"
+ },
+ {
+  "file": "oboe_06.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 129.27,
+  "lyric": "トヨカは トヨカは"
+ },
+ {
+  "file": "oboe_07.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 143.55,
+  "lyric": "歴史が息をする"
+ },
+ {
+  "file": "oboe_08.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 170.81,
+  "lyric": "一飲み屋音は見とこう世界"
+ },
+ {
+  "file": "oboe_09.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 185.01,
+  "lyric": "バラとオーバーとスプレマム"
+ },
+ {
+  "file": "oboe_10.m4a",
+  "song": "oboe",
+  "title": "とよかわ、おぼえうた",
+  "start": 213.31,
+  "lyric": "161.14の街"
+ },
+ {
+  "file": "choumei_01.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 12.75,
+  "lyric": "あかさかだい あかさかちょう"
+ },
+ {
+  "file": "choumei_02.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 24.75,
+  "lyric": "いちだちょう いちのみやちょう"
+ },
+ {
+  "file": "choumei_03.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 51.25,
+  "lyric": "金沢ちょう 金塚ちょう"
+ },
+ {
+  "file": "choumei_04.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 63.65,
+  "lyric": "川花町"
+ },
+ {
+  "file": "choumei_05.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 92.95,
+  "lyric": "大歌町 シノダ町 シノズカ町 シモナガヤ町 シモノガワ町 シ"
+ },
+ {
+  "file": "choumei_06.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 130.55,
+  "lyric": "高美女"
+ },
+ {
+  "file": "choumei_07.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 144.35,
+  "lyric": "坂江街"
+ },
+ {
+  "file": "choumei_08.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 170.55,
+  "lyric": "ババ町 東アケボの町"
+ },
+ {
+  "file": "choumei_09.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 183.15,
+  "lyric": "豊川 豊川 町の名前言えるかな"
+ },
+ {
+  "file": "choumei_10.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "start": 209.75,
+  "lyric": "むこうがわらちょ"
+ },
+ {
+  "file": "hatsumode_01.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 19.75,
+  "lyric": "千本の堀がはためく"
+ },
+ {
+  "file": "hatsumode_02.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 31.75,
+  "lyric": "はつもで"
+ },
+ {
+  "file": "hatsumode_03.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 43.75,
+  "lyric": "キツネさまも笑ってる"
+ },
+ {
+  "file": "hatsumode_04.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 58.75,
+  "lyric": "レイクスカのキツネたちは"
+ },
+ {
+  "file": "hatsumode_05.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 71.75,
+  "lyric": "お土産の"
+ },
+ {
+  "file": "hatsumode_06.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 83.75,
+  "lyric": "よてをあわせて"
+ },
+ {
+  "file": "hatsumode_07.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 96.75,
+  "lyric": "はじまりのお金がなる"
+ },
+ {
+  "file": "hatsumode_08.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 112.75,
+  "lyric": "今年もこの街で"
+ },
+ {
+  "file": "hatsumode_09.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 133.75,
+  "lyric": "とよかわいなりで 初もで両手を合わせて"
+ },
+ {
+  "file": "hatsumode_10.m4a",
+  "song": "hatsumode",
+  "title": "豊川稲荷で初詣",
+  "start": 150.25,
+  "lyric": "お願いごと隣の君の横顔に"
+ },
+ {
+  "file": "sakura_01.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 9.75,
+  "lyric": "明鉄電車の車掃から"
+ },
+ {
+  "file": "sakura_02.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 21.75,
+  "lyric": "ピンク色"
+ },
+ {
+  "file": "sakura_03.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 38.45,
+  "lyric": "さながわの桜 豊かわしの空に舞い上がれ"
+ },
+ {
+  "file": "sakura_04.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 57.45,
+  "lyric": "ワクワクが止まらない"
+ },
+ {
+  "file": "sakura_05.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 71.95,
+  "lyric": "イオンが先だった頃"
+ },
+ {
+  "file": "sakura_06.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 85.95,
+  "lyric": "綺麗だって 見に行こう"
+ },
+ {
+  "file": "sakura_07.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 100.45,
+  "lyric": "出会ったばかりの君と"
+ },
+ {
+  "file": "sakura_08.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 114.95,
+  "lyric": "街は少しずつ 変わる人は出会って 動き出す"
+ },
+ {
+  "file": "sakura_09.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 144.95,
+  "lyric": "さながわの桜 とよかわしの空に舞い上げ"
+ },
+ {
+  "file": "sakura_10.m4a",
+  "song": "sakura",
+  "title": "佐奈川の桜",
+  "start": 167.45,
+  "lyric": "新しい毎日の真ん中で 今日も咲き誇る"
+ },
+ {
+  "file": "icho_01.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 23.75,
+  "lyric": "一丁の木 100年前に 過去の記念に植えられた 木なんだって"
+ },
+ {
+  "file": "icho_02.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 40.35,
+  "lyric": "風が吹く旅 騒めいて 街の声に答える"
+ },
+ {
+  "file": "icho_03.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 65.95,
+  "lyric": "舞い落ちる葉っぱ集めたら 100年分の物語"
+ },
+ {
+  "file": "icho_04.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 113.27,
+  "lyric": "風の日は手を振りあって"
+ },
+ {
+  "file": "icho_05.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 127.27,
+  "lyric": "ちびっこ広場の笑い声"
+ },
+ {
+  "file": "icho_06.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 154.27,
+  "lyric": "舞い落ちる葉っぱ集めたら"
+ },
+ {
+  "file": "icho_07.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 167.27,
+  "lyric": "秋が一番優しい場所"
+ },
+ {
+  "file": "icho_08.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 183.27,
+  "lyric": "黄色の夢の続き"
+ },
+ {
+  "file": "icho_09.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 216.27,
+  "lyric": "やまとの大衝"
+ },
+ {
+  "file": "icho_10.m4a",
+  "song": "icho",
+  "title": "大和の大いちょう",
+  "start": 230.75,
+  "lyric": "今年も会えたね この黄色に"
+ }
+]

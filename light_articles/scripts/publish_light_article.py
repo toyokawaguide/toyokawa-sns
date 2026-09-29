@@ -577,7 +577,7 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
                        "豊川市のちょっとした変化、見つけたら教えてね。\n#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ")
             yt = youtube_shorts.post_short(reel_path, title, yt_desc,
                                            tags=["豊川市", "豊川ガイド", "とよサポ", "開店閉店", "さくっとお知らせ", "愛知県"],
-                                           bgm=os.environ.get("YT_BGM_LIGHT", "kagayaki"), log=lambda m: log(m, 1))
+                                           bgm=os.environ.get("YT_BGM_LIGHT", "light"), log=lambda m: log(m, 1))
             if yt.get("status") == "ok" or yt.get("reason") == "既にアップ済み":
                 mark("yt_short")
         except Exception as e:

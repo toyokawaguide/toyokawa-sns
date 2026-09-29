@@ -3,13 +3,13 @@
    ★スイッチ：環境変数 YT_SHORTS_ENABLED=1 のときだけ動く（未設定なら何もしない＝既存の投稿に一切影響なし）
    ★認証：YT_TOKEN_JSON（yt_auth.py で作った yt_token.json の中身）。無ければ何もしない
    ★公開範囲：YT_PRIVACY（既定 private＝試運転。public にすると即公開）
-   ★BGM：インスタ用は無音のまま。YouTube版だけ自作曲（SUNO有料プラン）を乗せる
+   ★BGM：インスタ用は無音のまま。YouTube版だけ「豊川のうた」の切り抜きをランダムで乗せる
    ★重複防止：直近のアップロードに同じタイトルがあればアップしない（リトライ・再実行でも二重投稿しない）
    ★失敗しても例外を投げない（呼び出し側のインスタ・WP投稿を絶対に止めない）
 
    使い方（各パイプラインから）:
      import youtube_shorts
-     res = youtube_shorts.post_short(reel_path, title, description, tags=[...], bgm="kagayaki", log=print)
+     res = youtube_shorts.post_short(reel_path, title, description, tags=[...], bgm="article", log=print)
 """
 from __future__ import annotations
 
@@ -23,15 +23,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 BGM_DIR = HERE / "bgm"
-# 曲の候補（30〜40秒に切り出した自作曲）。社長が選んだものを既定にする
-BGM = {
-    "kagayaki": BGM_DIR / "kagayaki_chorus.m4a",   # とよかわ輝まつり（サビ）
-    "oboe": BGM_DIR / "oboeuta_chorus.m4a",        # とよかわ、おぼえうた（サビ）
-    "hatsumode": BGM_DIR / "hatsumode_chorus.m4a", # 豊川稲荷で初詣（サビ）
-    "sakura": BGM_DIR / "sakura_chorus.m4a",       # 佐奈川の桜 出会いの春版（サビ）
-    "icho": BGM_DIR / "icho_chorus.m4a",           # 大和の大いちょう
-}
-# ※BGMは「豊川のうた」（豊川ガイドの自作曲）だけを使う（社長指示 2026-09-29）
+POOL_DIR = BGM_DIR / "pool"
+# BGMは「豊川のうた」（豊川ガイドの自作曲）6曲の切り抜き60本（歌い出しの頭から20秒）からランダム（社長指示 2026-09-29）
+#   同じ日の3本（記事SNS・占い・ライト記事）は必ず別の曲。使う部分も日付ごとにランダム。
+#   同じ日・同じ種類なら何度やり直しても同じ曲になる（再実行で変わらない）
+STREAM_ORDER = {"article": 0, "uranai": 1, "light": 2}
 DEFAULT_TAGS = ["豊川市", "豊川ガイド", "とよサポ", "愛知県", "東三河"]
 FF = shutil.which("ffmpeg") or "ffmpeg"
 FP = shutil.which("ffprobe") or "ffprobe"
@@ -79,14 +75,31 @@ def _duration(p: Path) -> float:
         return 15.0
 
 
-def with_bgm(reel: Path, bgm_key: str | None, lufs: float = -16.0) -> Path:
+def pick_bgm(kind: str, day=None) -> Path | None:
+    """その日・その種類のBGM切り抜きを選ぶ（kind = article / uranai / light）"""
+    import random
+    from datetime import datetime, timedelta, timezone
+    try:
+        pool = json.loads((POOL_DIR / "pool.json").read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    day = day or (datetime.now(timezone(timedelta(hours=9))).date())
+    songs = sorted({c["song"] for c in pool})
+    random.Random(f"songs-{day}").shuffle(songs)                  # その日の曲の並び
+    song = songs[STREAM_ORDER.get(kind, 0) % len(songs)]           # 種類ごとに別の曲
+    clips = [c for c in pool if c["song"] == song]
+    clip = random.Random(f"clip-{day}-{kind}").choice(clips)       # 使う部分もランダム
+    return POOL_DIR / clip["file"]
+
+
+def with_bgm(reel: Path, kind: str | None, lufs: float = -16.0) -> Path:
     """無音のリールに BGM を乗せた一時ファイルを返す（曲が無ければ元のまま）"""
-    song = BGM.get(bgm_key or "")
+    song = pick_bgm(kind) if kind else None
     if not song or not song.exists():
         return reel
     L = _duration(reel)
     out = Path(tempfile.gettempdir()) / f"yt_{reel.stem}_bgm.mp4"
-    af = (f"atrim=start=0:duration={L},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.4,"
+    af = (f"atrim=start=0:duration={L},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.15,"
           f"afade=t=out:st={max(L - 1.2, 0)}:d=1.2,loudnorm=I={lufs}:TP=-1.5:LRA=11,aresample=48000")
     r = subprocess.run([FF, "-v", "error", "-y", "-i", str(reel), "-i", str(song), "-filter_complex", f"[1:a]{af}[a]",
                         "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", str(out)],
