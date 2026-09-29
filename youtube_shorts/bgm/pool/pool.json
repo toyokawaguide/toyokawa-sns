@@ -11,20 +11,12 @@
   "file": "kagayaki_02.m4a",
   "song": "kagayaki",
   "title": "とよかわ輝まつり",
-  "section": "Pre-Chorus",
-  "start": 45.24,
-  "lyric": "見上げた　空に　一発目"
- },
- {
-  "file": "kagayaki_03.m4a",
-  "song": "kagayaki",
-  "title": "とよかわ輝まつり",
   "section": "Chorus",
   "start": 59.6,
   "lyric": "とよかわ　輝まつり"
  },
  {
-  "file": "kagayaki_04.m4a",
+  "file": "kagayaki_03.m4a",
   "song": "kagayaki",
   "title": "とよかわ輝まつり",
   "section": "Verse 2",
@@ -32,23 +24,7 @@
   "lyric": "手筒を　抱えた　背中に"
  },
  {
-  "file": "kagayaki_05.m4a",
-  "song": "kagayaki",
-  "title": "とよかわ輝まつり",
-  "section": "Pre-Chorus",
-  "start": 124.68,
-  "lyric": "屋台に　キッチンカー"
- },
- {
-  "file": "kagayaki_06.m4a",
-  "song": "kagayaki",
-  "title": "とよかわ輝まつり",
-  "section": "Chorus",
-  "start": 138.05,
-  "lyric": "とよかわ　輝まつり"
- },
- {
-  "file": "kagayaki_07.m4a",
+  "file": "kagayaki_04.m4a",
   "song": "kagayaki",
   "title": "とよかわ輝まつり",
   "section": "Bridge",
@@ -59,9 +35,9 @@
   "file": "oboe_01.m4a",
   "song": "oboe",
   "title": "とよかわ、おぼえうた",
-  "section": "Pre-Chorus",
-  "start": 48.18,
-  "lyric": "1　6　1　.　1　4"
+  "section": "Verse 1",
+  "start": 24.83,
+  "lyric": "南は　三河湾　ひかる"
  },
  {
   "file": "oboe_02.m4a",
@@ -83,33 +59,9 @@
   "file": "oboe_04.m4a",
   "song": "oboe",
   "title": "とよかわ、おぼえうた",
-  "section": "Pre-Chorus",
-  "start": 118.12,
-  "lyric": "1　9　4　3"
- },
- {
-  "file": "oboe_05.m4a",
-  "song": "oboe",
-  "title": "とよかわ、おぼえうた",
-  "section": "Chorus",
-  "start": 129.38,
-  "lyric": "とよかわ　とよかわ"
- },
- {
-  "file": "oboe_06.m4a",
-  "song": "oboe",
-  "title": "とよかわ、おぼえうた",
   "section": "Bridge",
   "start": 168.78,
   "lyric": "一宮　音羽　御津　小坂井"
- },
- {
-  "file": "oboe_07.m4a",
-  "song": "oboe",
-  "title": "とよかわ、おぼえうた",
-  "section": "Final Chorus",
-  "start": 195.05,
-  "lyric": "とよかわ　とよかわ"
  },
  {
   "file": "choumei_01.m4a",
@@ -124,11 +76,27 @@
   "song": "choumei",
   "title": "とよかわ町名うた",
   "section": "Verse",
-  "start": 13.06,
-  "lyric": "あかさかだい"
+  "start": 38.72,
+  "lyric": "えじまちょう"
  },
  {
   "file": "choumei_03.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "section": "Verse",
+  "start": 64.17,
+  "lyric": "かわハなちょう"
+ },
+ {
+  "file": "choumei_04.m4a",
+  "song": "choumei",
+  "title": "とよかわ町名うた",
+  "section": "Verse",
+  "start": 89.86,
+  "lyric": "さんぞうごちょう"
+ },
+ {
+  "file": "choumei_05.m4a",
   "song": "choumei",
   "title": "とよかわ町名うた",
   "section": "Chorus",
@@ -136,23 +104,15 @@
   "lyric": "とよかわ　とよかわ"
  },
  {
-  "file": "choumei_04.m4a",
+  "file": "choumei_06.m4a",
   "song": "choumei",
   "title": "とよかわ町名うた",
   "section": "Verse",
-  "start": 130.68,
-  "lyric": "たかみちょう"
+  "start": 156.72,
+  "lyric": "ながくさちょう"
  },
  {
-  "file": "choumei_05.m4a",
-  "song": "choumei",
-  "title": "とよかわ町名うた",
-  "section": "Chorus",
-  "start": 183.33,
-  "lyric": "とよかわ　とよかわ"
- },
- {
-  "file": "choumei_06.m4a",
+  "file": "choumei_07.m4a",
   "song": "choumei",
   "title": "とよかわ町名うた",
   "section": "Verse",
@@ -163,28 +123,12 @@
   "file": "hatsumode_01.m4a",
   "song": "hatsumode",
   "title": "豊川稲荷で初詣",
-  "section": "Verse 1",
-  "start": 11.03,
-  "lyric": "白い　息が　のぼっていく"
- },
- {
-  "file": "hatsumode_02.m4a",
-  "song": "hatsumode",
-  "title": "豊川稲荷で初詣",
-  "section": "Pre-Chorus",
-  "start": 20.68,
-  "lyric": "千本のぼりが　はためく"
- },
- {
-  "file": "hatsumode_03.m4a",
-  "song": "hatsumode",
-  "title": "豊川稲荷で初詣",
   "section": "Chorus",
   "start": 29.86,
   "lyric": "豊川稲荷で　初詣"
  },
  {
-  "file": "hatsumode_04.m4a",
+  "file": "hatsumode_02.m4a",
   "song": "hatsumode",
   "title": "豊川稲荷で初詣",
   "section": "Verse 2",
@@ -192,23 +136,7 @@
   "lyric": "霊狐塚の　きつねたちは"
  },
  {
-  "file": "hatsumode_05.m4a",
-  "song": "hatsumode",
-  "title": "豊川稲荷で初詣",
-  "section": "Pre-Chorus",
-  "start": 69.67,
-  "lyric": "帰り道は　おみやげの"
- },
- {
-  "file": "hatsumode_06.m4a",
-  "song": "hatsumode",
-  "title": "豊川稲荷で初詣",
-  "section": "Chorus",
-  "start": 78.85,
-  "lyric": "豊川稲荷で　初詣"
- },
- {
-  "file": "hatsumode_07.m4a",
+  "file": "hatsumode_03.m4a",
   "song": "hatsumode",
   "title": "豊川稲荷で初詣",
   "section": "Bridge",
@@ -219,41 +147,33 @@
   "file": "sakura_01.m4a",
   "song": "sakura",
   "title": "佐奈川の桜",
-  "section": "Verse 1",
-  "start": 9.6,
-  "lyric": "名鉄電車の 車窓から"
+  "section": "Verse",
+  "start": 9.56,
+  "lyric": "名鉄電車の　車窓から"
  },
  {
   "file": "sakura_02.m4a",
   "song": "sakura",
   "title": "佐奈川の桜",
   "section": "Chorus",
-  "start": 38.4,
-  "lyric": "佐奈川の 桜"
+  "start": 39.21,
+  "lyric": "佐奈川の　桜"
  },
  {
   "file": "sakura_03.m4a",
   "song": "sakura",
   "title": "佐奈川の桜",
-  "section": "Verse 2",
-  "start": 62.9,
-  "lyric": "姫街道を 歩きながら"
+  "section": "Verse",
+  "start": 63.34,
+  "lyric": "姫街道を　歩きながら"
  },
  {
   "file": "sakura_04.m4a",
   "song": "sakura",
   "title": "佐奈川の桜",
-  "section": "Chorus",
-  "start": 90.9,
-  "lyric": "佐奈川の 桜"
- },
- {
-  "file": "sakura_05.m4a",
-  "song": "sakura",
-  "title": "佐奈川の桜",
-  "section": "Bridge",
-  "start": 114.9,
-  "lyric": "町は 少しずつ 変わる"
+  "section": "Verse",
+  "start": 115.55,
+  "lyric": "町は　少しずつ　変わる"
  },
  {
   "file": "icho_01.m4a",
@@ -267,20 +187,12 @@
   "file": "icho_02.m4a",
   "song": "icho",
   "title": "大和の大いちょう",
-  "section": "Pre-Chorus",
-  "start": 40.17,
-  "lyric": "風が　吹くたび　ざわめいて"
- },
- {
-  "file": "icho_03.m4a",
-  "song": "icho",
-  "title": "大和の大いちょう",
   "section": "Chorus",
   "start": 51.63,
   "lyric": "大和の　大いちょう"
  },
  {
-  "file": "icho_04.m4a",
+  "file": "icho_03.m4a",
   "song": "icho",
   "title": "大和の大いちょう",
   "section": "Verse 2",
@@ -288,35 +200,11 @@
   "lyric": "保育園の　庭に"
  },
  {
-  "file": "icho_05.m4a",
-  "song": "icho",
-  "title": "大和の大いちょう",
-  "section": "Pre-Chorus",
-  "start": 128.19,
-  "lyric": "ちびっこ広場の　笑い声"
- },
- {
-  "file": "icho_06.m4a",
-  "song": "icho",
-  "title": "大和の大いちょう",
-  "section": "Chorus",
-  "start": 139.67,
-  "lyric": "大和の　大いちょう"
- },
- {
-  "file": "icho_07.m4a",
+  "file": "icho_04.m4a",
   "song": "icho",
   "title": "大和の大いちょう",
   "section": "Bridge",
   "start": 178.27,
   "lyric": "ライトアップに　浮かぶ　夜は"
- },
- {
-  "file": "icho_08.m4a",
-  "song": "icho",
-  "title": "大和の大いちょう",
-  "section": "Chorus",
-  "start": 215.97,
-  "lyric": "大和の　大いちょう"
  }
 ]
