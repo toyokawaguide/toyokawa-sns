@@ -475,6 +475,32 @@ def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, r
         sns_results["instagram_reel"] = ig_reel_res
         if ig_reel_res.get("status") == "ok": mark("instagram_reel")
 
+    # YouTube ショート（2026-09-29 追加・YT_SHORTS_ENABLED=1 の時だけ動く／失敗してもここで止めない）
+    print("  [YouTube ショート]")
+    if done.get("youtube_short") == "ok":
+        print("     [skip] 既投稿済み"); sns_results["youtube_short"] = {"status": "already_posted"}
+    elif reel_video and Path(reel_video).exists():
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "youtube_shorts"))
+            import re
+            import youtube_shorts
+            from caption import make_instagram_reel_caption
+            cap = make_instagram_reel_caption(weekday_key, data, spot, target_date)
+            head = cap.strip().splitlines()[0].strip("✨ ")                 # 例：2026年9/29(火)の占い・血液型
+            head = re.sub(r"^\d{4}年", "", head)
+            spot_name = getattr(spot, "name", "") or ""
+            title = f"{head}｜今日のラッキースポットは{spot_name}" if spot_name else head
+            desc = (f"{cap}\n\n▼今日の占い（全項目）\n{post_url}\n\n"
+                    "豊川市の地域情報サイト「豊川ガイド」が毎朝お届けする占いです。")
+            yt = youtube_shorts.post_short(reel_video, title, desc,
+                                           tags=["豊川市", "豊川ガイド", "とよサポ", "今日の占い", "占い", "愛知県"],
+                                           bgm=os.environ.get("YT_BGM_URANAI", "lofi"), log=lambda m: print("     " + m))
+        except Exception as e:
+            yt = {"status": "error", "error": str(e)[:200]}
+        print(f"     status={yt.get('status')}  {yt.get('url') or yt.get('reason') or yt.get('error') or ''}")
+        sns_results["youtube_short"] = yt
+        if yt.get("status") == "ok": mark("youtube_short")
+
     return sns_results
 
 

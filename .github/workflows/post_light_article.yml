@@ -93,6 +93,11 @@ jobs:
           # LIGHT_FONT_DIR は前ステップで $GITHUB_ENV に動的設定済み
           # LIGHT_GOOGLE_CREDENTIALS / LIGHT_GOOGLE_TOKEN はデフォルトパス使用
           PYTHONIOENCODING: utf-8
+          # YouTube ショート（2026-09-29）：vars.YT_SHORTS_ENABLED=1 と secrets.YT_TOKEN_JSON が揃った時だけ動く
+          YT_SHORTS_ENABLED: ${{ vars.YT_SHORTS_ENABLED }}
+          YT_TOKEN_JSON: ${{ secrets.YT_TOKEN_JSON }}
+          YT_PRIVACY: ${{ vars.YT_PRIVACY }}
+          YT_BGM_LIGHT: ${{ vars.YT_BGM_LIGHT }}
         run: |
           ID_ARG=""
           if [ -n "${{ github.event.inputs.target_id }}" ]; then

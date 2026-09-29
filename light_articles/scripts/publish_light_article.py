@@ -568,6 +568,21 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         except Exception as _e:
             log(f"  ⚠ フォールバックも失敗: {_e}", 2)
 
+    # === YouTube ショート（2026-09-29 追加・YT_SHORTS_ENABLED=1 の時だけ動く／失敗しても状態判定に入れない）===
+    if (not sns_dry) and "yt_short" not in done and reel_result.get("status") in ("ok", "skipped"):
+        try:
+            sys.path.insert(0, str(ROOT.parents[1] / "youtube_shorts"))
+            import youtube_shorts
+            yt_desc = (f"{title}\n\n▼記事はこちら\n{wp_url}\n\n"
+                       "豊川市のちょっとした変化、見つけたら教えてね。\n#豊川市 #豊川ガイド #とよサポ #さくっとお知らせ")
+            yt = youtube_shorts.post_short(reel_path, title, yt_desc,
+                                           tags=["豊川市", "豊川ガイド", "とよサポ", "開店閉店", "さくっとお知らせ", "愛知県"],
+                                           bgm=os.environ.get("YT_BGM_LIGHT", "kagayaki"), log=lambda m: log(m, 1))
+            if yt.get("status") == "ok" or yt.get("reason") == "既にアップ済み":
+                mark("yt_short")
+        except Exception as e:
+            log(f"⚠ YouTube ショート処理で例外（他の投稿は影響なし）: {str(e)[:160]}", 1)
+
     # === SNS 結果判定 → 状態更新 ===
     sns_failures = []
     if not sns_dry:
