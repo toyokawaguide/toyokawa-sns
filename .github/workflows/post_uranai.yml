@@ -1,4 +1,4 @@
-name: 占い配信（WP早朝公開＋SNS6:00・分離版）
+name: 占い配信（WP早朝公開＋SNS5:52・分離版）
 
 # 【設計 2026-06-13】WP公開とSNS投稿を分離（Xの6時投稿前に記事を確実公開するため）
 #  - WP公開（--wp-only・SNS無し）を早朝に複数回リトライ（04:30/05:00/05:30 JST）
@@ -9,27 +9,31 @@ name: 占い配信（WP早朝公開＋SNS6:00・分離版）
 
 on:
   schedule:
-    - cron: '30 18 * * *'  # 03:30 JST  WP公開（最速・cron不発対策で前倒し追加 2026-06-16）
-    - cron: '0 19 * * *'   # 04:00 JST  WP公開リトライ
-    - cron: '30 19 * * *'  # 04:30 JST  WP公開リトライ
-    - cron: '0 20 * * *'   # 05:00 JST  WP公開リトライ
-    - cron: '30 20 * * *'  # 05:30 JST  WP公開リトライ
-    - cron: '45 20 * * *'  # 05:45 JST  WP公開リトライ（最終・06:00前にbridge確実化）
-    - cron: '0 21 * * *'   # 06:00 JST  SNS投稿（X除く・Threads/IG/Reels）
-    - cron: '30 21 * * *'  # 06:30 JST  SNS自動リトライ（既投稿はマーカーでスキップ＝二重投稿なし）
-    - cron: '0 22 * * *'   # 07:00 JST  SNS自動リトライ
-    - cron: '0 23 * * *'   # 08:00 JST  SNS自動リトライ（最終保険）
+    # 【2026-10-01 変更】GitHubのcronは毎時 :00/:30 が大混雑で、実測 3〜4時間遅れが常態化していた
+    #（9/21〜10/1 の11日間すべて：03:30の初回が 06:23〜08:26 に到着・06:00のSNSが 09:00〜10:00）。
+    #  → 混雑しない「中途半端な分」に全部ずらす。構造（WP早朝複数回→SNS）は同じ。
+    - cron: '17 18 * * *'  # 03:17 JST  WP公開（最速）
+    - cron: '47 18 * * *'  # 03:47 JST  WP公開リトライ
+    - cron: '17 19 * * *'  # 04:17 JST  WP公開リトライ
+    - cron: '47 19 * * *'  # 04:47 JST  WP公開リトライ
+    - cron: '17 20 * * *'  # 05:17 JST  WP公開リトライ
+    - cron: '37 20 * * *'  # 05:37 JST  WP公開リトライ（最終）
+    - cron: '52 20 * * *'  # 05:52 JST  SNS投稿（X除く・Threads/IG/Reels）
+    - cron: '22 21 * * *'  # 06:22 JST  SNS自動リトライ（既投稿はマーカー＋実投稿確認でスキップ＝二重投稿なし）
+    - cron: '52 21 * * *'  # 06:52 JST  SNS自動リトライ
+    - cron: '52 22 * * *'  # 07:52 JST  SNS自動リトライ（最終保険）
   workflow_dispatch:
     inputs:
       target_date:
         description: '対象日 YYYY-MM-DD（空ならJSTの今日）'
         required: false
       mode:
-        description: '実行モード（publish=フル復旧 / wp-only=WPのみ / dry-run=テスト）'
+        description: '実行モード（publish=フル復旧 / wp-only=WPのみ / sns-only=SNSのみ(bridgeキャッシュ利用・¥0) / dry-run=テスト）'
         type: choice
         options:
           - publish
           - wp-only
+          - sns-only
           - dry-run
         default: 'publish'
 
@@ -136,8 +140,8 @@ jobs:
           SCHED="${{ github.event.schedule }}"
           if [ "${{ github.event_name }}" = "schedule" ]; then
             case "$SCHED" in
-              "0 21 * * *"|"30 21 * * *"|"0 22 * * *"|"0 23 * * *")
-                FLAGS="--sns-only" ;;                          # 06:00〜08:00 SNS投稿（リトライ・既投稿はマーカーでスキップ）
+              "52 20 * * *"|"22 21 * * *"|"52 21 * * *"|"52 22 * * *")
+                FLAGS="--sns-only" ;;                          # 05:52〜07:52 SNS投稿（リトライ・既投稿はマーカー＋実投稿確認でスキップ）
               *)
                 FLAGS="--publish --wp-only --skip-if-published" ;;  # 早朝 WP公開のみ（リトライ安全）
             esac
@@ -145,6 +149,8 @@ jobs:
             FLAGS="--publish"                                  # 手動フル復旧（WP+SNS一括）
           elif [ "${{ github.event.inputs.mode }}" = "wp-only" ]; then
             FLAGS="--publish --wp-only --skip-if-published"    # 手動WPのみ（SNS投稿なし）
+          elif [ "${{ github.event.inputs.mode }}" = "sns-only" ]; then
+            FLAGS="--sns-only"                                 # 手動SNSのみ（朝の見張り番がdispatch・bridgeキャッシュで¥0）
           else
             FLAGS="--dry --skip-wp"                            # 手動テスト
           fi
@@ -170,7 +176,7 @@ jobs:
       # SNS投稿後、どこまで投稿できたかのマーカーを保存（次のリトライが二重投稿を避けるため）
       #  SNSジョブ(06:00〜08:00)＋手動publish で保存。always()で部分成功も必ず残す。run_id込みで毎回新キー
       - name: SNS既投稿マーカー保存
-        if: always() && ( (github.event_name == 'schedule' && (github.event.schedule == '0 21 * * *' || github.event.schedule == '30 21 * * *' || github.event.schedule == '0 22 * * *' || github.event.schedule == '0 23 * * *')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'publish') )
+        if: always() && ( (github.event_name == 'schedule' && (github.event.schedule == '52 20 * * *' || github.event.schedule == '22 21 * * *' || github.event.schedule == '52 21 * * *' || github.event.schedule == '52 22 * * *')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.mode == 'publish' || github.event.inputs.mode == 'sns-only')) )
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
