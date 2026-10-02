@@ -28,29 +28,50 @@ def is_enabled() -> bool:
     return bool(os.getenv("URANAI_SHEETS_URL"))
 
 
-def fetch_sheet(sheet_name: str, timeout: int = 30) -> list[list] | None:
+_CACHE: dict = {}  # sheet_name -> (fetched_at, rows)  同一実行内で同じシートを何度も取りに行かない
+_CACHE_TTL = 600
+
+
+def fetch_sheet(sheet_name: str, timeout: int = 30, retries: int = 3) -> list[list] | None:
     """指定シートの全行を取得（A1〜最終行）
+
+    2026-10-03: Apps Script の Read timed out が散発（10/5週の確認で入力シート取得が2回失敗）。
+    取れないと select_lucky_spot がマスタ乱択に落ちて「指名と違うスポット」を配信する事故になるため、
+    ①3回リトライ（timeout 30→45→60秒・5秒待ち）②同一実行内キャッシュ（10分）を追加。
 
     Returns:
         2次元配列（xlsx の iter_rows と同じイメージ・list of list）
         失敗時は None
     """
+    import time
     url = os.getenv("URANAI_SHEETS_URL")
     secret = os.getenv("URANAI_SHEETS_SECRET", "")
     if not url:
         return None
+    hit = _CACHE.get(sheet_name)
+    if hit and time.time() - hit[0] < _CACHE_TTL:
+        return hit[1]
 
-    try:
-        r = requests.get(url, params={"sheet": sheet_name, "secret": secret}, timeout=timeout)
-        r.raise_for_status()
-        data = r.json()
-        if "error" in data:
-            print(f"[load_sheets] error from Apps Script: {data['error']}")
-            return None
-        return data.get("values", [])
-    except Exception as e:
-        print(f"[load_sheets] fetch '{sheet_name}' failed: {e}")
-        return None
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            r = requests.get(url, params={"sheet": sheet_name, "secret": secret},
+                             timeout=timeout + 15 * (attempt - 1))
+            r.raise_for_status()
+            data = r.json()
+            if "error" in data:
+                print(f"[load_sheets] error from Apps Script: {data['error']}")
+                return None
+            rows = data.get("values", [])
+            _CACHE[sheet_name] = (time.time(), rows)
+            return rows
+        except Exception as e:
+            last_err = e
+            print(f"[load_sheets] fetch '{sheet_name}' failed ({attempt}/{retries}): {e}")
+            if attempt < retries:
+                time.sleep(5)
+    print(f"[load_sheets] fetch '{sheet_name}' gave up: {last_err}")
+    return None
 
 
 def normalize_cell(v: Any) -> Any:

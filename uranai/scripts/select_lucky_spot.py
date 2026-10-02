@@ -111,7 +111,10 @@ def lookup_input_sheet(wb, target_date: date) -> Spot | None:
     """
     rows = _get_rows(wb, INPUT_SHEET)
     if rows is None:
-        return None
+        # 2026-10-03: 入力シートが「読めなかった」のに None を返すと、呼び出し側がマスタ乱択に落ちて
+        # 社長指名と違うスポットを配信してしまう（5/18 カラベル事故と同型）。読めない時は止める。
+        # 止まっても WP公開は 04:30/05:00/05:30 の複数 cron ＋ 朝の見張り番が再試行する。
+        raise RuntimeError(f"ラッキースポット入力シートを取得できません（{target_date}）。Sheets 障害の可能性・次回 cron で再試行")
     # データ部は行6（index 5）以降
     for r in rows[5:]:
         if not r or r[0] is None:
