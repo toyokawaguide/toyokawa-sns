@@ -524,6 +524,24 @@ def _threads_already_posted(target_date: date, weekday_jp: str) -> bool:
     return False
 
 
+def _ig_posted_media_types(target_date: date, weekday_jp: str) -> set:
+    """Instagramの実投稿一覧にある本日の占いの media_type の集合（IMAGE=フィード / VIDEO=リール）。
+    2026-10-02：媒体ごとのスキップ判定用。失敗時は空集合（＝投稿続行の安全側）"""
+    tok = os.environ.get("META_ACCESS_TOKEN")
+    if not tok:
+        return set()
+    try:
+        import requests as _rq
+        ig = os.environ.get("INSTAGRAM_ACCOUNT_ID") or os.environ.get("IG_USER_ID") or "17841467629335560"
+        r = _rq.get(f"https://graph.facebook.com/v21.0/{ig}/media",
+                    params={"fields": "caption,media_type,timestamp", "limit": 12, "access_token": tok}, timeout=30)
+        key = f"{target_date.month}/{target_date.day}({weekday_jp})"
+        return {m.get("media_type") for m in r.json().get("data", []) if key in (m.get("caption") or "")}
+    except Exception as e:
+        print(f"  [warn] Instagram実投稿(種別)チェック失敗（続行）: {e}")
+        return set()
+
+
 def _ig_already_posted(target_date: date, weekday_jp: str) -> bool:
     """Instagramの実投稿一覧に本日の占いがあるか（2026-09-28追加）。
     9/27: GHAのcronが2時間以上遅れ、朝8:15のローカル見張り番が先にIG投稿→遅れて来たGHAがもう一度IG投稿して二重になった。
@@ -563,12 +581,30 @@ def run_sns_only(target_date: date) -> dict:
     # GHA内マーカーはローカル復旧を知らない。GitHub障害で溜まったcronが昼に遅延発火し、
     # 朝のローカル復旧分と二重投稿になった（8/28 Threads/IG各2件）。
     # 投稿先そのもの（Threads実投稿一覧）を確認し、当日の占いが既にあれば環境を問わずスキップする。
+    # 2026-10-02 修正：媒体ごとに判定する。旧実装は「IGがあれば全SNSスキップ」だったため、
+    #   Threadsだけ失敗した日（10/2・Media Not Found）は以後のリトライが全部スキップ→Threadsが永遠に出なかった。
+    #   → 実投稿が確認できた媒体だけマーカー(sns_done)に ok を書き、post_all_sns の媒体別スキップに任せる。
+    live_done = {}
     if _threads_already_posted(target_date, weekday_jp):
-        print("  ✅ Threadsに本日の占いが既に存在（ローカル復旧等） → 二重投稿防止でSNSスキップ")
-        return {"status": "already_posted_live_check"}
-    if _ig_already_posted(target_date, weekday_jp):
-        print("  ✅ Instagramに本日の占いが既に存在（ローカル復旧等） → 二重投稿防止でSNSスキップ")
-        return {"status": "already_posted_live_check_ig"}
+        live_done["threads"] = "ok"
+    ig_types = _ig_posted_media_types(target_date, weekday_jp)
+    if "IMAGE" in ig_types or "CAROUSEL_ALBUM" in ig_types:
+        live_done["instagram"] = "ok"
+    if "VIDEO" in ig_types:
+        live_done["instagram_reel"] = "ok"
+    if live_done:
+        done_file = OUTPUT_DIR / f"sns_done_{target_date}.json"
+        try:
+            cur = json.loads(done_file.read_text(encoding="utf-8")) if done_file.exists() else {}
+        except Exception:
+            cur = {}
+        cur.update(live_done)
+        done_file.parent.mkdir(parents=True, exist_ok=True)
+        done_file.write_text(json.dumps(cur, ensure_ascii=False), encoding="utf-8")
+        print(f"  ✅ 実投稿を確認済みの媒体（スキップ対象）: {sorted(live_done)}")
+        if all(cur.get(k) == "ok" for k in ("threads", "instagram", "instagram_reel")):
+            print("  ✅ 主要SNSは全部投稿済み → 二重投稿防止で終了")
+            return {"status": "already_posted_live_check"}
 
     bridge_file = OUTPUT_DIR / f"bridge_{target_date}.json"
     if not bridge_file.exists():

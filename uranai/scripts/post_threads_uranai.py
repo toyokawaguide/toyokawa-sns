@@ -46,16 +46,34 @@ def post_threads_uranai(*, weekday_key: str, data: dict, spot, target_date: date
                     "error": f"container failed: {r1.status_code} {r1.text[:200]}"}
         container_id = r1.json()["id"]
 
-        # Step2: 公開
-        r2 = requests.post(f"{API_BASE}/{user_id}/threads_publish", params={
-            "creation_id": container_id,
-            "access_token": token,
-        }, timeout=30)
-        if r2.status_code != 200:
-            return {"status": "error", "post_id": None, "caption": caption,
-                    "error": f"publish failed: {r2.status_code} {r2.text[:200]}"}
+        # Step1.5: コンテナが FINISHED になるまで待つ（2026-10-02 事故：作成直後に publish → 400 "Media Not Found"
+        #   code 24 / subcode 4279009。Threads公式も「公開前に状態確認・数秒待つ」を推奨）
+        import time as _t
+        for _ in range(12):
+            try:
+                st = requests.get(f"{API_BASE}/{container_id}", params={"fields": "status,error_message", "access_token": token}, timeout=30).json()
+                if st.get("status") in ("FINISHED", "PUBLISHED"):
+                    break
+                if st.get("status") == "ERROR":
+                    return {"status": "error", "post_id": None, "caption": caption, "error": f"container error: {st.get('error_message')}"}
+            except Exception:
+                pass
+            _t.sleep(5)
 
-        post_id = str(r2.json()["id"])
-        return {"status": "ok", "post_id": post_id, "caption": caption}
+        # Step2: 公開（Media Not Found 等の一時エラーは 10秒おきに最大5回やり直す）
+        last = None
+        for i in range(5):
+            r2 = requests.post(f"{API_BASE}/{user_id}/threads_publish", params={
+                "creation_id": container_id,
+                "access_token": token,
+            }, timeout=30)
+            if r2.status_code == 200:
+                post_id = str(r2.json()["id"])
+                return {"status": "ok", "post_id": post_id, "caption": caption}
+            last = f"publish failed: {r2.status_code} {r2.text[:200]}"
+            if r2.status_code not in (400, 500, 502, 503, 504):
+                break
+            _t.sleep(10)
+        return {"status": "error", "post_id": None, "caption": caption, "error": last}
     except Exception as e:
         return {"status": "error", "post_id": None, "caption": caption, "error": str(e)}
