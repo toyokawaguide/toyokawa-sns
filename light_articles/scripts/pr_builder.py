@@ -31,10 +31,12 @@ def _flatten_catch(catch: str) -> str:
     catch = (catch or "").strip()
     if chr(10) not in catch:
         return catch
-    out = ""
-    for part in [l.strip().rstrip("、。") for l in catch.splitlines() if l.strip()]:
-        joiner = "" if (not out or out.endswith(("】", "：", ":", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から"))) else "、"
-        out += joiner + part
+    out = ""; prev_comma = False
+    for raw in [l.strip() for l in catch.splitlines() if l.strip()]:
+        part = raw.rstrip("、。")
+        # ★2026-10-04 行末に書かれた「、」は書いた人の意思なので必ず残す（PR011「彩りを、／日常に」が「彩りを日常に」に潰れた）
+        joiner = "、" if prev_comma else ("" if (not out or out.endswith(("】", "：", ":", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から"))) else "、")
+        out += joiner + part; prev_comma = raw.endswith("、")
     return out
 
 

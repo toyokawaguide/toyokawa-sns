@@ -83,7 +83,7 @@ def main():
     # ★ 社長が毎回手で付け直していた名前に合わせた（2026-09-21）
     _n = 1
     while (D / f"{ID} 各SNS確認用-{_n}.png").exists(): _n += 1   # ★1枚ものは -1, -2, -3 … と版を進める（社長 2026-09-22）
-    outA = D / f"{ID} 各SNS確認用-{_n}.png"; im.save(outA); print("A:", outA)
+    outA = D / f"{ID} 各SNS確認用-{_n}.png"; im.save(outA); print("A:", outA); _light(outA)
     card = Image.open(D / f"_完成イメージ_{ID}.png").convert("RGB")
     slides = sorted(D.glob(f"_完成イメージ_{ID}_IGカルーセル*.png"))
     G, T = 40, 70
@@ -98,7 +98,23 @@ def main():
         draw_runs(db, G, 22, ttl, 32, (20, 40, 90), bold=True)
         for k, pic in enumerate(chunk): B.paste(pic, (G + k * (card.width + G), T + G))
         outB = _versioned(D / f"{ID} Instagram確認用-{ci + 1}.png")
-        B.save(outB); print("B:", outB)
+        B.save(outB); print("B:", outB); _light(outB)
+
+
+def _light(src):
+    """送付用の軽量JPEG（長辺1800px・700KB以下を目標）を _送付用_軽量/ に書く（2026-10-04 社長「添付が大きい」）"""
+    import os
+    from PIL import Image as _I
+    d = src.parent / "_送付用_軽量"; d.mkdir(exist_ok=True)
+    im = _I.open(src).convert("RGB"); w, h = im.size
+    if max(w, h) > 1800: im = im.resize((int(w * 1800 / max(w, h)), int(h * 1800 / max(w, h))), _I.LANCZOS)
+    out = d / (src.stem + ".jpg"); q = 82
+    while True:
+        im.save(out, "JPEG", quality=q, optimize=True, progressive=True)
+        if os.path.getsize(out) <= 700_000 or q <= 55: break
+        q -= 6
+    print(f"   軽量: {out} ({os.path.getsize(out)//1024}KB)")
+    return out
 
 if __name__ == "__main__":
     main()
