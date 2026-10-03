@@ -37,6 +37,8 @@ def _flatten_catch(catch: str) -> str:
         # ★2026-10-04 行末に書かれた「、」は書いた人の意思なので必ず残す（PR011「彩りを、／日常に」が「彩りを日常に」に潰れた）
         joiner = "、" if prev_comma else ("" if (not out or out.endswith(("】", "：", ":", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から"))) else "、")
         out += joiner + part; prev_comma = raw.endswith("、")
+    if catch.rstrip().endswith("。"):   # ★2026-10-04 最後の行に書かれた「。」は文面では残す（カードは pr_eyecatch 側で外す）
+        out += "。"
     return out
 
 

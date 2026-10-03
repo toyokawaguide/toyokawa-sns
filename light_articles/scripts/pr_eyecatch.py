@@ -91,11 +91,20 @@ def style_from_row(row: dict) -> tuple[dict, str]:
     return theme, badge
 
 
+def _card_catch(catch) -> str:
+    """カード表示用のキャッチ。手動改行入りなら各行末の「、」「。」を外す（キャッチコピーらしく）。
+    文面（タイトル/X/Threads/IG/本文）側は pr_builder が句読点つきで使う（2026-10-04 社長指定・PR011）"""
+    c = (catch or "").strip()
+    if chr(10) not in c:
+        return c
+    return chr(10).join(l.rstrip("、。") if l.strip() else l for l in c.splitlines())
+
+
 def data_from_row(row: dict) -> dict:
     theme, badge = style_from_row(row)
     return dict(
         shop=(row.get("店名") or "").strip(),
-        catch=(row.get("ひとことキャッチ") or "").strip(),
+        catch=_card_catch(row.get("ひとことキャッチ")),
         addr=(row.get("エリア・住所") or "").strip(),
         badge=badge, theme=theme,
     )
