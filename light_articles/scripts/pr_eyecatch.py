@@ -365,7 +365,9 @@ def render_45(row: dict, photo_path=None, output_path=None):
         d.line((W // 2 - 90, yd, W // 2 + 90, yd), fill=hx(t["accent"]), width=3)
         f = fit_one(d, st["shop"], FONT_BOLD, 52, W - 300, 34)
         d.text((W // 2, yd + 84), st["shop"], font=f, fill=hx(t["ink"]), anchor="ms")
-        PX, PY, PW, PH = 140, 600, W - 280, 500
+        # ★2026-10-04 PR010：手動改行で見出しが3行になると店名が写真の下に潜る→その時だけ写真を店名の下から始める（2行は従来どおり600）
+        PY = max(600, yd + 84 + 36)
+        PX, PW, PH = 140, W - 280, 1100 - PY
         rounded_photo(im, photo, PX, PY, PW, PH, 18, photo_fy(row), photo_zoom(row))
         d.rounded_rectangle((PX, PY, PX + PW, PY + PH), 18, outline=hx(t["accent"]), width=4)
         if st["addr"]:
