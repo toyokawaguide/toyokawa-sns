@@ -220,6 +220,10 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     #     2026-08-06 社長指示「送られてきた写真は全部インスタで使いたい」。LRと同方式・枠の帯は「さくっとPR」
     try:
         carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
+        # ★2026-10-04 PR010：備考「表紙写真はカルーセルなし」→ 表紙カードに使った写真をカルーセルに重ねて出さない
+        if "表紙写真はカルーセルなし" in (row.get("備考") or "") and first_photo is not None and first_photo in carousel_photos:
+            carousel_photos = [p for p in carousel_photos if p != first_photo]
+            log("🔁 表紙写真をカルーセルから外す（備考指定）", 1)
         # IGカルーセルは1投稿10枚まで。1枚目がPRカードなので写真は9枚が上限で、
         # それを超えた分は post_instagram_feed_carousel 側で黙って切られる。
         # 気づかないまま「送ったのに載っていない」が起きるので警告を出す（2026-08-14）

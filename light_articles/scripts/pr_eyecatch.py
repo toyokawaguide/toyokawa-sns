@@ -194,15 +194,31 @@ def fit_one(d, text, fpath, start, max_w, min_s):
     return font(fpath, s)
 
 
-def cover(im: Image.Image, w: int, h: int) -> Image.Image:
+def photo_fy(row: dict) -> float:
+    """備考「写真位置：上／下／中央／0〜100」→ 切り取りの縦位置（0=上端を残す・1=下端を残す）。
+    指定なしは中央。★2026-10-04 PR010：唐揚げの頭が枠で切れた→「もう少し下に配置したい」対策"""
+    m = re.search(r"写真位置：\s*([^\n]+)", row.get("備考", "") or "")
+    if not m:
+        return 0.5
+    v = m.group(1).strip()
+    if v.startswith("上"):
+        return 0.0
+    if v.startswith("下"):
+        return 1.0
+    n = re.match(r"(\d+)", v)
+    return max(0.0, min(1.0, int(n.group(1)) / 100)) if n else 0.5
+
+
+def cover(im: Image.Image, w: int, h: int, fy: float = 0.5) -> Image.Image:
     s = max(w / im.width, h / im.height)
     nw, nh = int(im.width * s), int(im.height * s)
     im2 = im.resize((nw, nh), Image.LANCZOS)
-    return im2.crop(((nw - w) // 2, (nh - h) // 2, (nw - w) // 2 + w, (nh - h) // 2 + h))
+    top = int((nh - h) * fy)
+    return im2.crop(((nw - w) // 2, top, (nw - w) // 2 + w, top + h))
 
 
-def rounded_photo(base, photo, x, y, w, h, r):
-    tile = cover(photo, w, h)
+def rounded_photo(base, photo, x, y, w, h, r, fy: float = 0.5):
+    tile = cover(photo, w, h, fy)
     mask = Image.new("L", (w, h), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, w - 1, h - 1), r, fill=255)
     base.paste(tile, (x, y), mask)
@@ -321,7 +337,7 @@ def render_45(row: dict, photo_path=None, output_path=None):
         f = fit_one(d, st["shop"], FONT_BOLD, 52, W - 300, 34)
         d.text((W // 2, yd + 84), st["shop"], font=f, fill=hx(t["ink"]), anchor="ms")
         PX, PY, PW, PH = 140, 600, W - 280, 500
-        rounded_photo(im, photo, PX, PY, PW, PH, 18)
+        rounded_photo(im, photo, PX, PY, PW, PH, 18, photo_fy(row))
         d.rounded_rectangle((PX, PY, PX + PW, PY + PH), 18, outline=hx(t["accent"]), width=4)
         if st["addr"]:
             f = fit_one(d, st["addr"], FONT_BOLD, 34, W - 300, 22)
@@ -387,7 +403,7 @@ def render_169(row: dict, photo_path=None, output_path=None):
     else:                                              # ─ 写真全面（2026-08-05・見切れ対策）─
         # 1920×1080は16:9そのままなので切れゼロ。文字は袋文字（白＋テーマ色フチ＋外白）
         # ＝文字の形に沿った重ね文字。どんな写真でも読める（社長指定 2026-08-05）
-        im.paste(cover(photo, W, H), (0, 0))
+        im.paste(cover(photo, W, H, photo_fy(row)), (0, 0))
         d = ImageDraw.Draw(im)
         pill(d, st["badge"], 48, 44, hx(t["accent"]), "white", size=30)
 
