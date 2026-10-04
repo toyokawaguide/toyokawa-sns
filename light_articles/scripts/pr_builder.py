@@ -402,6 +402,22 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     return full
 
 
+
+def _ig_handles(row: dict) -> list:
+    """リンク欄の instagram.com/<handle> から @handle を抜く（2026-10-04 社長「IGキャプションにお店のインスタを入れたい」）"""
+    out = []
+    for u in re.split("[" + chr(10) + chr(13) + " 　]+", (row.get("リンク", "") or "").strip()):
+        m = re.search(r"instagram\.com/([A-Za-z0-9_.]+)", u)
+        if m and m.group(1).lower() not in ("p", "reel", "explore", "stories") and m.group(1) not in out:
+            out.append(m.group(1).rstrip("."))
+    return out
+
+
+def _ig_line(row: dict) -> str:
+    hs = _ig_handles(row)
+    return ("📷 お店のInstagram：" + " / ".join("@" + h for h in hs)) if hs else ""
+
+
 def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     shop = row.get("店名", "").strip()
     catch = _flatten_catch(row.get("ひとことキャッチ", ""))
@@ -420,6 +436,8 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     if cav:
         lines += [cav, ""]
     lines += ["▼ 詳細", wp_url, ""]
+    if _ig_line(row):
+        lines += [_ig_line(row), ""]
     contact = _contact(row)
     if contact and contact[2:] not in chr(10).join(lines):
         lines += [contact, ""]
@@ -451,6 +469,8 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
         lines += [f"🎁 {tokuten}", ""]
     if addr:
         lines += [f"📍 {addr}", ""]
+    if _ig_line(row):
+        lines += [_ig_line(row), ""]
     if note:
         lines += [f"💬 豊川ガイドから：{note}", ""]
     if credit:
