@@ -209,16 +209,45 @@ def photo_fy(row: dict) -> float:
     return max(0.0, min(1.0, int(n.group(1)) / 100)) if n else 0.5
 
 
-def cover(im: Image.Image, w: int, h: int, fy: float = 0.5) -> Image.Image:
-    s = max(w / im.width, h / im.height)
+def photo_zoom(row: dict) -> float:
+    """備考「写真の引き：NN」（NN%＝100で今まで通り枠いっぱい・小さいほど引く／「全体」＝写真を切らずに全部）。
+    空いた所は写真の外周の色で埋める（白抜き写真なら白）。★2026-10-04 PR010「ずらすより引きたい」対策"""
+    m = re.search(r"写真の引き：\s*([^\n]+)", row.get("備考", "") or "")
+    if not m:
+        return 1.0
+    v = m.group(1).strip()
+    if v.startswith("全体"):
+        return 0.0          # 0 = contain（全部見せる）
+    n = re.match(r"(\d+)", v)
+    return max(0.3, min(1.0, int(n.group(1)) / 100)) if n else 1.0
+
+
+def _edge_color(im: Image.Image):
+    """写真の外周1pxの色の中央値（白抜き写真＝白）"""
+    import statistics
+    px = im.convert("RGB").load(); W0, H0 = im.size
+    pts = [px[x, 0] for x in range(0, W0, 4)] + [px[x, H0 - 1] for x in range(0, W0, 4)] +           [px[0, y] for y in range(0, H0, 4)] + [px[W0 - 1, y] for y in range(0, H0, 4)]
+    return tuple(int(statistics.median(c[i] for c in pts)) for i in range(3))
+
+
+def cover(im: Image.Image, w: int, h: int, fy: float = 0.5, zoom: float = 1.0) -> Image.Image:
+    s_cover = max(w / im.width, h / im.height)
+    s_contain = min(w / im.width, h / im.height)
+    s = s_contain if zoom <= 0 else s_cover * zoom   # 100%=枠いっぱい。小さくすれば全体が入る大きさより更に引ける
     nw, nh = int(im.width * s), int(im.height * s)
     im2 = im.resize((nw, nh), Image.LANCZOS)
-    top = int((nh - h) * fy)
-    return im2.crop(((nw - w) // 2, top, (nw - w) // 2 + w, top + h))
+    if nw >= w and nh >= h:
+        top = int((nh - h) * fy)
+        return im2.crop(((nw - w) // 2, top, (nw - w) // 2 + w, top + h))
+    canvas = Image.new("RGB", (w, h), _edge_color(im))
+    x = (w - nw) // 2 if nw <= w else -((nw - w) // 2)
+    y = int((h - nh) * fy) if nh <= h else -int((nh - h) * fy)
+    canvas.paste(im2, (x, y))
+    return canvas
 
 
-def rounded_photo(base, photo, x, y, w, h, r, fy: float = 0.5):
-    tile = cover(photo, w, h, fy)
+def rounded_photo(base, photo, x, y, w, h, r, fy: float = 0.5, zoom: float = 1.0):
+    tile = cover(photo, w, h, fy, zoom)
     mask = Image.new("L", (w, h), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, w - 1, h - 1), r, fill=255)
     base.paste(tile, (x, y), mask)
@@ -337,7 +366,7 @@ def render_45(row: dict, photo_path=None, output_path=None):
         f = fit_one(d, st["shop"], FONT_BOLD, 52, W - 300, 34)
         d.text((W // 2, yd + 84), st["shop"], font=f, fill=hx(t["ink"]), anchor="ms")
         PX, PY, PW, PH = 140, 600, W - 280, 500
-        rounded_photo(im, photo, PX, PY, PW, PH, 18, photo_fy(row))
+        rounded_photo(im, photo, PX, PY, PW, PH, 18, photo_fy(row), photo_zoom(row))
         d.rounded_rectangle((PX, PY, PX + PW, PY + PH), 18, outline=hx(t["accent"]), width=4)
         if st["addr"]:
             f = fit_one(d, st["addr"], FONT_BOLD, 34, W - 300, 22)
@@ -403,7 +432,7 @@ def render_169(row: dict, photo_path=None, output_path=None):
     else:                                              # ─ 写真全面（2026-08-05・見切れ対策）─
         # 1920×1080は16:9そのままなので切れゼロ。文字は袋文字（白＋テーマ色フチ＋外白）
         # ＝文字の形に沿った重ね文字。どんな写真でも読める（社長指定 2026-08-05）
-        im.paste(cover(photo, W, H, photo_fy(row)), (0, 0))
+        im.paste(cover(photo, W, H, photo_fy(row), photo_zoom(row)), (0, 0))
         d = ImageDraw.Draw(im)
         pill(d, st["badge"], 48, 44, hx(t["accent"]), "white", size=30)
 
