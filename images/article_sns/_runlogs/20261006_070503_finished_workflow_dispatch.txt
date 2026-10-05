@@ -1,0 +1,46 @@
+time=2026-10-06T07:05:03.828452+09:00
+event=workflow_dispatch
+run_id=37379615160
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS117 【FRONTIS TOYOKAWA】豊川駅東口の複合ビル1階… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS117_* サブフォルダ検索中...
+✅ Drive: SNS117_2026.10.06【FRONTIS TOYOKAWA】豊川駅東口の複合ビル1階に「iL-CHIANTI」というイタリア式食堂が出来る！東三河初、愛知県初じゃね？あとファミマ。 (id=1lZ6lcfpkA...)
+  📥 DL: 0.jpg (641 KB)
+  📥 DL: 1.jpg (735 KB)
+  📥 DL: 2.jpg (602 KB)
+  📥 DL: 3.jpg (511 KB)
+  📥 DL: 4.jpg (516 KB)
+  ✅ SNS117: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: iL-CHIANTI
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS117_* サブフォルダ検索中...
+✅ Drive: SNS117_2026.10.06【FRONTIS TOYOKAWA】豊川駅東口の複合ビル1階に「iL-CHIANTI」というイタリア式食堂が出来る！東三河初、愛知県初じゃね？あとファミマ。 (id=1lZ6lcfpkA...)
+  📷 フィード 6枚生成
+    📤 Pages へ 6枚 commit 1c34121（反映待ち…）
+    ✅ Pages 配信確認 6枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS117_* サブフォルダ検索中...
+✅ Drive: SNS117_2026.10.06【FRONTIS TOYOKAWA】豊川駅東口の複合ビル1階に「iL-CHIANTI」というイタリア式食堂が出来る！東三河初、愛知県初じゃね？あとファミマ。 (id=1lZ6lcfpkA...)
+カテゴリ=ニューオープン / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18013573685977965', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '17951805720291460', 'dry': False}
+  🎬 IG Reels
+  container_id=17956414539254312 file_size=5,610,731 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18105292769258071', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/0DSpL8kdRTk
+    → {'status': 'ok', 'video_id': '0DSpL8kdRTk', 'url': 'https://youtube.com/shorts/0DSpL8kdRTk', 'privacy': 'private'}
+  📊 状態→投稿済
