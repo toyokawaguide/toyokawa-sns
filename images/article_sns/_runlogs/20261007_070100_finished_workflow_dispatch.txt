@@ -1,0 +1,50 @@
+time=2026-10-07T07:01:00.544537+09:00
+event=workflow_dispatch
+run_id=37537739461
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+Traceback (most recent call last):
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/post_sns.py", line 336, in main
+    process_one(svc, r, dry=dry, ig_only=(st==IG_ONLY_STATUS),
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/post_sns.py", line 206, in process_one
+    slide_paths,_,_=make_feed.build_feed(ID, svc)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/make_feed.py", line 119, in build_feed
+    nums=photos.ordered_paths(ID, title=title, pub_date=(row[1] if len(row)>1 else None))   # ローカル(G:\) or Drive(GHA) から番号順に
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/photos.py", line 54, in ordered_paths
+    d = get_numbered_photos(ID, cache_dir, title, pub_date)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/photos.py", line 32, in get_numbered_photos
+    files = [str(p) for p in drive_client.fetch_article_photos(ID, cache, title=title, pub_date=pub_date)]
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/drive_client.py", line 182, in fetch_article_photos
+    folder_match.verify(article_id, subfolder["name"], title, pub_date=pub_date)
+  File "/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/folder_match.py", line 125, in verify
+    raise RuntimeError(msg)
+RuntimeError: 写真フォルダの日付が記事とズレています（SNS118）
+    フォルダ: SNS118_2026.10.06【今さら気付いた！】豊川市で深夜0時以降にラーメンを食べられるのは「ラーメン宝塔」「ラーメン山岡家」「ラーメン横綱」の3店舗のみ。そして…
+    キュー  : 2026/10/07
+    → 別の日の写真フォルダを掴んでいる可能性。
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS118 【今さら気付いた！】豊川市で深夜0時以降にラーメンを食べられ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS118_* サブフォルダ検索中...
+  ⚠ 0番/1番の確認に失敗（投稿は続行）: 写真フォルダの日付が記事とズレています（SNS118）
+    フォルダ: SNS118_2026.10.06【今さら気付いた！】豊川市で深夜0時以降にラーメンを食べられるのは「ラーメン宝塔」「ラーメン山岡家」「ラーメン横綱」の3店舗のみ。そして…
+    キュー  : 2026/10/07
+    → 別の日の写真フォルダを掴んでいる可能性。
+  🎨 赤文字: ラーメン宝塔
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS118_* サブフォルダ検索中...
+❌ SNS118 処理中に例外: 写真フォルダの日付が記事とズレています（SNS118）
+    フォルダ: SNS118_2026.10.06【今さら気付いた！】豊川市で深夜0時以降にラーメンを食べられるのは「ラーメン宝塔」「ラーメン山岡家」「ラーメン横綱」の3店舗のみ。そして…
+    キュー  : 2026/10/07
+    → 別の日の写真フォルダを掴んでいる可能性。
