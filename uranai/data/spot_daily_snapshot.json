@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-10-06T06:56:09.582427+09:00",
-  "captured_date": "2026-10-06",
+  "captured_at": "2026-10-07T05:07:36.015002+09:00",
+  "captured_date": "2026-10-07",
   "lookahead_days": 30,
   "spots": {
-    "2026-10-06": {
-      "name": "CAFE＆GOLF LAUGHRAD",
-      "is_chain": false
-    },
     "2026-10-07": {
       "name": "ロビン・フッド",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-11-05": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-11-06": {
       "name": null,
       "is_chain": false
     }
