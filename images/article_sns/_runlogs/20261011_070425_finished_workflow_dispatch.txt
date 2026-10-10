@@ -1,0 +1,47 @@
+time=2026-10-11T07:04:25.884456+09:00
+event=workflow_dispatch
+run_id=38089768639
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS122 【無性にパンが食べたい】御津町にある「Pandig(パンディ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS122_* サブフォルダ検索中...
+✅ Drive: SNS122_2026.10.11【無性にパンが食べたい】御津町にある「Pandig(パンディグ) 〜bagel&bread〜」ってパン屋さん知ってる？食パンがマジうまだった！ (id=1WbC3uKRsW...)
+  📥 DL: 0.jpg (356 KB)
+  📥 DL: 1.jpg (762 KB)
+  📥 DL: 2.jpg (1289 KB)
+  📥 DL: 3.jpg (613 KB)
+  📥 DL: 4.jpg (400 KB)
+  📥 DL: 5.jpg (418 KB)
+  ✅ SNS122: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: Pandig(パンディグ)  / 〜bagel&bread〜
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS122_* サブフォルダ検索中...
+✅ Drive: SNS122_2026.10.11【無性にパンが食べたい】御津町にある「Pandig(パンディグ) 〜bagel&bread〜」ってパン屋さん知ってる？食パンがマジうまだった！ (id=1WbC3uKRsW...)
+  📷 フィード 7枚生成
+    📤 Pages へ 7枚 commit a022f5f（反映待ち…）
+    ✅ Pages 配信確認 7枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS122_* サブフォルダ検索中...
+✅ Drive: SNS122_2026.10.11【無性にパンが食べたい】御津町にある「Pandig(パンディグ) 〜bagel&bread〜」ってパン屋さん知ってる？食パンがマジうまだった！ (id=1WbC3uKRsW...)
+カテゴリ=パン屋さん / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18091878821448596', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18181504453426387', 'dry': False}
+  🎬 IG Reels
+  container_id=17957106738254312 file_size=5,610,733 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18072558503776199', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/DGMAFzCjcbs
+    → {'status': 'ok', 'video_id': 'DGMAFzCjcbs', 'url': 'https://youtube.com/shorts/DGMAFzCjcbs', 'privacy': 'private'}
+  📊 状態→投稿済
