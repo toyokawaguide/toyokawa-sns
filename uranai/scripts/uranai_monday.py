@@ -196,8 +196,8 @@ def generate_monday_instagram(target_date, top3, lucky_spot, output_path):
         d.text((nx, y + 96), c["c2"], font=f(FM, 25), fill=TEXT_DARK)
 
     guide_y = card_y0 + 3 * card_h + 2 * card_gap + 14
-    guide_text = "他の星座の運勢は、ブログでチェック →"
-    gf = f(FBd, 22)
+    guide_text = "4位以降は ▶ スワイプしてね"   # IGカルーセル2枚目へ誘導（2026-10-11）
+    gf = f(FBd, 26)
     gb = d.textbbox((0, 0), guide_text, font=gf)
     d.text(((W - (gb[2]-gb[0]))//2, guide_y), guide_text, font=gf, fill=BLUE)
 

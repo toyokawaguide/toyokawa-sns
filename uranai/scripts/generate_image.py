@@ -197,6 +197,35 @@ def _to_town_list(items: list, count: int = 10) -> list[str]:
     return result
 
 
+def _generate_fri_sat_top3_ig(target_date, weekday_key, items, spot, output_path):
+    """金土のIG1枚目をTOP3テンプレで描く。★はキャプションと同じ get_top10_stars(seed)。"""
+    from uranai_wed_thu import _generate_top3_instagram
+    from uranai_fri_sat import get_top10_stars, format_star_score, draw_venus_icon, draw_saturn_icon
+    seed = target_date.year * 10000 + target_date.month * 100 + target_date.day
+    stars = get_top10_stars(seed=seed)
+    ordered = sorted(items, key=lambda x: (x.rank or 99))[:3]
+    top3 = []
+    for i, it in enumerate(ordered):
+        name = _strip_brackets(it.label)
+        if weekday_key == "fri":
+            name = name.replace("年）", "）").replace("年)", ")")
+            if not name.endswith("生まれ"):
+                name = name.replace("生まれ", "") + "生まれ"
+        c1, c2 = _split_comment(it.comment)
+        top3.append({"name": name, "c1": c1, "c2": c2, "filled": int(stars[i]),
+                     "score_text": format_star_score(stars[i])})
+    while len(top3) < 3:
+        top3.append({"name": "-", "c1": "", "c2": "", "filled": 0})
+    if weekday_key == "fri":
+        _generate_top3_instagram(target_date, top3, spot, output_path,
+                                 badge_text="今日は金曜・金星の日", sub_title="今日のラッキー生まれ年TOP3",
+                                 bracket_emoji="🎂", draw_planet_icon=draw_venus_icon, hashtag_keyword="生まれ年")
+    else:
+        _generate_top3_instagram(target_date, top3, spot, output_path,
+                                 badge_text="今日は土曜・土星の日", sub_title="今日のラッキータウンTOP3",
+                                 bracket_emoji="🏘️", draw_planet_icon=draw_saturn_icon, hashtag_keyword="町")
+
+
 def _spot_dict(spot_name: str, spot_area: str) -> dict:
     """ラッキースポット情報を共通 dict 形式に"""
     return {"name": spot_name, "area": spot_area or ""}
@@ -260,19 +289,17 @@ def generate_image(*, target_date: date, weekday_key: str, format: str,
         else:
             generate_thursday_wp(target_date, top3, spot, str(output_path))
 
+    elif weekday_key in ("fri", "sat") and format == "ig":
+        # 2026-10-11: 金土のIGも1枚目=TOP3（2枚目=4〜10位は uranai_ig_slide2）
+        _generate_fri_sat_top3_ig(target_date, weekday_key, items, spot, str(output_path))
+
     elif weekday_key == "fri":
         years = _to_year_list(items)
-        if format == "ig":
-            generate_friday_instagram(target_date, years, spot, str(output_path))
-        else:
-            generate_friday_wp(target_date, years, spot, str(output_path))
+        generate_friday_wp(target_date, years, spot, str(output_path))
 
     elif weekday_key == "sat":
         towns = _to_town_list(items)
-        if format == "ig":
-            generate_saturday_instagram(target_date, towns, spot, str(output_path))
-        else:
-            generate_saturday_wp(target_date, towns, spot, str(output_path))
+        generate_saturday_wp(target_date, towns, spot, str(output_path))
 
     elif weekday_key == "sun":
         # 過去6日スポット（target_date が日曜想定・前6日 = 月〜土を取得）

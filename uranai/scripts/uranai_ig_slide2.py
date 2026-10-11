@@ -17,7 +17,7 @@ from uranai_fri_sat import get_top10_stars, format_star_score
 W, H = 1080, 1350
 HEADER_H = 135
 FOOTER_Y = 1215
-INCLUDE_FRI_SAT = False
+INCLUDE_FRI_SAT = True
 
 
 def _first_sentence(s: str, n: int = 22) -> str:

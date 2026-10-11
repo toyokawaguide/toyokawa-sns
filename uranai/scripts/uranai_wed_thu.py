@@ -166,6 +166,7 @@ def _generate_top3_instagram(target_date, top3, lucky_spot, output_path,
             "rank": i + 1, "color": rank_colors[i],
             "name": item["name"], "c1": item["c1"], "c2": item["c2"],
             "filled": item.get("filled", 0),
+            "score_text": item.get("score_text"),
         })
 
     card_x = 60
@@ -199,7 +200,7 @@ def _generate_top3_instagram(target_date, top3, lucky_spot, output_path,
             sx = stars_x_start + (s-5) * star_gap + star_size
             color = GOLD if s < c["filled"] else STAR_EMPTY
             draw_star(d, sx, y + 64, star_size, color)
-        score_text = f"{c['filled']}/10"
+        score_text = c.get("score_text") or f"{c['filled']}/10"
         scf = f(FBd, 22)
         scb = d.textbbox((0, 0), score_text, font=scf)
         d.text((card_x + card_w - (scb[2]-scb[0]) - 30, y + 92),
@@ -209,8 +210,8 @@ def _generate_top3_instagram(target_date, top3, lucky_spot, output_path,
         d.text((nx, y + 96), c["c2"], font=f(FM, 25), fill=TEXT_DARK)
 
     guide_y = card_y0 + 3 * card_h + 2 * card_gap + 14
-    guide_text = f"他の{hashtag_keyword}の運勢は、ブログでチェック →"
-    gf = f(FBd, 22)
+    guide_text = "4位以降は ▶ スワイプしてね"   # IGカルーセル2枚目へ誘導（2026-10-11）
+    gf = f(FBd, 26)
     gb = d.textbbox((0, 0), guide_text, font=gf)
     d.text(((W - (gb[2]-gb[0]))//2, guide_y), guide_text, font=gf, fill=BLUE)
 
