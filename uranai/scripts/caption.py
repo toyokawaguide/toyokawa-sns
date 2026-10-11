@@ -243,6 +243,12 @@ def make_threads_caption(weekday_key: str, data: dict, spot, target_date: date, 
 # ============================================================
 
 def make_instagram_caption(weekday_key: str, data: dict, spot, target_date: date) -> str:
+    """IGフィード用。2026-10-11 社長指示「フィードも全部出す」→ リール版と同じ全ランキング表記にする。"""
+    return make_instagram_reel_caption(weekday_key, data, spot, target_date)
+
+
+def _make_instagram_caption_top3(weekday_key: str, data: dict, spot, target_date: date) -> str:
+    """旧フィード版（TOP3のみ）。火曜/日曜はリール版からこれを呼ぶ（内容は元々全件）。"""
     md = _md(target_date)
     wd = _wd_jp(target_date)
     sp = _chain(spot.name, spot.is_chain)
@@ -383,7 +389,7 @@ def make_instagram_reel_caption(weekday_key: str, data: dict, spot, target_date:
 
     if weekday_key == "tue":
         # 血液型は4種なので元々全部記載・フィード版と同じ内容
-        return make_instagram_caption(weekday_key, data, spot, target_date)
+        return _make_instagram_caption_top3(weekday_key, data, spot, target_date)
 
     if weekday_key in ("fri", "sat"):
         items = data.get("items", [])
@@ -416,6 +422,6 @@ def make_instagram_reel_caption(weekday_key: str, data: dict, spot, target_date:
 
     if weekday_key == "sun":
         # 日曜は週まとめでフィード版と内容差別化の余地が少ない
-        return make_instagram_caption(weekday_key, data, spot, target_date)
+        return _make_instagram_caption_top3(weekday_key, data, spot, target_date)
 
     return ""
