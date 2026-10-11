@@ -188,6 +188,7 @@ def update_wp_post(post_id: int, title: str, content: str,
                     eyecatch_path: Path | None = None,
                     *, publish: bool = False,
                     ig_eyecatch_path: Path | None = None,
+                    ig2_eyecatch_path: Path | None = None,
                     reel_video_path: Path | None = None,
                     slug: str | None = None) -> dict:
     """WP の指定 post を更新（status=draft or publish）
@@ -254,6 +255,10 @@ def update_wp_post(post_id: int, title: str, content: str,
     if ig_eyecatch_path and ig_eyecatch_path.exists():
         _, ig_image_url = _upload_media(ig_eyecatch_path)
 
+    ig2_image_url = None   # カルーセル2枚目（4位〜最下位・2026-10-11）
+    if ig2_eyecatch_path and ig2_eyecatch_path.exists():
+        _, ig2_image_url = _upload_media(ig2_eyecatch_path)
+
     reel_video_url = None
     if reel_video_path and reel_video_path.exists():
         _, reel_video_url = _upload_media(reel_video_path)
@@ -308,6 +313,7 @@ def update_wp_post(post_id: int, title: str, content: str,
         "link": j.get("link") or f"{WP_URL}/?p={post_id}",
         "wp_image_url": wp_image_url,
         "ig_image_url": ig_image_url,
+        "ig2_image_url": ig2_image_url,
         "reel_video_url": reel_video_url,
         "status": j.get("status"),
     }
@@ -400,7 +406,7 @@ def update_homepage_uranai_card(post_url: str, title: str, image_url: str | None
     return {"status": "ok", "post_url": post_url}
 
 
-def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video):
+def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video, ig2_image_url=None):
     """X / Threads / Instagram(Feed+Reels) へ投稿。run_pipeline と run_sns_only 共通。
     ★既投稿マーカー(sns_done_{date}.json) で、リトライ時に成功済みの媒体は再投稿しない
       （= 朝6:00/6:30/7:00/8:00 を何度走らせても二重投稿にならない自動リトライの要）。
@@ -456,7 +462,8 @@ def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, r
         sns_results["instagram"] = {"status": "skipped", "reason": "no_ig_url"}
     else:
         ig_res = post_instagram_uranai(weekday_key=weekday_key, data=data, spot=spot,
-                                       target_date=target_date, ig_image_url=ig_image_url, dry=False)
+                                       target_date=target_date, ig_image_url=ig_image_url,
+                                       ig_image_url2=ig2_image_url, dry=False)
         print(f"     status={ig_res['status']}  post_id={ig_res.get('post_id')}")
         sns_results["instagram"] = ig_res
         if ig_res.get("status") == "ok": mark("instagram")
@@ -656,7 +663,8 @@ def run_sns_only(target_date: date) -> dict:
     spot = SimpleNamespace(**bridge.get("spot", {"name": "", "is_chain": False, "source": "", "area": ""}))
     post_url = bridge.get("post_url")
     ig_image_url = bridge.get("ig_image_url")
-    print(f"  bridge読込OK: spot={spot.name}  post_url={post_url}")
+    ig2_image_url = bridge.get("ig2_image_url")
+    print(f"  bridge読込OK: spot={spot.name}  post_url={post_url}  carousel2={'あり' if ig2_image_url else 'なし'}")
 
     # Reel動画をローカル再生成（¥0・Claude非使用）
     reel_video = OUTPUT_DIR / f"{target_date}_{weekday_key}_reel.mp4"
@@ -670,7 +678,8 @@ def run_sns_only(target_date: date) -> dict:
         print(f"  [warn] Reel再生成失敗（Feed等は継続）: {e}")
         reel_video = None
 
-    sns_results = post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video)
+    sns_results = post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video,
+                               ig2_image_url=ig2_image_url)
 
     # 配信ログ
     try:
@@ -748,6 +757,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
     wp_img = OUTPUT_DIR / f"{target_date}_{weekday_key}_wp.png"
     ig_img = OUTPUT_DIR / f"{target_date}_{weekday_key}_ig.png"
     reel_video = OUTPUT_DIR / f"{target_date}_{weekday_key}_reel.mp4"
+    ig2_img = None
     try:
         generate_image(target_date=target_date, weekday_key=weekday_key, format="wp",
                        spot_name=spot.name, items=items, output_path=wp_img)
@@ -755,6 +765,15 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                        spot_name=spot.name, items=items, output_path=ig_img)
         print(f"  WP画像: {wp_img.name}")
         print(f"  IG画像: {ig_img.name}")
+        # IGカルーセル2枚目（4位〜最下位）。失敗しても1枚投稿で続行
+        try:
+            from uranai_ig_slide2 import generate_ig_ranking_slide
+            ig2_img = generate_ig_ranking_slide(target_date, weekday_key, article.get("data", {}),
+                                                OUTPUT_DIR / f"{target_date}_{weekday_key}_ig2.png")
+            print(f"  IG画像2枚目: {ig2_img.name if ig2_img else 'なし（この曜日は1枚）'}")
+        except Exception as e_ig2:
+            print(f"  [warn] IG2枚目生成失敗（1枚で続行）: {e_ig2}")
+            ig2_img = None
         # Reel動画生成（失敗してもメインフローは止めない）
         try:
             from generate_reel import generate_reel
@@ -783,6 +802,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
     print(f"\n[5/7] {label}")
     wp_image_url = None
     ig_image_url = None
+    ig2_image_url = None
     reel_video_url = None
     post_url = None
     if skip_wp:
@@ -799,6 +819,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                 post_id, article["title"], article["wp_content"],
                 eyecatch_path=wp_img, publish=publish,
                 ig_eyecatch_path=ig_img,
+                ig2_eyecatch_path=ig2_img,
                 reel_video_path=reel_video,
                 slug=slug,
             )
@@ -808,6 +829,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
             else:
                 wp_image_url = wp_res.get("wp_image_url")
                 ig_image_url = wp_res.get("ig_image_url")
+                ig2_image_url = wp_res.get("ig2_image_url")
                 reel_video_url = wp_res.get("reel_video_url")
                 post_url = wp_res.get("link") if publish else wp_res.get("preview_url")
                 print(f"  → {wp_res.get('link')}  status={wp_res.get('status')}")
@@ -852,6 +874,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                           "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
                 "post_url": post_url,
                 "ig_image_url": ig_image_url,
+                "ig2_image_url": ig2_image_url,
             }
             _bf = OUTPUT_DIR / f"bridge_{target_date}.json"
             _bf.parent.mkdir(parents=True, exist_ok=True)
@@ -872,6 +895,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                           "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
                 "post_url": post_url,
                 "ig_image_url": ig_image_url,
+                "ig2_image_url": ig2_image_url,
             }
             (OUTPUT_DIR / f"bridge_{target_date}.json").write_text(
                 json.dumps(bridge, ensure_ascii=False), encoding="utf-8")

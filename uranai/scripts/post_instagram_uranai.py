@@ -21,7 +21,8 @@ DEFAULT_IG_ACCOUNT_ID = "17841467629335560"  # toyokawa-sns 既存と同じ
 
 
 def post_instagram_uranai(*, weekday_key: str, data: dict, spot, target_date: date,
-                           ig_image_url: str, dry: bool = False) -> dict:
+                           ig_image_url: str, ig_image_url2: str | None = None,
+                           dry: bool = False) -> dict:
     """Instagram feed に投稿
     Args:
         ig_image_url: 公開アクセス可能な IG 用画像URL（WPメディアURL）
@@ -31,7 +32,7 @@ def post_instagram_uranai(*, weekday_key: str, data: dict, spot, target_date: da
 
     if dry:
         return {"status": "dry", "post_id": None, "caption": caption,
-                "image_url": ig_image_url}
+                "image_url": ig_image_url, "image_url2": ig_image_url2}
 
     token = os.getenv("META_ACCESS_TOKEN")
     ig_account_id = (os.getenv("INSTAGRAM_ACCOUNT_ID")
@@ -40,6 +41,13 @@ def post_instagram_uranai(*, weekday_key: str, data: dict, spot, target_date: da
     if not token or not ig_account_id:
         return {"status": "error", "post_id": None, "caption": caption,
                 "error": "META_ACCESS_TOKEN / INSTAGRAM_ACCOUNT_ID 未設定"}
+
+    # カルーセル（2枚目=4位〜最下位・2026-10-11）。失敗したら下の1枚投稿にフォールバック
+    if ig_image_url2:
+        car = _post_carousel(ig_account_id, token, [ig_image_url, ig_image_url2], caption)
+        if car.get("status") == "ok":
+            return {"status": "ok", "post_id": car["post_id"], "caption": caption, "carousel": True}
+        print(f"     [warn] カルーセル失敗→1枚投稿にフォールバック: {car.get('error')}")
 
     try:
         # Step1: メディアコンテナ作成
@@ -70,6 +78,39 @@ def post_instagram_uranai(*, weekday_key: str, data: dict, spot, target_date: da
         return {"status": "ok", "post_id": post_id, "caption": caption}
     except Exception as e:
         return {"status": "error", "post_id": None, "caption": caption, "error": str(e)}
+
+
+def _post_carousel(ig_account_id: str, token: str, urls: list, caption: str) -> dict:
+    """IGカルーセル投稿: 子コンテナ(is_carousel_item)×N → CAROUSELコンテナ → 処理完了待ち → publish"""
+    try:
+        kids = []
+        for u in urls:
+            r = requests.post(f"{GRAPH_API}/{ig_account_id}/media",
+                              data={"image_url": u, "is_carousel_item": "true", "access_token": token}, timeout=60)
+            if r.status_code != 200:
+                return {"status": "error", "error": f"child failed: {r.status_code} {r.text[:200]}"}
+            kids.append(r.json()["id"])
+        r = requests.post(f"{GRAPH_API}/{ig_account_id}/media",
+                          data={"media_type": "CAROUSEL", "children": ",".join(kids),
+                                "caption": caption, "access_token": token}, timeout=60)
+        if r.status_code != 200:
+            return {"status": "error", "error": f"carousel container failed: {r.status_code} {r.text[:200]}"}
+        cid = r.json()["id"]
+        for _ in range(20):   # 最大約60秒待つ
+            st = requests.get(f"{GRAPH_API}/{cid}", params={"fields": "status_code", "access_token": token}, timeout=30)
+            code = (st.json() or {}).get("status_code") if st.status_code == 200 else None
+            if code == "FINISHED":
+                break
+            if code == "ERROR":
+                return {"status": "error", "error": f"carousel processing ERROR: {st.text[:200]}"}
+            time.sleep(3)
+        r2 = requests.post(f"{GRAPH_API}/{ig_account_id}/media_publish",
+                           data={"creation_id": cid, "access_token": token}, timeout=60)
+        if r2.status_code != 200:
+            return {"status": "error", "error": f"carousel publish failed: {r2.status_code} {r2.text[:200]}"}
+        return {"status": "ok", "post_id": str(r2.json()["id"])}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 def post_instagram_uranai_reel(*, weekday_key: str, data: dict, spot, target_date: date,
