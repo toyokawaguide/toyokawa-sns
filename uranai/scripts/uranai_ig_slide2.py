@@ -17,6 +17,7 @@ from uranai_fri_sat import get_top10_stars, format_star_score
 W, H = 1080, 1350
 HEADER_H = 135
 FOOTER_Y = 1215
+INCLUDE_FRI_SAT = False
 
 
 def _first_sentence(s: str, n: int = 22) -> str:
@@ -33,6 +34,8 @@ def _ranked(weekday_key: str, data: dict, target_date: date):
     if weekday_key in ("mon", "wed", "thu"):
         items = sorted(items, key=lambda x: -x.get("stars", 0))
         return [(i + 1, it["label"], int(it.get("stars", 0)), None, it.get("comment", "")) for i, it in enumerate(items)]
+    if weekday_key in ("fri", "sat") and not INCLUDE_FRI_SAT:
+        return []   # 金土は1枚目にTOP10が全部載っているので2枚目は出さない（2026-10-11）
     if weekday_key in ("fri", "sat"):
         seed = target_date.year * 10000 + target_date.month * 100 + target_date.day
         stars = get_top10_stars(seed=seed)
