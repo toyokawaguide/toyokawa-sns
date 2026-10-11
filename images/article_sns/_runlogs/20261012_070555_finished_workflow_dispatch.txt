@@ -1,0 +1,52 @@
+time=2026-10-12T07:05:55.226932+09:00
+event=workflow_dispatch
+run_id=38178674102
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS123 【閉鎖した？】馬場町にあった愛知トヨタ「旧豊川マイカーセンタ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS123_* サブフォルダ検索中...
+✅ Drive: SNS123_2026.10.12【閉鎖した？】馬場町にあった愛知トヨタ「旧豊川マイカーセンター跡の展示場」の看板や車が撤去されてる！国道151号線沿いのね。次、何か出来る？ (id=1y_v2rZqog...)
+  📥 DL: 0.jpg (546 KB)
+  📥 DL: 1.jpg (607 KB)
+  📥 DL: 2.jpg (613 KB)
+  📥 DL: 3.jpg (607 KB)
+  📥 DL: 4.jpg (595 KB)
+  📥 DL: 5.jpg (596 KB)
+  📥 DL: 6.jpg (592 KB)
+  📥 DL: 7.jpg (595 KB)
+  📥 DL: 8.jpg (582 KB)
+  📥 DL: 9.jpg (575 KB)
+  ✅ SNS123: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: 旧豊川マイカー / センター跡の展示場
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS123_* サブフォルダ検索中...
+✅ Drive: SNS123_2026.10.12【閉鎖した？】馬場町にあった愛知トヨタ「旧豊川マイカーセンター跡の展示場」の看板や車が撤去されてる！国道151号線沿いのね。次、何か出来る？ (id=1y_v2rZqog...)
+⚠ 写真10枚→IGカルーセル上限のため先頭9枚に制限（割愛1枚）
+  📷 フィード 10枚生成
+    📤 Pages へ 10枚 commit 97b42f3（反映待ち…）
+    ✅ Pages 配信確認 10枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS123_* サブフォルダ検索中...
+✅ Drive: SNS123_2026.10.12【閉鎖した？】馬場町にあった愛知トヨタ「旧豊川マイカーセンター跡の展示場」の看板や車が撤去されてる！国道151号線沿いのね。次、何か出来る？ (id=1y_v2rZqog...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '17925085137204579', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18107956370184318', 'dry': False}
+  🎬 IG Reels
+  container_id=17957268612254312 file_size=5,610,733 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '17901986844373679', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/w8LDXqvvUjY
+    → {'status': 'ok', 'video_id': 'w8LDXqvvUjY', 'url': 'https://youtube.com/shorts/w8LDXqvvUjY', 'privacy': 'private'}
+  📊 状態→投稿済
