@@ -42,12 +42,37 @@ def post_instagram_uranai(*, weekday_key: str, data: dict, spot, target_date: da
         return {"status": "error", "post_id": None, "caption": caption,
                 "error": "META_ACCESS_TOKEN / INSTAGRAM_ACCOUNT_ID 未設定"}
 
-    # カルーセル（2枚目=4位〜最下位・2026-10-11）。失敗したら下の1枚投稿にフォールバック
+    # カルーセル（2枚目=4位〜最下位・2026-10-11）。
+    # 2026-10-12: 1回の失敗ですぐ1枚に落ちていた（10/12朝）→ 20秒あけて最大3回やり直す。
+    #   それでもダメなら1枚投稿にフォールバックし、エラー内容をGmailで知らせる。
+    #   公開(media_publish)の途中で通信が切れた時は、実際に出ていないかを確認してから次へ進む（二重投稿防止）。
     if ig_image_url2:
-        car = _post_carousel(ig_account_id, token, [ig_image_url, ig_image_url2], caption)
-        if car.get("status") == "ok":
-            return {"status": "ok", "post_id": car["post_id"], "caption": caption, "carousel": True}
-        print(f"     [warn] カルーセル失敗→1枚投稿にフォールバック: {car.get('error')}")
+        errors = []
+        for attempt in range(1, 4):
+            t0 = time.time()
+            car = _post_carousel(ig_account_id, token, [ig_image_url, ig_image_url2], caption)
+            if car.get("status") == "ok":
+                return {"status": "ok", "post_id": car["post_id"], "caption": caption, "carousel": True,
+                        "carousel_attempts": attempt}
+            errors.append(f"{attempt}回目[{car.get('stage', '?')}]: {car.get('error')}")
+            print(f"     [warn] カルーセル失敗 {errors[-1]}")
+            if car.get("stage") == "publish_exception":
+                pid = _recent_post_id(ig_account_id, token, t0, "CAROUSEL_ALBUM")
+                if pid:
+                    print("     → 実際にはカルーセルが公開されていた（二重投稿しない）")
+                    return {"status": "ok", "post_id": pid, "caption": caption, "carousel": True,
+                            "carousel_attempts": attempt}
+            if attempt < 3:
+                time.sleep(20)
+        print("     [warn] カルーセル3回失敗→1枚投稿にフォールバック")
+        try:
+            from notify_failure import notify_failure
+            notify_failure(f"[占い] IGカルーセル失敗→1枚で投稿 {target_date}",
+                           "占いのInstagramフィードがカルーセル（2枚）で出せず、1枚だけで投稿しました。\n\n"
+                           + "\n".join(errors)
+                           + f"\n\n1枚目: {ig_image_url}\n2枚目: {ig_image_url2}")
+        except Exception as e_n:
+            print(f"     [warn] 通知失敗: {e_n}")
 
     try:
         # Step1: メディアコンテナ作成
@@ -80,37 +105,59 @@ def post_instagram_uranai(*, weekday_key: str, data: dict, spot, target_date: da
         return {"status": "error", "post_id": None, "caption": caption, "error": str(e)}
 
 
+def _recent_post_id(ig_account_id: str, token: str, since_ts: float, media_type: str) -> str | None:
+    """since_ts 以降に公開された media_type の投稿があれば ID を返す（公開の途中で通信が切れた時の確認用）"""
+    try:
+        r = requests.get(f"{GRAPH_API}/{ig_account_id}/media",
+                         params={"fields": "id,media_type,timestamp", "limit": 5, "access_token": token}, timeout=30)
+        from datetime import datetime
+        for m in (r.json() or {}).get("data", []):
+            ts = datetime.strptime(m["timestamp"], "%Y-%m-%dT%H:%M:%S%z").timestamp()
+            if m.get("media_type") == media_type and ts >= since_ts - 5:
+                return str(m["id"])
+    except Exception:
+        pass
+    return None
+
+
 def _post_carousel(ig_account_id: str, token: str, urls: list, caption: str) -> dict:
-    """IGカルーセル投稿: 子コンテナ(is_carousel_item)×N → CAROUSELコンテナ → 処理完了待ち → publish"""
+    """IGカルーセル投稿: 子コンテナ(is_carousel_item)×N → CAROUSELコンテナ → 処理完了待ち → publish
+    戻り値の stage でどこで失敗したかを返す（children / container / processing / publish / publish_exception）"""
     try:
         kids = []
         for u in urls:
             r = requests.post(f"{GRAPH_API}/{ig_account_id}/media",
                               data={"image_url": u, "is_carousel_item": "true", "access_token": token}, timeout=60)
             if r.status_code != 200:
-                return {"status": "error", "error": f"child failed: {r.status_code} {r.text[:200]}"}
+                return {"status": "error", "stage": "children", "error": f"child failed: {r.status_code} {r.text[:300]}"}
             kids.append(r.json()["id"])
         r = requests.post(f"{GRAPH_API}/{ig_account_id}/media",
                           data={"media_type": "CAROUSEL", "children": ",".join(kids),
                                 "caption": caption, "access_token": token}, timeout=60)
         if r.status_code != 200:
-            return {"status": "error", "error": f"carousel container failed: {r.status_code} {r.text[:200]}"}
+            return {"status": "error", "stage": "container", "error": f"carousel container failed: {r.status_code} {r.text[:300]}"}
         cid = r.json()["id"]
-        for _ in range(20):   # 最大約60秒待つ
-            st = requests.get(f"{GRAPH_API}/{cid}", params={"fields": "status_code", "access_token": token}, timeout=30)
+        code = None
+        for _ in range(40):   # 最大約2分待つ（2026-10-12 60秒→120秒）
+            st = requests.get(f"{GRAPH_API}/{cid}", params={"fields": "status_code,status", "access_token": token}, timeout=30)
             code = (st.json() or {}).get("status_code") if st.status_code == 200 else None
             if code == "FINISHED":
                 break
             if code == "ERROR":
-                return {"status": "error", "error": f"carousel processing ERROR: {st.text[:200]}"}
+                return {"status": "error", "stage": "processing", "error": f"carousel processing ERROR: {st.text[:300]}"}
             time.sleep(3)
+        if code != "FINISHED":
+            return {"status": "error", "stage": "processing", "error": f"carousel not ready after 120s (status={code})"}
+    except Exception as e:
+        return {"status": "error", "stage": "children", "error": str(e)}
+    try:
         r2 = requests.post(f"{GRAPH_API}/{ig_account_id}/media_publish",
                            data={"creation_id": cid, "access_token": token}, timeout=60)
-        if r2.status_code != 200:
-            return {"status": "error", "error": f"carousel publish failed: {r2.status_code} {r2.text[:200]}"}
-        return {"status": "ok", "post_id": str(r2.json()["id"])}
     except Exception as e:
-        return {"status": "error", "error": str(e)}
+        return {"status": "error", "stage": "publish_exception", "error": str(e)}
+    if r2.status_code != 200:
+        return {"status": "error", "stage": "publish", "error": f"carousel publish failed: {r2.status_code} {r2.text[:300]}"}
+    return {"status": "ok", "post_id": str(r2.json()["id"])}
 
 
 def post_instagram_uranai_reel(*, weekday_key: str, data: dict, spot, target_date: date,
