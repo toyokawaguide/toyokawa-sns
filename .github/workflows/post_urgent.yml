@@ -1,18 +1,19 @@
-name: 🚨 緊急投稿（今すぐ公開・WP／Instagram／Threads）
+name: 🚨 緊急告知（今すぐ公開・WP／Instagram／Threads）
 
-# いつものライト記事と同じ準備（スプレッドシートに1行＋Driveに写真フォルダ）をしてから、
-# GitHub アプリの Actions → このワークフロー → Run workflow で記事IDを入れて実行する。
-#   - WP記事を「お知らせ」カテゴリで即公開（19時を待たない）
-#   - Threads／Instagram フィード（写真があればカルーセル）／リール／ストーリーズ を投稿
+# ライト記事とは別の仕組み（urgent/scripts/publish_urgent.py）。
+# 専用スプレッドシート「緊急告知」タブに1行（ID／タイトル／本文）書いてから、
+# GitHub アプリの Actions → このワークフロー → Run workflow で実行する。
+#   - WP記事を「お知らせ」カテゴリで即公開（見出し【緊急告知】＋書いた本文だけ）
+#   - Threads／Instagram フィード／リール／ストーリーズ を投稿（画像は「緊急告知」カードを自動生成）
 #   - X 用テキストを Gmail で送る（X は社長が手動投稿）
-# 中身は publish_light_article.py --now。失敗した媒体があれば赤になり、
-# もう一度同じIDで実行すると成功済みの媒体はとばして失敗分だけやり直す。
+# 失敗した媒体があれば赤になり、同じIDで再実行すると成功済みの媒体はとばして失敗分だけやり直す。
+# 事前設定：Settings → Secrets and variables → Actions → Variables に URGENT_SPREADSHEET_ID（専用シートのID）
 on:
   workflow_dispatch:
     inputs:
       target_id:
-        description: '記事ID（例: LR130・スプレッドシートのID列）'
-        required: true
+        description: 'ID（例: EM001）。空なら「状態」が空の1件を自動で選ぶ'
+        required: false
       mode:
         description: 'publish=今すぐ公開 / dry-run=投稿せず中身だけ確認（画像はArtifactsに保存）'
         type: choice
@@ -21,17 +22,14 @@ on:
           - dry-run
         default: 'publish'
 
-concurrency:                 # 同じ記事を二重に走らせない（連打・再実行の重複防止）
-  group: urgent-${{ github.event.inputs.target_id }}
+concurrency:                 # 連打・重複実行で二重投稿しない
+  group: urgent-notice
   cancel-in-progress: false
 
 jobs:
   urgent:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Reels動画のIG側処理待ちに余裕
-    defaults:
-      run:
-        working-directory: light_articles/scripts
+    timeout-minutes: 30  # リールのIG側処理待ちに余裕
     steps:
       - uses: actions/checkout@v4
 
@@ -61,16 +59,19 @@ jobs:
           ffmpeg -version | head -1
 
       - name: ライブラリインストール
-        run: pip install -r requirements.txt
+        run: pip install -r light_articles/scripts/requirements.txt
 
-      - name: OAuth credentials 復元
+      - name: OAuth credentials 復元（Sheets はライト記事と同じGoogle認証を使う）
+        working-directory: light_articles/scripts
         run: |
           echo "${{ secrets.LIGHT_GOOGLE_CREDENTIALS_B64 }}" | base64 -d > credentials.json
           mkdir -p _assets
           echo "${{ secrets.LIGHT_GOOGLE_TOKEN_B64 }}" | base64 -d > _assets/sheets_token.json
 
-      - name: 緊急投稿 実行
+      - name: 緊急告知 実行
+        working-directory: urgent/scripts
         env:
+          URGENT_SPREADSHEET_ID: ${{ vars.URGENT_SPREADSHEET_ID }}
           WP_URL: ${{ secrets.WP_URL }}
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
@@ -84,27 +85,28 @@ jobs:
           MODE: ${{ github.event.inputs.mode }}
           PYTHONIOENCODING: utf-8
         run: |
-          # IDは英数字だけ受け付ける（入力ミス・コマンド混入の防止）
-          ID=$(echo "$TARGET_ID" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
-          if ! echo "$ID" | grep -Eq '^[A-Z0-9_-]+$'; then
-            echo "::error::記事IDの形式が不正です: '$TARGET_ID'"
-            exit 1
+          ARGS=""
+          ID=$(echo "$TARGET_ID" | tr -d '[:space:]')
+          if [ -n "$ID" ]; then
+            # IDは英数字だけ受け付ける（入力ミス・コマンド混入の防止）
+            if ! echo "$ID" | grep -Eq '^[A-Za-z0-9_-]+$'; then
+              echo "::error::IDの形式が不正です: '$TARGET_ID'"
+              exit 1
+            fi
+            ARGS="--id $ID"
           fi
-          FLAGS="--id $ID --now"
           if [ "$MODE" = "publish" ]; then
-            FLAGS="$FLAGS --publish"
+            ARGS="$ARGS --publish"
           fi
-          echo "実行コマンド: python publish_light_article.py $FLAGS"
-          python publish_light_article.py $FLAGS
+          echo "実行コマンド: python publish_urgent.py $ARGS"
+          python publish_urgent.py $ARGS
 
       - name: 生成物アーティファクト（dry-run時のみ）
         if: github.event.inputs.mode == 'dry-run'
         uses: actions/upload-artifact@v4
         with:
           name: urgent-preview-${{ github.run_id }}
-          path: |
-            light_articles/scripts/_sample/*.png
-            light_articles/scripts/_sample/*.mp4
+          path: urgent/scripts/_sample/
           retention-days: 7
           if-no-files-found: warn
 
@@ -113,16 +115,15 @@ jobs:
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          TARGET_ID: ${{ github.event.inputs.target_id }}
         run: |
           python -c "
           import os, smtplib
           from email.mime.text import MIMEText
-          body = ('緊急投稿（' + os.environ.get('TARGET_ID', '?') + '）で失敗がありました。\n'
+          body = ('緊急告知の投稿で失敗がありました。\n'
                   '同じIDでもう一度実行すると、成功済みの媒体はとばして失敗分だけやり直します。\n\n'
                   'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}')
           msg = MIMEText(body, 'plain', 'utf-8')
-          msg['Subject'] = '[豊川ガイド] 緊急投稿 失敗あり（要確認）'
+          msg['Subject'] = '[豊川ガイド] 緊急告知 失敗あり（要確認）'
           msg['From'] = os.environ['GMAIL_USER']
           msg['To'] = os.environ['GMAIL_USER']
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:

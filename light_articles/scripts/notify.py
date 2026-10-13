@@ -20,19 +20,11 @@ GMAIL_PASS = os.environ.get("GMAIL_APP_PASSWORD")
 
 def send_x_caption_mail(article_id: str, title: str, x_text: str,
                          publish_at: str, wp_url: str = "",
-                         dry: bool = True, urgent: bool = False) -> dict:
-    """X予約用テキストを Gmail で送信（社長がスマホからコピペ用）
-    urgent=True（緊急投稿）なら「公開済み・今すぐXへ」の文面で送る"""
-    if urgent:
-        subject = f"【緊急投稿】公開しました・X投稿用テキスト（{title}）"
-        lead = ("緊急投稿の WP記事・Instagram・Threads を公開しました。\n"
-                "X は下のテキストをコピーして、今すぐ投稿してください。")
-    else:
-        subject = f"【ライト記事】{publish_at[:10]} 19:00 公開・X予約用テキスト"
-        lead = (f"明日 {publish_at} 公開予定のライト記事のX投稿用テキストです。\n"
-                f"スマホからコピーして、X公式アプリの予約投稿機能で {publish_at[:10]} 19:00 にセットしてください。")
-    tail = "" if urgent else "スマホでサクッと予約しちゃってください。"
-    body = f"""{lead}
+                         dry: bool = True) -> dict:
+    """X予約用テキストを Gmail で送信（社長がスマホからコピペ用）"""
+    subject = f"【ライト記事】{publish_at[:10]} 19:00 公開・X予約用テキスト"
+    body = f"""明日 {publish_at} 公開予定のライト記事のX投稿用テキストです。
+スマホからコピーして、X公式アプリの予約投稿機能で {publish_at[:10]} 19:00 にセットしてください。
 
 記事ID: {article_id}
 タイトル: {title}
@@ -42,7 +34,7 @@ WP URL: {wp_url}
 {x_text}
 ------------ ここまで ------------
 
-{tail}
+スマホでサクッと予約しちゃってください。
 """
     if dry:
         print(f"[DRY][Gmail] subject={subject}")
