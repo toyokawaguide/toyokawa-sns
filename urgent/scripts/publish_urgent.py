@@ -36,12 +36,14 @@ sys.path.insert(0, str(LIGHT_SCRIPTS))   # WP／SNS／Sheets の通信部品だ�
 import urgent_card
 from sheets_client import read_all_rows, update_status, get_sns_done, add_sns_done
 
-# 専用スプレッドシート（GitHub の Variables「URGENT_SPREADSHEET_ID」で指定）
-SPREADSHEET_ID = os.environ.get("URGENT_SPREADSHEET_ID", "").strip()
+# シート：既定はライト記事と同じスプレッドシートの「緊急告知」タブ（初回設定なしで動く）
+# 別のスプレッドシートにしたい時だけ GitHub の Variables「URGENT_SPREADSHEET_ID」で上書き
+import sheets_client as _sc
+SPREADSHEET_ID = os.environ.get("URGENT_SPREADSHEET_ID", "").strip() or _sc.SPREADSHEET_ID
 SHEET = "緊急告知"
 JST = timezone(timedelta(hours=9))
 HEADING = "【緊急告知】"
-HASHTAGS = "#豊川市 #豊川ガイド #緊急告知"
+HASHTAGS = "#豊川市 #豊川ガイド #とよサポ #緊急告知"
 OUT = ROOT / "_sample"
 
 
@@ -238,8 +240,6 @@ def main():
     ap.add_argument("--id", help="ID（例 EM001）。省略時は未投稿の1件")
     ap.add_argument("--publish", action="store_true", help="本番（今すぐ公開）。無しなら確認だけ")
     args = ap.parse_args()
-    if not SPREADSHEET_ID:
-        sys.exit("❌ URGENT_SPREADSHEET_ID が未設定です（GitHub の Variables に専用シートのIDを入れてください）")
 
     rows = read_all_rows(sheet=SHEET, spreadsheet_id=SPREADSHEET_ID)
     row_index, row = pick_row(rows, args.id)

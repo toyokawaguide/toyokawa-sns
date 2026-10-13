@@ -8,7 +8,7 @@
 - X：Gmail に届くテキストを自分で投稿
 
 ## 使い方
-1. 専用スプレッドシートの「緊急告知」タブに1行書く（列：ID／タイトル／本文／状態／SNS済。ひな形は `docs/sheet_template.csv`）
+1. ライト記事キューと同じスプレッドシートの「緊急告知」タブに1行書く（列：ID／タイトル／本文／状態／SNS済。ひな形は `docs/sheet_template.csv`）
    - ID は EM001 のように。空でも動く（行番号から EM005 などを自動で付ける）
    - タイトルの改行はカード画像の改行になる。本文は空行で段落
    - 状態・SNS済は空のまま（投稿後に自動で埋まる）
@@ -17,6 +17,6 @@
    - 中身だけ見たい時は mode を dry-run に
 3. 失敗メールが来たら、同じIDでもう一度実行（成功済みの媒体はとばす）
 
-## 初回だけの設定
-- GitHub の Settings → Secrets and variables → Actions → Variables に `URGENT_SPREADSHEET_ID`（専用シートのID）
-- シートはライト記事の Google 認証と同じアカウントで編集できること
+## 設定
+- 初回設定は不要（ライト記事キューのスプレッドシートに「緊急告知」タブを作ってある）
+- 別のスプレッドシートを使いたい時だけ、GitHub の Variables に `URGENT_SPREADSHEET_ID` を入れる
