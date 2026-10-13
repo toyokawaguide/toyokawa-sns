@@ -29,11 +29,13 @@ else:
     FONT_BOLD = f"{_font_dir}/NotoSansCJK-Bold.ttc"
     FONT_REG = f"{_font_dir}/NotoSansCJK-Regular.ttc"
 
-COLOR_BG = (26, 58, 138)        # 豊川ガイドの紺
-COLOR_RED = (200, 30, 40)       # 緊急告知の帯
+# 2026-10-13 社長「毒々しすぎる、もっとライトに」→ 赤帯をやめ、明るい生成り地＋紺文字＋やわらかい橙の札に
+COLOR_BG = (250, 247, 240)      # 生成り
+COLOR_NAVY = (26, 58, 138)      # 豊川ガイドの紺（文字・ロゴ）
+COLOR_TAG = (238, 132, 72)      # 「緊急告知」の札（やわらかい橙）
 COLOR_WHITE = (255, 255, 255)
-COLOR_SUB = (240, 220, 160)     # ライトゴールド
-COLOR_ACCENT = (212, 160, 23)   # ゴールド
+COLOR_SUB = (110, 120, 140)     # 発信日時（グレー）
+COLOR_ACCENT = (212, 160, 23)   # ゴールドの細線
 
 HEADING = "緊急告知"
 
@@ -106,18 +108,22 @@ def render(title: str, W: int, H: int, output_path: Path, posted_at: datetime = 
     if LOGO_WHITE.exists():
         logo = Image.open(LOGO_WHITE).convert("RGBA")
         logo.thumbnail((logo_h, logo_h), Image.LANCZOS)
+        navy = Image.new("RGBA", logo.size, COLOR_NAVY + (255,))   # 白ロゴを紺に塗り替え
+        navy.putalpha(logo.getchannel("A"))
+        logo = navy
         img.paste(logo, (x, y), logo)
         x += logo.width + int(20 * s)
     fb = _font(FONT_BOLD, int(48 * s))
-    d.text((x, y + logo_h / 2), "豊川ガイド", font=fb, fill=COLOR_WHITE, anchor="lm")
+    d.text((x, y + logo_h / 2), "豊川ガイド", font=fb, fill=COLOR_NAVY, anchor="lm")
 
-    # ── 赤帯：緊急告知 ──
-    band_top = y + logo_h + int(40 * s)
-    band_h = int(170 * s)
-    d.rectangle([0, band_top, W, band_top + band_h], fill=COLOR_RED)
-    fh = _font(FONT_BOLD, int(110 * s))
-    d.text((W / 2, band_top + band_h / 2), HEADING,
-           font=fh, fill=COLOR_WHITE, anchor="mm")
+    # ── 札：緊急告知（角丸・中央） ──
+    band_top = y + logo_h + int(60 * s)
+    band_h = int(110 * s)
+    fh = _font(FONT_BOLD, int(64 * s))
+    tw = _text_w(d, HEADING, fh) + int(110 * s)
+    d.rounded_rectangle([W / 2 - tw / 2, band_top, W / 2 + tw / 2, band_top + band_h],
+                        radius=band_h // 2, fill=COLOR_TAG)
+    d.text((W / 2, band_top + band_h / 2), HEADING, font=fh, fill=COLOR_WHITE, anchor="mm")
 
     # ── フッター：発信日時 ──
     week = "月火水木金土日"[posted_at.weekday()]
@@ -135,7 +141,7 @@ def render(title: str, W: int, H: int, output_path: Path, posted_at: datetime = 
     total = len(lines) * line_h
     ty = area_top + (area_bottom - area_top - total) / 2
     for ln in lines:
-        d.text((W / 2, ty + line_h / 2), ln, font=f, fill=COLOR_WHITE, anchor="mm")
+        d.text((W / 2, ty + line_h / 2), ln, font=f, fill=COLOR_NAVY, anchor="mm")
         ty += line_h
 
     output_path = Path(output_path)
