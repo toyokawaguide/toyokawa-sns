@@ -349,3 +349,38 @@ def post_instagram_reel_by_url(caption: str, video_url: str, dry: bool = True) -
         return {"status": "ok", "post_id": str(r2.json()["id"]), "media_type": "REELS_URL"}
     except Exception as e:
         return {"status": "error", "post_id": None, "error": str(e)}
+
+
+def post_instagram_story(image_url: str, dry: bool = True) -> dict:
+    """Instagram ストーリーズ（画像1枚・1080×1920推奨）
+    緊急投稿（publish_light_article.py --now）用に 2026-10-13 追加。
+    ストーリーズはキャプション・リンクを API で付けられないので画像だけ出す。
+    Returns: {"post_id": str} / {"dry": True} / {"error": str}
+    """
+    if dry:
+        print(f"[DRY][IG Story] image: {image_url}")
+        return {"dry": True}
+
+    token = os.environ.get("META_ACCESS_TOKEN") or META_TOKEN
+    ig_id = (os.environ.get("INSTAGRAM_ACCOUNT_ID")
+             or os.environ.get("IG_USER_ID")
+             or DEFAULT_IG_ACCOUNT_ID)
+    if not token:
+        return {"error": "META_ACCESS_TOKEN 未設定"}
+    try:
+        r1 = requests.post(f"{GRAPH_API}/{ig_id}/media",
+                           data={"media_type": "STORIES", "image_url": image_url,
+                                 "access_token": token}, timeout=60)
+        if r1.status_code != 200:
+            return {"error": f"container failed: {r1.status_code} {r1.text[:300]}",
+                    "image_url": image_url}
+        container_id = r1.json()["id"]
+        time.sleep(3)
+        r2 = requests.post(f"{GRAPH_API}/{ig_id}/media_publish",
+                           data={"creation_id": container_id, "access_token": token},
+                           timeout=60)
+        if r2.status_code != 200:
+            return {"error": f"publish failed: {r2.status_code} {r2.text[:300]}"}
+        return {"post_id": r2.json().get("id"), "dry": False}
+    except Exception as e:
+        return {"error": str(e)}

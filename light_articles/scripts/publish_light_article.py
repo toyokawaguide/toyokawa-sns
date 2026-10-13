@@ -15,6 +15,8 @@ publish_light_article.py — ライト記事 自動投稿メインスクリプ�
 python publish_light_article.py             # dry-run（デフォルト・公開なし）
 python publish_light_article.py --publish   # 本番（予約投稿）
 python publish_light_article.py --draft     # WP draft で投稿（テスト用）
+python publish_light_article.py --id LR130 --now            # 緊急投稿の確認（dry-run）
+python publish_light_article.py --id LR130 --now --publish  # 緊急投稿：今すぐ公開
 """
 from __future__ import annotations
 import argparse
@@ -38,7 +40,8 @@ from generate_reel import generate_reel
 from sns_clients import (post_threads, post_instagram_feed,
                           post_instagram_feed_carousel,
                           post_instagram_reel_resumable,
-                          post_instagram_reel_by_url)
+                          post_instagram_reel_by_url,
+                          post_instagram_story)
 from notify import send_x_caption_mail, send_skip_notification
 
 LIGHT_BASE = Path("G:/マイドライブ/ライト記事")
@@ -179,7 +182,8 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
                 target_date: date = None,
                 x_only: bool = False,
                 skip_if_published: bool = False,
-                wp_only: bool = False) -> dict:
+                wp_only: bool = False,
+                now: bool = False) -> dict:
     """1記事を処理
 
     x_only=True の場合：
@@ -206,6 +210,12 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
             return {"skipped": True, "reason": "invalid_publish_date"}
         log(f"📅 公開希望日（B列）: {target_date}", 1)
     publish_dt = datetime.combine(target_date, time(19, 0), tzinfo=JST)
+    if now:
+        # 緊急投稿（2026-10-13）：19時を待たずに今すぐ公開。
+        # WPは「status=publish でも日付が未来」だと予約(future)扱いにするので、
+        # サーバー時計のずれを見込んで2分前の時刻にしておく
+        publish_dt = (datetime.now(JST) - timedelta(minutes=2)).replace(second=0, microsecond=0)
+        log(f"🚨 緊急投稿モード：今すぐ公開（{publish_dt.strftime('%H:%M')}）", 1)
 
     # === x_only モード：X/Threads/IG用テキストをセッション内出力（コピペ用） ===
     if x_only:
@@ -325,6 +335,8 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
     pub_str = f"{target_date.year}年{target_date.month}月{target_date.day}日({week})"
 
     reel_path = ROOT / "_sample" / f"_tmp_{article_id}_reel.mp4"
+    # 緊急投稿ではリールと同じ縦長画像をストーリーズにも使う
+    story_path = ROOT / "_sample" / f"_tmp_{article_id}_story.png" if now else None
     generate_reel(
         place=place,
         sub_lines=reel_sub_lines,
@@ -341,6 +353,7 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         card_label=_clabel,
         landmark_label=_lmlabel,
         output_path=reel_path,
+        frame_output_path=story_path,
     )
     log(f"🎬 リール動画生成: {reel_path.name} "
         f"({reel_path.stat().st_size/1024:.0f} KB)", 1)
@@ -382,7 +395,8 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
                 log(f"⏭️ WP既存（post_id={existing_wp['id']}）・WP工程スキップ→SNS だけ実行", 1)
 
         # 翌日19時 手動投稿チェック（draft時はスキップしない・WP既存時もスキップ）
-        if not use_draft and not existing_wp:
+        # 緊急投稿は19時枠と関係なく出すのでチェックしない
+        if not use_draft and not existing_wp and not now:
             if check_manual_post_scheduled(target_date):
                 log(f"⏭️ 翌日19時に手動投稿あり・スキップ", 1)
                 return {"skipped": True, "reason": "manual_post_scheduled"}
@@ -568,8 +582,26 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         except Exception as _e:
             log(f"  ⚠ フォールバックも失敗: {_e}", 2)
 
+    # === Instagram ストーリーズ（緊急投稿のときだけ・2026-10-13）===
+    story_result = {"status": "skipped"}
+    if now:
+        if "ig_story" in done:
+            log("📱 Instagram ストーリーズ … 投稿済みなのでスキップ", 1)
+        else:
+            log(f"📱 Instagram ストーリーズ投稿（1080×1920・dry={sns_dry}）", 1)
+            try:
+                story_url = (upload_media(story_path)["source_url"] if not sns_dry
+                             else str(story_path))
+                story_result = post_instagram_story(story_url, dry=sns_dry)
+            except Exception as e:
+                story_result = {"error": str(e)}
+            log(f"  → {story_result}", 2)
+            if not story_result.get("error"):
+                mark("ig_story")
+
     # === YouTube ショート（2026-09-29 追加・YT_SHORTS_ENABLED=1 の時だけ動く／失敗しても状態判定に入れない）===
-    if (not sns_dry) and "yt_short" not in done and reel_result.get("status") in ("ok", "skipped"):
+    # 緊急投稿では出さない（WP・IG・Threads だけ）
+    if (not sns_dry) and not now and "yt_short" not in done and reel_result.get("status") in ("ok", "skipped"):
         try:
             sys.path.insert(0, str(ROOT.parents[1] / "youtube_shorts"))
             import youtube_shorts
@@ -592,6 +624,8 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
             sns_failures.append(f"IG Feed: {ig_feed_result['error']}")
         if reel_result.get("status") == "error":
             sns_failures.append(f"IG Reels: {reel_result.get('error', 'unknown')}")
+        if story_result.get("error"):
+            sns_failures.append(f"IG Story: {story_result['error']}")
 
     # Sheets 状態更新
     # - 完全成功 → 「予約済」
@@ -621,7 +655,13 @@ def process_one(row_index: int, row: dict, dry_run: bool = True,
         publish_at=publish_dt.isoformat(),
         wp_url=wp_url,
         dry=sns_dry,
+        urgent=now,
     )
+
+    # 緊急投稿で失敗した媒体があれば、ワークフローを赤にして失敗通知メールを出す
+    # （再実行すれば成功済みの媒体はとばして、失敗した媒体だけやり直す）
+    if now and sns_failures:
+        result["sns_failures"] = sns_failures
 
     return result
 
@@ -642,10 +682,20 @@ def main():
     ap.add_argument("--max", type=int, default=1,
                     help="最大処理件数（デフォルト1）")
     ap.add_argument("--id", help="特定 ID のみ強制処理（状態無視・再生成用）")
+    ap.add_argument("--now", action="store_true",
+                    help="緊急投稿：19時を待たず今すぐ公開＋IGストーリーズ（--id 必須・--publish 併用で本番）")
     args = ap.parse_args()
+
+    now = args.now
+    if now and not args.id:
+        print("❌ --now（緊急投稿）は --id で記事IDを指定してください（取り違え防止）")
+        sys.exit(1)
 
     x_only = getattr(args, "x_only", False)
     skip_if_published = getattr(args, "skip_if_published", False)
+    if now:
+        # 緊急投稿をやり直した時に WP記事を二重に作らない（SNSは媒体ごとの投稿済み記録でとばす）
+        skip_if_published = True
     wp_only = getattr(args, "wp_only", False)
     # wp_only も実投稿モード扱い
     dry_run = not (args.publish or args.draft or x_only or wp_only)
@@ -677,9 +727,13 @@ def main():
     target_date = None
     if args.date:
         target_date = date.fromisoformat(args.date)
+    if now:
+        target_date = datetime.now(JST).date()
 
     print("=" * 60)
-    if x_only:
+    if now:
+        print(" 🚨 緊急投稿（今すぐ公開）" + ("・DRY-RUN（確認のみ・公開なし）" if dry_run else ""))
+    elif x_only:
         print(" ライト記事 X予約テキスト生成（記事未作成）")
     elif dry_run:
         print(" ライト記事 投稿パイプライン（DRY-RUN・公開なし）")
@@ -737,7 +791,8 @@ def main():
                               target_date=target_date,
                               x_only=x_only,
                               skip_if_published=skip_if_published,
-                              wp_only=wp_only)
+                              wp_only=wp_only,
+                              now=now)
         results.append(result)
 
     print()
@@ -746,6 +801,10 @@ def main():
     print("=" * 60)
     for r in results:
         print(json.dumps(r, ensure_ascii=False, indent=2))
+
+    if now and any(r.get("sns_failures") for r in results):
+        print("❌ 緊急投稿で失敗した媒体があります（上のログ参照）。もう一度実行すると失敗した媒体だけやり直します")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

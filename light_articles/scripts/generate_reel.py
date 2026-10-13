@@ -389,7 +389,9 @@ def generate_reel(*, place: str, sub_lines: list[str],
                    title_label: str = None,
                    card_label: str = None,
                    landmark_label: str = None,
-                   output_path: Path) -> Path:
+                   output_path: Path,
+                   frame_output_path: Path = None) -> Path:
+    """frame_output_path を渡すと静止画（1080×1920）も保存する（緊急投稿のストーリーズ用）"""
     frame = build_reel_frame(place=place, sub_lines=sub_lines,
                               address=address, landmark=landmark,
                               original_title=original_title,
@@ -402,6 +404,8 @@ def generate_reel(*, place: str, sub_lines: list[str],
                               card_label=card_label,
                               landmark_label=landmark_label)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    if frame_output_path:
+        frame.save(frame_output_path, "PNG")
     render_static_reel(frame, output_path)
     print(f"✅ Reel生成: {output_path} ({output_path.stat().st_size/1024:.0f} KB)")
     return output_path
