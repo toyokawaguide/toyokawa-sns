@@ -1,0 +1,47 @@
+time=2026-10-14T10:03:10.284800+09:00
+event=workflow_dispatch
+run_id=38493201329
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+⚠ SNS125 の投稿中ロックが古い（投稿中0701）→ 引き取って再実行
+📝 SNS125 【2027年3月末まで】蔵子2丁目の「cafe gradua… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS125_* サブフォルダ検索中...
+✅ Drive: SNS125_2026.10.14【2027年3月末まで】蔵子2丁目の「cafe gradual」が閉店予定とのこと。”ゆるやかに流れる優しい時間”を紡いだお店が、静かに幕を下ろします。 (id=16VSouAOWi...)
+  📥 DL: 0.jpg (346 KB)
+  📥 DL: 1.jpg (750 KB)
+  📥 DL: 2.jpg (726 KB)
+  ✅ SNS125: 0と1は同じ写真（差 0.0）
+  ⚠ 書式が空で返った（1/2）→ 3秒後に取り直し
+  ⚠ 書式が空で返った（2/2）→ 3秒後に取り直し
+  🎨 赤文字: なし
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS125_* サブフォルダ検索中...
+✅ Drive: SNS125_2026.10.14【2027年3月末まで】蔵子2丁目の「cafe gradual」が閉店予定とのこと。”ゆるやかに流れる優しい時間”を紡いだお店が、静かに幕を下ろします。 (id=16VSouAOWi...)
+  📷 フィード 4枚生成
+    📤 Pages へ 4枚 commit ab4c7d2（反映待ち…）
+    ✅ Pages 配信確認 4枚
+  ⚠ 書式が空で返った（1/2）→ 3秒後に取り直し
+  ⚠ 書式が空で返った（2/2）→ 3秒後に取り直し
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS125_* サブフォルダ検索中...
+✅ Drive: SNS125_2026.10.14【2027年3月末まで】蔵子2丁目の「cafe gradual」が閉店予定とのこと。”ゆるやかに流れる優しい時間”を紡いだお店が、静かに幕を下ろします。 (id=16VSouAOWi...)
+カテゴリ=閉店情報 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '17868663594662379', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '17926164783197225', 'dry': False}
+  🎬 IG Reels
+  container_id=17957577759254312 file_size=5,610,732 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18121728316937361', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/Hq2bLVVAfZE
+    → {'status': 'ok', 'video_id': 'Hq2bLVVAfZE', 'url': 'https://youtube.com/shorts/Hq2bLVVAfZE', 'privacy': 'private'}
+  📊 状態→投稿済
