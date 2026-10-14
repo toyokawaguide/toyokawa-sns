@@ -1,0 +1,20 @@
+name = "uranai-cron"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# 占い配信の主トリガー（2026-10-14 新設）
+# GitHub Actions の schedule cron は 9/21 以降ほぼ毎日 3〜4 時間遅れており（10/1 に分をずらしても改善せず）、
+# 05:52 JST のはずの Instagram 投稿が 09:00 前後になっていた。
+# 通常記事（sns-cron）・ライト記事（light-article-cron）と同じく、Cloudflare Cron から
+# workflow_dispatch を叩いて定刻に起動させる。GHA 側の schedule は保険として残す。
+#
+# UTC 指定（JST = UTC+9）
+#   17 18 → 03:17 JST  WP公開（wp-only・skip-if-published なので何度でも安全）
+#   17 20 → 05:17 JST  WP公開リトライ（wp-only）
+#   52 20 → 05:52 JST  SNS投稿（sns-only・bridge キャッシュ利用・既投稿はマーカーでスキップ）
+[triggers]
+crons = ["17 18 * * *", "17 20 * * *", "52 20 * * *"]
+
+# Secret はコードに書かず、ダッシュボード or `wrangler secret put` で登録：
+#   GITHUB_PAT   … toyokawa-sns の Actions read&write 権限の fine-grained PAT
+#   TRIGGER_KEY  … 手動テストURL用の合言葉（任意の文字列）
