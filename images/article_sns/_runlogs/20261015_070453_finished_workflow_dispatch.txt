@@ -1,0 +1,43 @@
+time=2026-10-15T07:04:53.725087+09:00
+event=workflow_dispatch
+run_id=38644593177
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS126 【とよかわ大葉フェス2026】11月8日(日)はイオンモール… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS126_* サブフォルダ検索中...
+✅ Drive: SNS126_2026.10.15【とよかわ大葉フェス2026】11月8日(日)はイオンモール豊川へGOだ！第3回目の今回、絶対に食べたい「私の推し大葉」はこの3つ！！みんなの推しは？ (id=1hCbej-hDz...)
+  📥 DL: 0.jpg (301 KB)
+  📥 DL: 1.jpg (301 KB)
+  ✅ SNS126: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: とよかわ大葉フェス2026
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS126_* サブフォルダ検索中...
+✅ Drive: SNS126_2026.10.15【とよかわ大葉フェス2026】11月8日(日)はイオンモール豊川へGOだ！第3回目の今回、絶対に食べたい「私の推し大葉」はこの3つ！！みんなの推しは？ (id=1hCbej-hDz...)
+  📷 フィード 3枚生成
+    📤 Pages へ 3枚 commit 23790c0（反映待ち…）
+    ✅ Pages 配信確認 3枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS126_* サブフォルダ検索中...
+✅ Drive: SNS126_2026.10.15【とよかわ大葉フェス2026】11月8日(日)はイオンモール豊川へGOだ！第3回目の今回、絶対に食べたい「私の推し大葉」はこの3つ！！みんなの推しは？ (id=1hCbej-hDz...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '17885542875688384', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '17971720413176182', 'dry': False}
+  🎬 IG Reels
+  container_id=17957722866254312 file_size=5,610,743 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '17973021867178485', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/myjBoSQYhrI
+    → {'status': 'ok', 'video_id': 'myjBoSQYhrI', 'url': 'https://youtube.com/shorts/myjBoSQYhrI', 'privacy': 'private'}
+  📊 状態→投稿済
