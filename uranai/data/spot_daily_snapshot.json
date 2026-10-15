@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-10-15T04:15:29.920413+09:00",
-  "captured_date": "2026-10-15",
+  "captured_at": "2026-10-16T03:59:22.784946+09:00",
+  "captured_date": "2026-10-16",
   "lookahead_days": 30,
   "spots": {
-    "2026-10-15": {
-      "name": "Po CAFE（ポカフェ）",
-      "is_chain": false
-    },
     "2026-10-16": {
       "name": "Balloon & Plants SHOP　BLOOM",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-11-14": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-11-15": {
       "name": null,
       "is_chain": false
     }
