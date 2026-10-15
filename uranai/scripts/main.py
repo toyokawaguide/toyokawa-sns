@@ -407,11 +407,13 @@ def update_homepage_uranai_card(post_url: str, title: str, image_url: str | None
 
 
 def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, reel_video, ig2_image_url=None):
-    """X / Threads / Instagram(Feed+Reels) へ投稿。run_pipeline と run_sns_only 共通。
+    """Threads / Instagram(Feed+Reels) へ投稿。run_pipeline と run_sns_only 共通。
     ★既投稿マーカー(sns_done_{date}.json) で、リトライ時に成功済みの媒体は再投稿しない
       （= 朝6:00/6:30/7:00/8:00 を何度走らせても二重投稿にならない自動リトライの要）。
-      マーカーは GHA キャッシュで各リトライ間に引き継ぐ。"""
-    from post_x_uranai import post_x_uranai
+      マーカーは GHA キャッシュで各リトライ間に引き継ぐ。
+    ★X は 2026-10-14 から自動投稿しない（社長が手動投稿する運用・API は 9/10 以降
+      「402 Payment Required / credits depleted」で全滅していたため外した）。
+      再開する時は post_x_uranai を呼ぶ分岐を戻せばよい（post_x_uranai.py は残してある）。"""
     from post_threads_uranai import post_threads_uranai
     from post_instagram_uranai import (post_instagram_uranai,
                                         post_instagram_uranai_reel_resumable)
@@ -435,14 +437,8 @@ def post_all_sns(weekday_key, data, spot, target_date, post_url, ig_image_url, r
     sns_results = {}
 
     print("  [X]")
-    if done.get("x") == "ok":
-        print("     [skip] 既投稿済み"); sns_results["x"] = {"status": "already_posted"}
-    else:
-        x_res = post_x_uranai(weekday_key=weekday_key, data=data, spot=spot,
-                              target_date=target_date, post_url=post_url, dry=False)
-        print(f"     status={x_res['status']}  url={x_res.get('url')}")
-        sns_results["x"] = x_res
-        if x_res.get("status") == "ok": mark("x")
+    print("     [skip] 手動投稿運用のため自動投稿しない（2026-10-14〜）")
+    sns_results["x"] = {"status": "skipped", "reason": "manual_posting"}
 
     print("  [Threads]")
     if done.get("threads") == "ok":

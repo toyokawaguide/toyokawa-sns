@@ -6,6 +6,13 @@ name: 占い配信（WP早朝公開＋SNS5:52・分離版）
 #  - SNS投稿（--sns-only）は 06:00 JST に1回だけ。早朝ジョブが保存した bridge を
 #    GHAキャッシュ経由で受け取り、Claude API再呼び出しなし（¥0）でSNSへ
 #  - 手動 workflow_dispatch は従来どおりフル（--publish）で復旧可能
+#
+# 【2026-10-14 変更】主トリガーを Cloudflare Workers Cron「uranai-cron」に移行
+#  （cloudflare-worker/uranai-cron/ 参照・通常記事 sns-cron／ライト記事 light-article-cron と同方式）。
+#  10/1 に分をずらしても GHA schedule は毎朝 3〜4 時間遅れ続けた（SNS が 09:00 前後）ため、
+#  Cloudflare から 03:17 JST=wp-only / 05:17 JST=wp-only / 05:52 JST=sns-only を workflow_dispatch で起動する。
+#  下の schedule は「Cloudflare が万一止まった時」の保険として残す
+#  （既投稿マーカー＋実投稿確認があるので遅れて来ても二重投稿にならない）。
 
 on:
   schedule:
