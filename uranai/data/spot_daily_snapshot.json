@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-10-16T03:59:22.784946+09:00",
-  "captured_date": "2026-10-16",
+  "captured_at": "2026-10-17T03:43:25.104314+09:00",
+  "captured_date": "2026-10-17",
   "lookahead_days": 30,
   "spots": {
-    "2026-10-16": {
-      "name": "Balloon & Plants SHOP　BLOOM",
-      "is_chain": false
-    },
     "2026-10-17": {
       "name": "ちょい飲み あっちゃん家",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-11-15": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-11-16": {
       "name": null,
       "is_chain": false
     }
