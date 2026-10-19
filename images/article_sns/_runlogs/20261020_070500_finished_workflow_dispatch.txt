@@ -1,0 +1,44 @@
+time=2026-10-20T07:05:00.562255+09:00
+event=workflow_dispatch
+run_id=39331790373
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS131 【きたぞ新マーラータン！】佐土町に「福香居（フクコウイ）」と… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS131_* サブフォルダ検索中...
+✅ Drive: SNS131_2026.10.20【きたぞ新マーラータン！】佐土町に「福香居（フクコウイ）」という麻辣湯のお店がオープンしそう！閉店した喫茶店「英瑠夢」の跡地ね。 (id=1i1Edltfwx...)
+  📥 DL: 0.jpg (192 KB)
+  📥 DL: 1.jpg (469 KB)
+  📥 DL: 2.jpg (522 KB)
+  ✅ SNS131: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: 福香居（フクコウイ）
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS131_* サブフォルダ検索中...
+✅ Drive: SNS131_2026.10.20【きたぞ新マーラータン！】佐土町に「福香居（フクコウイ）」という麻辣湯のお店がオープンしそう！閉店した喫茶店「英瑠夢」の跡地ね。 (id=1i1Edltfwx...)
+  📷 フィード 4枚生成
+    📤 Pages へ 4枚 commit ec4aec2（反映待ち…）
+    ✅ Pages 配信確認 4枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS131_* サブフォルダ検索中...
+✅ Drive: SNS131_2026.10.20【きたぞ新マーラータン！】佐土町に「福香居（フクコウイ）」という麻辣湯のお店がオープンしそう！閉店した喫茶店「英瑠夢」の跡地ね。 (id=1i1Edltfwx...)
+カテゴリ=ニューオープン / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18110374711905104', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18103851314215831', 'dry': False}
+  🎬 IG Reels
+  container_id=17958578499254312 file_size=5,610,743 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18153308164483263', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/iHailSUbjJ8
+    → {'status': 'ok', 'video_id': 'iHailSUbjJ8', 'url': 'https://youtube.com/shorts/iHailSUbjJ8', 'privacy': 'private'}
+  📊 状態→投稿済
