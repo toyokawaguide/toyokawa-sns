@@ -947,8 +947,11 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
         print("  → [skip] WP投稿失敗のため SNS投稿スキップ")
         result["steps"]["sns"] = {"status": "skipped", "reason": "wp_failed"}
     else:
+        # 2026-10-20: 2枚目(ig2)を渡し忘れていた→記事公開と同じ実行でSNSまで出す日(手動実行・月/木の朝など)は
+        # カルーセルにならず1枚投稿になっていた（10/12・10/15・10/19）。bridge経由(--sns-only)は渡していたので正常だった
         sns_results = post_all_sns(weekday_key, article.get("data", {}), spot,
-                                   target_date, post_url, ig_image_url, reel_video)
+                                   target_date, post_url, ig_image_url, reel_video,
+                                   ig2_image_url=ig2_image_url)
         result["steps"]["sns"] = sns_results
 
     # ---------- Step 7: 配信ログ ----------
