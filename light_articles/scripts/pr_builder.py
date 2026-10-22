@@ -359,6 +359,21 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     return "\n".join(parts)
 
 
+def _biko_value(row: dict, marks) -> str:
+    """備考の「キー：値」を「／」か改行まで取り出す（無ければ空）"""
+    biko = (row.get("備考", "") or "")
+    for mark in marks:
+        i = biko.find(mark)
+        if i < 0:
+            continue
+        v = biko[i + len(mark):]
+        for stop in ("／", chr(10), chr(13)):
+            j = v.find(stop)
+            if j >= 0:
+                v = v[:j]
+        return v.strip()
+    return ""
+
 def build_pr_x_caption(row: dict, wp_url: str) -> str:
     """X投稿文（2026-09-01 社長確定形式）
     タイトル1行（キャッチの手動改行は除去）＋紹介文メモ＋つぶやき＋詳細＋タグ。
@@ -395,6 +410,9 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
         return chr(10).join(lines)
 
     memos = [] if when else list(memo_lines)   # イベントは日時/会場で言い切る（メモは記事で）
+    x_body = _biko_value(row, ("X本文：", "X本文:", "Ｘ本文："))
+    if x_body:   # ★2026-10-23 備考「X本文：〜」があればXだけその文にする（PR015 紹介文の1文目がタイトルと同じ内容になった）
+        memos = [x_body]
     full = assemble(memos, tweet, tokuten)
     while _x_weight(full) > 280 and memos:
         memos.pop()
