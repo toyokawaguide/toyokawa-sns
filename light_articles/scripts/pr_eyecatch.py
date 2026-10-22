@@ -418,7 +418,7 @@ def render_169(row: dict, photo_path=None, output_path=None):
             shop_txt = re.sub("(.)(―)", lambda m: m.group(1) + chr(10) + m.group(2), shop_txt, count=1)
         s_sz, s_lines = wrap_fit(d, shop_txt, FONT_BOLD, col_w, 1, 60, 30)   # 手動改行の行数だけ許可＝行の途中で勝手に折らず縮める
         addr_txt = re.sub("(?<=.)（", chr(10) + "（", st["addr"], count=1) if chr(10) not in st["addr"] else st["addr"]   # 住所（会場名）は会場名を次の行に
-        a_sz, a_lines = wrap_fit(d, addr_txt, FONT_BOLD, col_w - 36, 1, 34, 20) if st["addr"] else (0, [])
+        a_sz, a_lines = wrap_fit(d, addr_txt, FONT_BOLD, col_w - 36, 2, 34, 20) if st["addr"] else (0, [])   # ★2026-10-23 1行だと長い住所が右端で切れた（PR015）→2行まで
         block_h = len(s_lines) * int(s_sz * 1.3) + (26 + len(a_lines) * int(a_sz * 1.4) if a_lines else 0)
         y = (H - block_h) // 2 + s_sz
         for ln in s_lines:

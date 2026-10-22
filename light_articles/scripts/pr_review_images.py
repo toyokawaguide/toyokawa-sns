@@ -83,7 +83,8 @@ def main():
     # ★ 社長が毎回手で付け直していた名前に合わせた（2026-09-21）
     _n = 1
     while (D / f"{ID} 各SNS確認用-{_n}.png").exists(): _n += 1   # ★1枚ものは -1, -2, -3 … と版を進める（社長 2026-09-22）
-    outA = D / f"{ID} 各SNS確認用-{_n}.png"; im.save(outA); print("A:", outA); _light(outA)
+    outA = D / f"{ID} 各SNS確認用-{_n}.png"; im.save(outA); print("A:", outA); lightA = _light(outA)
+    lightB = []
     card = Image.open(D / f"_完成イメージ_{ID}.png").convert("RGB")
     slides = sorted(D.glob(f"_完成イメージ_{ID}_IGカルーセル*.png"))
     G, T = 40, 70
@@ -98,7 +99,27 @@ def main():
         draw_runs(db, G, 22, ttl, 32, (20, 40, 90), bold=True)
         for k, pic in enumerate(chunk): B.paste(pic, (G + k * (card.width + G), T + G))
         outB = _versioned(D / f"{ID} Instagram確認用-{ci + 1}.png")
-        B.save(outB); print("B:", outB); _light(outB)
+        B.save(outB); print("B:", outB); lightB.append(_light(outB))
+    _send_folder(D, ID, lightA, lightB)
+
+
+def _send_folder(D, ID, lightA, lightB):
+    """メールに添付する画像だけを1つのフォルダにまとめる（2026-10-23 社長「どのファイルだっけ？ってなる」）
+    中身は毎回作り直す＝このフォルダの画像を全部添付すればよい。"""
+    import shutil
+    out = D / "_メールで送る画像"; out.mkdir(exist_ok=True)
+    for old in out.iterdir():
+        if old.is_file(): old.unlink()
+    eye = D / f"_完成イメージ_{ID}_記事アイキャッチ16-9.png"
+    files = []
+    if eye.exists():
+        files.append((_light(eye), "1_記事の先頭の画像.jpg"))
+    for k, p in enumerate(lightB, start=1):
+        files.append((p, f"2_Instagramの画像{'-' + str(k) if len(lightB) > 1 else ''}.jpg"))
+    files.append((lightA, "3_SNSの投稿文.jpg"))
+    for src, name in files:
+        shutil.copy2(src, out / name)
+    print(f"📎 メールで送る画像（{len(files)}枚・全部添付）: {out}")
 
 
 def _light(src):
