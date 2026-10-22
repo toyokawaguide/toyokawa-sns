@@ -35,7 +35,7 @@ def _flatten_catch(catch: str) -> str:
     for raw in [l.strip() for l in catch.splitlines() if l.strip()]:
         part = raw.rstrip("、。")
         # ★2026-10-04 行末に書かれた「、」は書いた人の意思なので必ず残す（PR011「彩りを、／日常に」が「彩りを日常に」に潰れた）
-        joiner = "、" if prev_comma else ("" if (not out or out.endswith(("】", "：", ":", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から"))) else "、")
+        joiner = "、" if prev_comma else ("" if (not out or out.endswith(("】", "：", ":", "・", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から")) or part.startswith(("「", "『", "（", "【"))) else "、")   # ★2026-10-22 次の行がカギ括弧で始まるなら「、」を入れない（PR014「系、「店主の豚野郎」」）
         out += joiner + part; prev_comma = raw.endswith("、")
     if catch.rstrip().endswith("。"):   # ★2026-10-04 最後の行に書かれた「。」は文面では残す（カードは pr_eyecatch 側で外す）
         out += "。"
@@ -66,11 +66,26 @@ def _extra_tags(row: dict) -> str:
             j = v.find(stop)
             if j >= 0:
                 v = v[:j]
-        return " ".join(t if t.startswith("#") else "#" + t for t in v.split())
+        base = set(_hashtags(row).split()) | {"#広告", "#地域メディア"}   # ★2026-10-22 基本タグと同じものは足さない（PR015 #豊川市 が2回出た）
+        tags = []
+        for t in v.split():
+            t = t if t.startswith("#") else "#" + t
+            if t not in base and t not in tags:
+                tags.append(t)
+        return " ".join(tags)
     genre = (row.get("ジャンル", "") or "").strip()
     if _is_event(row.get("店名", "")):
         return ("#" + genre) if genre else ""
     return "#豊川グルメ"
+
+
+def _genre_of(genre: str) -> str:
+    """ジャンルを店名の前につなぐ形にする。「〜する／〜している／〜な／〜の」で終わる説明文はそのまま、
+    それ以外は「の」を足す（2026-10-22 PR015：「豊川・豊橋で派遣のお仕事を紹介する」＋株式会社… の指定文に合わせる）"""
+    g = (genre or "").strip()
+    if not g:
+        return ""
+    return g if g.endswith(("する", "している", "な", "の")) else g + "の"
 
 
 def build_pr_title(row: dict) -> str:
@@ -248,7 +263,7 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     if _is_event(shop):
         lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は<strong>{shop}</strong>のご案内です！"
     else:
-        lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は{('、' + genre + 'の' if genre else '、')}<strong>{shop}</strong>さんをご紹介します！"
+        lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は、{_genre_of(genre)}<strong>{shop}</strong>さんをご紹介します！"
     parts.append(f"<p>{lead}</p>")
     if catch:
         _h2 = _flatten_catch(catch)   # ★2026-09-16 手動改行はカード画像専用。本文の見出しはタイトルと同じ1行にする（PR005 社長指摘）
@@ -427,7 +442,7 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     note = (row.get("豊川ガイドから一言", "") or "").strip()
     if genre:
-        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
+        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
     if when:
         lines += [f"📅 {when}", f"📍 {venue}", ""]
     if tokuten:
@@ -460,7 +475,7 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     note = (row.get("豊川ガイドから一言", "") or "").strip()
     memo_lines = _memo_lines_for_sns(row.get("紹介文メモ", ""))   # ★[記事のみ]区間は載せない
     if genre:
-        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{genre}の{shop}さんの紹介です！"), ""]
+        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
     if when and not any("日時" in l for l in memo_lines):
         lines += [f"📅 {when}", ""]
     if memo_lines:   # ★IGは字数に余裕があるので紹介文メモを全部載せる（2026-09-15 社長「なるべく情報を」）
