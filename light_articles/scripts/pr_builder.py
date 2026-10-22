@@ -10,6 +10,7 @@ import unicodedata
 
 HASHTAGS_BASE = "#PR #豊川市 #豊川ガイド #とよサポ #さくっとPR"
 HASHTAGS_OUTSIDE = "#PR #豊川ガイド #さくっとPR"
+THREADS_LIMIT = 480   # Threadsは500字上限・少し余裕
 
 
 def _hashtags(row: dict) -> str:
@@ -457,10 +458,12 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     genre = row.get("ジャンル", "").strip()
     tokuten = (row.get("特典・クーポン", "") or "").strip()
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
+    memo_at = 2   # ★2026-10-23 Threadsにも紹介文を入れる（社長・500字まで）
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     note = (row.get("豊川ガイドから一言", "") or "").strip()
     if genre:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
+        memo_at = len(lines)
     if when:
         lines += [f"📅 {when}", f"📍 {venue}", ""]
     if tokuten:
@@ -479,7 +482,16 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     if credit:
         lines += [f"📷 {credit}", ""]
     lines += [(_hashtags(row) + " " + _extra_tags(row)).strip()]
-    return "\n".join(lines)
+
+    def with_memo(ms):
+        return "\n".join(lines[:memo_at] + ((ms + [""]) if ms else []) + lines[memo_at:])
+    ms = list(_memo_lines_for_sns(row.get("紹介文メモ", "")))
+    text = with_memo(ms)
+    while len(text) > THREADS_LIMIT and ms:   # 上限を超えたら後ろから1文ずつ外す
+        sents = [x for x in re.split("(?<=[。！？!?])", ms[-1]) if x.strip()]
+        ms = ms[:-1] + (["".join(sents[:-1])] if len(sents) > 1 else [])
+        text = with_memo(ms)
+    return text
 
 
 def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
