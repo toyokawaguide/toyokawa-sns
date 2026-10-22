@@ -375,6 +375,20 @@ def _biko_value(row: dict, marks) -> str:
         return v.strip()
     return ""
 
+def _sns_memo(row: dict) -> list:
+    """SNSに載せる紹介文の行。備考「SNSで外す文：〜」の文はSNS（X・Threads・Instagram）から外す。記事本文には残る
+    （2026-10-23 PR015：紹介の一言と紹介文の1文目が同じ内容で重なった）"""
+    lines = _memo_lines_for_sns(row.get("紹介文メモ", ""))
+    cut = _biko_value(row, ("SNSで外す文：", "SNSで外す文:"))
+    if not cut:
+        return lines
+    out = []
+    for l in lines:
+        l = l.replace(cut, "").strip()
+        if l:
+            out.append(l)
+    return out
+
 def build_pr_x_caption(row: dict, wp_url: str) -> str:
     """X投稿文（2026-09-01 社長確定形式）
     タイトル1行（キャッチの手動改行は除去）＋紹介文メモ＋つぶやき＋詳細＋タグ。
@@ -382,7 +396,7 @@ def build_pr_x_caption(row: dict, wp_url: str) -> str:
     shop = row.get("店名", "").strip()
     catch = _flatten_catch(row.get("ひとことキャッチ", ""))
     tokuten = (row.get("特典・クーポン", "") or "").strip()
-    memo_lines = _memo_lines_for_sns(row.get("紹介文メモ", ""))
+    memo_lines = _sns_memo(row)
     tweet = (row.get("つぶやき", "") or "").strip()
     title = f"【PR】{shop}" + (f"｜{catch}" if catch else "")
 
@@ -485,7 +499,7 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
 
     def with_memo(ms):
         return "\n".join(lines[:memo_at] + ((ms + [""]) if ms else []) + lines[memo_at:])
-    ms = list(_memo_lines_for_sns(row.get("紹介文メモ", "")))
+    ms = list(_sns_memo(row))
     text = with_memo(ms)
     while len(text) > THREADS_LIMIT and ms:   # 上限を超えたら後ろから1文ずつ外す
         sents = [x for x in re.split("(?<=[。！？!?])", ms[-1]) if x.strip()]
@@ -503,7 +517,7 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     lines = [f"【PR】{shop}" + (f"｜{catch}" if catch else ""), ""]
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     note = (row.get("豊川ガイドから一言", "") or "").strip()
-    memo_lines = _memo_lines_for_sns(row.get("紹介文メモ", ""))   # ★[記事のみ]区間は載せない
+    memo_lines = _sns_memo(row)   # ★[記事のみ]区間は載せない
     if genre:
         lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
     if when and not any("日時" in l for l in memo_lines):
