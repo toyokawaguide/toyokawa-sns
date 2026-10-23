@@ -1,0 +1,7 @@
+time=2026-10-24T07:31:11.352506+09:00
+event=workflow_dispatch
+run_id=40030794516
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
