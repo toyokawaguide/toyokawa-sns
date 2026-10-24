@@ -1,0 +1,49 @@
+time=2026-10-24T10:27:31.851400+09:00
+event=schedule
+run_id=40049582964
+label=finished
+mode_input=
+
+=== run.log (tail) ===
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/google/api_core/_python_version_support.py:254: FutureWarning: You are using a Python version (3.11.17) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+⚠ SNS135 の投稿中ロックが古い（投稿中0730）→ 引き取って再実行
+📝 SNS135 【これは気になる！】豊川市で「愛知気球フェス」が開催されるぞ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS135_* サブフォルダ検索中...
+✅ Drive: SNS135_2026.10.24【これは気になる！】豊川市で「愛知気球フェス」が開催されるぞ！2026年11月29日(日)は伊奈町にある新池公園へGOだ！気球に乗ってみたい！！ (id=1Hnuwu0jxL...)
+  📥 DL: 0.jpg (267 KB)
+  📥 DL: 1.jpg (267 KB)
+  📥 DL: 2.jpg (1268 KB)
+  📥 DL: 3.jpg (898 KB)
+  📥 DL: 4.jpg (732 KB)
+  ✅ SNS135: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: 愛知気球フェス
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS135_* サブフォルダ検索中...
+✅ Drive: SNS135_2026.10.24【これは気になる！】豊川市で「愛知気球フェス」が開催されるぞ！2026年11月29日(日)は伊奈町にある新池公園へGOだ！気球に乗ってみたい！！ (id=1Hnuwu0jxL...)
+  📷 フィード 6枚生成
+    📤 Pages へ 6枚 commit ffca41a（反映待ち…）
+    ✅ Pages 配信確認 6枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS135_* サブフォルダ検索中...
+✅ Drive: SNS135_2026.10.24【これは気になる！】豊川市で「愛知気球フェス」が開催されるぞ！2026年11月29日(日)は伊奈町にある新池公園へGOだ！気球に乗ってみたい！！ (id=1Hnuwu0jxL...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '17906717253570529', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18506954551101953', 'dry': False}
+  🎬 IG Reels
+  container_id=17959210389254312 file_size=5,610,737 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18644726464001186', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/nICAKo4rthc
+    → {'status': 'ok', 'video_id': 'nICAKo4rthc', 'url': 'https://youtube.com/shorts/nICAKo4rthc', 'privacy': 'private'}
+  📊 状態→投稿済
