@@ -1,0 +1,47 @@
+time=2026-10-26T07:04:40.624835+09:00
+event=workflow_dispatch
+run_id=40238163710
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/google/api_core/_python_version_support.py:254: FutureWarning: You are using a Python version (3.11.17) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS137 【解体されとる】牛久保駅通沿いにあった「ウシクボセンター」っ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS137_* サブフォルダ検索中...
+✅ Drive: SNS137_2026.10.26【解体されとる】牛久保駅通沿いにあった「ウシクボセンター」って覚えてる？その建物が解体されてた！私は全然知らないけど、昔は賑わってたのかなぁ？ (id=13EpQ4a-xB...)
+  📥 DL: 0.jpeg (1031 KB)
+  📥 DL: 1.jpeg (551 KB)
+  📥 DL: 2.jpeg (561 KB)
+  📥 DL: 3.jpeg (565 KB)
+  ✅ SNS137: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: ウシクボセンター
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS137_* サブフォルダ検索中...
+✅ Drive: SNS137_2026.10.26【解体されとる】牛久保駅通沿いにあった「ウシクボセンター」って覚えてる？その建物が解体されてた！私は全然知らないけど、昔は賑わってたのかなぁ？ (id=13EpQ4a-xB...)
+  📷 フィード 5枚生成
+    📤 Pages へ 5枚 commit fadc2a2（反映待ち…）
+    ✅ Pages 配信確認 5枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS137_* サブフォルダ検索中...
+✅ Drive: SNS137_2026.10.26【解体されとる】牛久保駅通沿いにあった「ウシクボセンター」って覚えてる？その建物が解体されてた！私は全然知らないけど、昔は賑わってたのかなぁ？ (id=13EpQ4a-xB...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'error': 'container failed: 400 {"error":{"message":"Error validating access token: Session has expired on Sunday, 25-Oct-26 04:24:10 PDT. The current time is Sunday, 25-Oct-26 15:03:17 PDT.","type":"OAuthException","code":190,"erro'}
+  📷 IG Feed カルーセル
+    → {'post_id': '18117832300998615', 'dry': False}
+  🎬 IG Reels
+  container_id=17959604634254312 file_size=5,610,734 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18161576086500438', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/rFZcAOR-Bcg
+    → {'status': 'ok', 'video_id': 'rFZcAOR-Bcg', 'url': 'https://youtube.com/shorts/rFZcAOR-Bcg', 'privacy': 'private'}
+  📊 状態→投稿済
