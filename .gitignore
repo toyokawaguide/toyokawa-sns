@@ -37,3 +37,7 @@ light_articles/scripts/_footer_compare.png
 # さくっとPR 申込受付の一時マーカー（通知判定用・コミット不要）
 light_articles/scripts/_intake_pending_count.txt
 light_articles/scripts/_intake_fail_streak
+
+# 物件資料・抜き出し結果（鍵番号・連絡先を含むためコミットしない）
+property_check/input/
+property_check/output/
