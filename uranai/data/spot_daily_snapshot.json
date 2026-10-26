@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-10-26T03:18:25.329474+09:00",
-  "captured_date": "2026-10-26",
+  "captured_at": "2026-10-27T05:23:18.604740+09:00",
+  "captured_date": "2026-10-27",
   "lookahead_days": 30,
   "spots": {
-    "2026-10-26": {
-      "name": "フィットネスジム「LifeFit」",
-      "is_chain": true
-    },
     "2026-10-27": {
       "name": "エッグノッグ",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-11-25": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-11-26": {
       "name": null,
       "is_chain": false
     }
