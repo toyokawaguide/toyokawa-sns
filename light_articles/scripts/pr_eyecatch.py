@@ -150,6 +150,40 @@ def wrap_fit(d, text, fpath, max_w, max_lines, start, min_s):
     return min_s, (paras if len(paras) > 1 else [str(text)[:24] + "…"])
 
 
+_ADDR_CUT = re.compile("(?<=[都道府県市区郡町村。、])")   # 「。」「、」の後ろも区切りの候補
+
+def addr_fit(d, text, fpath, max_w, start=34, single_min=28, min_s=20):
+    """住所の折り返し（2026-10-27 社長「３だけ改行されて変」PR016）。
+    1) 少し縮めてでも1行に収める → 2) 無理なら 県・市・町… の後ろで、左右の幅が近くなる位置で2行に → 3) それでも無理なら従来の wrap_fit"""
+    paras = [p for p in re.split(r"\r?\n", str(text)) if p]
+    for s in range(start, single_min - 1, -1):
+        f = font(fpath, s)
+        if all(d.textlength(p, font=f) <= max_w for p in paras):
+            return s, paras
+    for s in range(start, min_s - 1, -1):
+        f = font(fpath, s); lines = []; ok = True
+        for p in paras:
+            if d.textlength(p, font=f) <= max_w:
+                lines.append(p); continue
+            best = None
+            for m in _ADDR_CUT.finditer(p):
+                c = m.start()
+                if not 0 < c < len(p):
+                    continue
+                a, b = p[:c], p[c:]
+                if b[:1] in "。、・，．）)」』:：":   # 行頭に句読点・閉じかっこを置かない（PR015「。本社」）
+                    continue
+                wa, wb = d.textlength(a, font=f), d.textlength(b, font=f)
+                if wa <= max_w and wb <= max_w and (best is None or abs(wa - wb) < best[0]):
+                    best = (abs(wa - wb), [a, b])
+            if not best:
+                ok = False; break
+            lines += best[1]
+        if ok:
+            return s, lines
+    return wrap_fit(d, text, fpath, max_w, 2, start, min_s)
+
+
 def _wrap_greedy(d, words, f, max_w):
     """従来の貪欲折返し（1段落分）。"""
     lines, cur = [], ""
@@ -418,7 +452,7 @@ def render_169(row: dict, photo_path=None, output_path=None):
             shop_txt = re.sub("(.)(―)", lambda m: m.group(1) + chr(10) + m.group(2), shop_txt, count=1)
         s_sz, s_lines = wrap_fit(d, shop_txt, FONT_BOLD, col_w, 1, 60, 30)   # 手動改行の行数だけ許可＝行の途中で勝手に折らず縮める
         addr_txt = re.sub("(?<=.)（", chr(10) + "（", st["addr"], count=1) if chr(10) not in st["addr"] else st["addr"]   # 住所（会場名）は会場名を次の行に
-        a_sz, a_lines = wrap_fit(d, addr_txt, FONT_BOLD, col_w - 36, 2, 34, 20) if st["addr"] else (0, [])   # ★2026-10-23 1行だと長い住所が右端で切れた（PR015）→2行まで
+        a_sz, a_lines = addr_fit(d, addr_txt, FONT_BOLD, col_w - 36) if st["addr"] else (0, [])   # ★2026-10-27 「３」だけ次の行に落ちた（PR016）→ addr_fit   # ★2026-10-23 1行だと長い住所が右端で切れた（PR015）→2行まで
         block_h = len(s_lines) * int(s_sz * 1.3) + (26 + len(a_lines) * int(a_sz * 1.4) if a_lines else 0)
         y = (H - block_h) // 2 + s_sz
         for ln in s_lines:
