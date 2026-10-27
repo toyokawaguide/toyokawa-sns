@@ -127,8 +127,8 @@ def _info_table(row: dict) -> str:
     """店舗情報テーブル（空欄の行は出さない）"""
     items = [
         ("📍 場所", row.get("エリア・住所", "")),
-        ("📅 日時" if _is_event(row) else "📅 活動日時" if _is_club(row) else "🕐 営業時間", row.get("営業時間", "")),
-        ("", "") if (_is_event(row) or _is_club(row)) else ("📅 定休日", row.get("定休日", "")),
+        ("📅 日時" if _is_event(row) else "📅 活動日時" if _is_club(row) else "🕐 日時・時間" if _is_other(row) else "🕐 営業時間", row.get("営業時間", "")),
+        ("", "") if (_is_event(row) or _is_club(row)) else ("📅 お休み" if _is_other(row) else "📅 定休日", row.get("定休日", "")),
     ] + _links_of(row)
     rows_html = []
     for label, val in items:
@@ -164,6 +164,11 @@ def _is_event(x) -> bool:
         x = x.get("店名", "")
     s = (x or "").strip()
     return any(s.endswith(w) or s.endswith(w + "！") for w in _EVENT_WORDS)
+
+
+def _is_other(row: dict) -> bool:
+    """申込ページで「どれにもあてはまらない」を選んだ（種類：その他）。時間の欄は「日時・時間」・お休みは「お休み」と出す（2026-10-27）"""
+    return _kind(row).startswith("その他")
 
 
 def _is_club(row: dict) -> bool:
