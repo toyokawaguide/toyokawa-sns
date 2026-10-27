@@ -140,16 +140,23 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         log("🚫 備考「カード写真なし」→ 本文の写真はカード類に使わない" + ("・0番写真をカード類に使う" if ec_photo else "・カード類は額ぶち"), 1)
     eyecatch_path = ROOT / "_sample" / f"_tmp_{article_id}_eyecatch.png"
     eyecatch_path.parent.mkdir(exist_ok=True)
-    pr_eyecatch.render_169(row, photo_path=(ec_photo or first_photo), output_path=eyecatch_path)
-    log(f"🎨 アイキャッチ16:9（{'一枚の札' if first_photo else '額ぶち'}）: {eyecatch_path.name}", 1)
-
     ig_feed_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_feed.png"
-    pr_eyecatch.render_45(row, photo_path=first_photo, output_path=ig_feed_path)
-    log(f"📷 IG Feed 4:5（{'一枚の札' if first_photo else '額ぶち'}）: {ig_feed_path.name}", 1)
+    # ★2026-10-27 PR016：備考「表紙はチラシ」→ 届いたチラシ（1番）を切らずに、アイキャッチ・IG1枚目・リールに使う
+    poster = photos[0] if (pr_eyecatch.is_poster_cover(row) and photos) else None
+    if poster:
+        pr_eyecatch.render_169_poster(row, poster, output_path=eyecatch_path)
+        pr_eyecatch.render_carousel_photo(row, poster, ig_feed_path)
+        log(f"🎨 表紙はチラシ（{poster.name}）→ アイキャッチ16:9・IG1枚目をチラシ版で作成", 1)
+    else:
+        pr_eyecatch.render_169(row, photo_path=(ec_photo or first_photo), output_path=eyecatch_path)
+        log(f"🎨 アイキャッチ16:9（{'一枚の札' if first_photo else '額ぶち'}）: {eyecatch_path.name}", 1)
+        pr_eyecatch.render_45(row, photo_path=first_photo, output_path=ig_feed_path)
+        log(f"📷 IG Feed 4:5（{'一枚の札' if first_photo else '額ぶち'}）: {ig_feed_path.name}", 1)
 
     # === リール動画（1080×1920・15秒静止・CBR 3M） ===
     reel_path = ROOT / "_sample" / f"_tmp_{article_id}_reel.mp4"
-    reel_frame = pr_eyecatch.render_reel_frame(row, photo_path=first_photo)
+    reel_frame = (pr_eyecatch.render_reel_frame_poster(row, poster) if poster
+                  else pr_eyecatch.render_reel_frame(row, photo_path=first_photo))
     render_static_reel(reel_frame, reel_path)
     log(f"🎬 リール動画生成: {reel_path.name} ({reel_path.stat().st_size/1024:.0f} KB)", 1)
 
@@ -220,6 +227,9 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     #     2026-08-06 社長指示「送られてきた写真は全部インスタで使いたい」。LRと同方式・枠の帯は「さくっとPR」
     try:
         carousel_photos = [p for p in photos if p.stem.isdigit() and int(p.stem) >= 1]
+        if poster is not None and poster in carousel_photos:   # ★2026-10-27 表紙にしたチラシは2枚目以降に重ねて出さない
+            carousel_photos = [p for p in carousel_photos if p != poster]
+            log("🔁 表紙にしたチラシをカルーセルから外す", 1)
         # ★2026-10-04 PR010：備考「表紙写真はカルーセルなし」→ 表紙カードに使った写真をカルーセルに重ねて出さない
         if "表紙写真はカルーセルなし" in (row.get("備考") or "") and first_photo is not None and first_photo in carousel_photos:
             carousel_photos = [p for p in carousel_photos if p != first_photo]

@@ -130,7 +130,10 @@ def build_preview(row: dict, photo_path=None):
     img = OUT_DIR / f"{row.get('ID', 'PR')}_preview.png"
     # ★2026-08-05 確定デザイン（額ぶち／一枚の札）。申込ページのライブプレビューと同じ絵が届く
     import pr_eyecatch
-    pr_eyecatch.render_45(row, photo_path=photo_path, output_path=img)
+    if photo_path and pr_eyecatch.is_poster_cover(row):   # ★2026-10-27 表紙はチラシ＝IG1枚目と同じチラシ版を見せる
+        pr_eyecatch.render_carousel_photo(row, photo_path, img)
+    else:
+        pr_eyecatch.render_45(row, photo_path=photo_path, output_path=img)
     return title, body, img
 
 

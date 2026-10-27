@@ -584,6 +584,53 @@ def render_carousel_photo(row: dict, photo_path, output_path=None) -> Image.Imag
 
 # ───────────────────────── リール静止フレーム（1080×1920）─────────────────────────
 
+def is_poster_cover(row: dict) -> bool:
+    """備考に「表紙はチラシ」＝届いたチラシ（1番の写真）をそのまま表紙にする（2026-10-27 PR016 社長「送ってくれた画像をアイキャッチの方がよくない？」）。
+    アイキャッチ16:9・IG1枚目・リールの3つをチラシ版にする。チラシは文字入りなので切り抜かない"""
+    return "表紙はチラシ" in (row.get("備考") or "")
+
+
+def render_169_poster(row: dict, photo_path, output_path=None) -> Image.Image:
+    """16:9 アイキャッチのチラシ版：チラシを切らずに中央へ。左右の余りは同じチラシをぼかして埋める。
+    広告の表示（PR）と「豊川ガイド｜さくっとPR」は必ず入れる（ステマ規制）"""
+    W, H = 1280, 720
+    t = style_from_row(row)[0]
+    src = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
+    bg = ImageOps.fit(src, (W, H)).filter(ImageFilter.GaussianBlur(28))
+    bg = Image.blend(bg, Image.new("RGB", (W, H), (255, 255, 255)), 0.35).convert("RGBA")
+    ph = src.copy()
+    ph.thumbnail((W - 120, H - 110), Image.LANCZOS)
+    x, y = (W - ph.width) // 2, (H - ph.height) // 2 - 14
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle((x + 6, y + 10, x + ph.width + 6, y + ph.height + 10), 14, fill=(0, 0, 0, 70))
+    bg = Image.alpha_composite(bg, sh.filter(ImageFilter.GaussianBlur(10)))
+    bg.paste(ph, (x, y))
+    d = ImageDraw.Draw(bg)
+    d.rounded_rectangle((24, 22, 24 + 92, 22 + 44), 22, fill=(255, 255, 255))
+    d.text((24 + 46, 22 + 22), "PR", font=font(FONT_BOLD, 26), fill=hx(t["accent"]), anchor="mm")
+    txt = "豊川ガイド｜さくっとPR"
+    f = font(FONT_BOLD, 22)
+    tw = d.textlength(txt, font=f)
+    d.rounded_rectangle((W - tw - 56, H - 48, W - 20, H - 14), 17, fill=(255, 255, 255))
+    d.text((W - 38, H - 31), txt, font=f, fill=hx(t["sub"]), anchor="rm")
+    out = bg.convert("RGB")
+    if output_path:
+        out.save(output_path)
+    return out
+
+
+def render_reel_frame_poster(row: dict, photo_path, output_path=None) -> Image.Image:
+    """リール用フレームのチラシ版：IG1枚目と同じ「チラシの枠付き版」を安全エリア内に置く"""
+    RW, RH = 1080, 1920
+    t = style_from_row(row)[0]
+    base = Image.new("RGB", (RW, RH), hx(t["bg"])[:3])
+    card = render_carousel_photo(row, photo_path)
+    base.paste(card, (0, 180 + (RH - 180 - 320 - card.height) // 2))
+    if output_path:
+        base.save(output_path)
+    return base
+
+
 def render_reel_frame(row: dict, photo_path=None, output_path=None) -> Image.Image:
     """リール用フレーム：4:5の確定デザインを IG安全エリア（上180/下320）内に配置。
     背景は同じテーマ色なので継ぎ目なし。動画化は generate_reel.render_static_reel に渡す"""
