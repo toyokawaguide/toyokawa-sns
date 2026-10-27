@@ -143,10 +143,17 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     ig_feed_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_feed.png"
     # ★2026-10-27 PR016：備考「表紙はチラシ」→ 届いたチラシ（1番）を切らずに、アイキャッチ・IG1枚目・リールに使う
     poster = photos[0] if (pr_eyecatch.is_poster_cover(row) and photos) else None
+    design_card_path = None
     if poster:
-        pr_eyecatch.render_169_poster(row, poster, output_path=eyecatch_path)
+        # 社長 2026-10-27：IG 1枚目＝チラシ／2枚目＝文字のデザインカード／記事の先頭＝文字のデザイン（「アイキャッチもチラシ」と書いたときだけチラシ）
+        if "アイキャッチもチラシ" in (row.get("備考") or ""):
+            pr_eyecatch.render_169_poster(row, poster, output_path=eyecatch_path)
+        else:
+            pr_eyecatch.render_169(row, photo_path=ec_photo, output_path=eyecatch_path)
         pr_eyecatch.render_carousel_photo(row, poster, ig_feed_path)
-        log(f"🎨 表紙はチラシ（{poster.name}）→ アイキャッチ16:9・IG1枚目をチラシ版で作成", 1)
+        design_card_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_card.png"
+        pr_eyecatch.render_45(row, photo_path=None, output_path=design_card_path)
+        log(f"🎨 表紙はチラシ（{poster.name}）→ IG1枚目＝チラシ・2枚目＝デザインカード", 1)
     else:
         pr_eyecatch.render_169(row, photo_path=(ec_photo or first_photo), output_path=eyecatch_path)
         log(f"🎨 アイキャッチ16:9（{'一枚の札' if first_photo else '額ぶち'}）: {eyecatch_path.name}", 1)
@@ -237,12 +244,17 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         # IGカルーセルは1投稿10枚まで。1枚目がPRカードなので写真は9枚が上限で、
         # それを超えた分は post_instagram_feed_carousel 側で黙って切られる。
         # 気づかないまま「送ったのに載っていない」が起きるので警告を出す（2026-08-14）
-        if len(carousel_photos) > 9:
-            dropped = [p.name for p in carousel_photos[9:]]
+        _lim = 8 if design_card_path is not None else 9   # 表紙はチラシのときは2枚目がデザインカードなので写真は8枚まで
+        if len(carousel_photos) > _lim:
+            dropped = [p.name for p in carousel_photos[_lim:]]
             log(f"⚠️ 写真が{len(carousel_photos)}枚あります。IGカルーセルの上限（カバー＋9枚）を超えるため "
                 f"{len(dropped)}枚はInstagramに載りません: {', '.join(dropped)}"
                 f"（WP記事には全部載ります）", 1)
         ig_images = [ig_feed_url]
+        if design_card_path is not None:   # 表紙はチラシ → 2枚目に文字のデザインカード
+            if not sns_dry:
+                ig_images.append(upload_media(design_card_path)["source_url"])
+            log("🖼️ IG2枚目＝デザインカード", 2)
         if not sns_dry and carousel_photos:
             # 枠はPR専用デザイン（テーマ色連動・店名入り）。LRのphoto_frameは使わない（2026-08-06社長指示）
             for p in carousel_photos:
@@ -250,8 +262,8 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
                 pr_eyecatch.render_carousel_photo(row, p, framed)
                 ig_images.append(upload_media(framed)["source_url"])
                 log(f"🖼️ PR枠付け→アップ: {p.name}", 2)
-        if carousel_photos:
-            log(f"📷 IG Feed カルーセル投稿（カバー＋写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
+        if carousel_photos or design_card_path is not None:
+            log(f"📷 IG Feed カルーセル投稿（カバー＋{'デザインカード＋' if design_card_path else ''}写真{len(carousel_photos)}枚・dry={sns_dry}）", 1)
             r2 = post_instagram_feed_carousel(ig_text, ig_images, dry=sns_dry)
         else:
             log(f"📸 IG Feed 単発投稿（写真なし・dry={sns_dry}）", 1)
