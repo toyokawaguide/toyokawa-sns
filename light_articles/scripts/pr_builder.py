@@ -36,7 +36,7 @@ def _flatten_catch(catch: str) -> str:
     for raw in [l.strip() for l in catch.splitlines() if l.strip()]:
         part = raw.rstrip("、。")
         # ★2026-10-04 行末に書かれた「、」は書いた人の意思なので必ず残す（PR011「彩りを、／日常に」が「彩りを日常に」に潰れた）
-        joiner = "、" if prev_comma else ("" if (not out or out.endswith(("】", "：", ":", "・", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から")) or part.startswith(("「", "『", "（", "【"))) else "、")   # ★2026-10-22 次の行がカギ括弧で始まるなら「、」を入れない（PR014「系、「店主の豚野郎」」）
+        joiner = "、" if prev_comma else ("" if (not out or out.endswith(("】", "：", ":", "・", "を", "に", "が", "の", "と", "で", "へ", "は", "も", "や", "から", "！", "？", "!", "?")) or part.startswith(("「", "『", "（", "【"))) else "、")   # ★2026-10-27 「！」「？」で終わる行の後にも「、」を入れない（PR016「開催！、11月」）。★2026-10-22 次の行がカギ括弧で始まるなら「、」を入れない（PR014「系、「店主の豚野郎」」）
         out += joiner + part; prev_comma = raw.endswith("、")
     if catch.rstrip().endswith("。"):   # ★2026-10-04 最後の行に書かれた「。」は文面では残す（カードは pr_eyecatch 側で外す）
         out += "。"
