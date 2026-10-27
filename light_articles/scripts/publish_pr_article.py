@@ -2,11 +2,11 @@
 """
 publish_pr_article.py — さくっとPR（広告記事）自動投稿メインスクリプト
 
-【動作】毎朝10:00 JST（GHA cron）
+【動作】毎朝9:00 JST（GHA cron・9:30に pr_publish_check.py が確認メール）
 1. Sheets「PRキュー」から 状態=draft かつ 公開希望日=今日 の行を1件取得
 2. 写真（G:\\マイドライブ\\ライト記事\\{PRID}_{店名}\\ or Drive API）ロード
 3. アイキャッチ（PRバッジ）＋IG Feed画像 生成→WPメディアアップ
-4. WP予約投稿（カテゴリ=pr・10:00・slug=pr001形式）
+4. WP予約投稿（カテゴリ=pr・9:00・slug=pr001形式）
 5. Threads / IG Feed 自動投稿
 6. Sheets 状態更新＋Gmail通知（X予約用テキスト）
 
@@ -45,7 +45,7 @@ PR_SHEET = "PRキュー"
 PR_SPREADSHEET_ID = "1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A"   # ★専用スプレッドシート（2026-08-05分離）
 PR_PHOTO_BASE = Path("G:/マイドライブ/さくっとPR")   # ★写真もライト記事と分離（2026-08-06社長指示）
 JST = timezone(timedelta(hours=9))
-PUBLISH_HOUR = 10  # 朝10時
+PUBLISH_HOUR = 9  # 朝9時（2026-10-28 10時→9時。9:30に自動確認）
 
 
 def log(msg: str, indent: int = 0):

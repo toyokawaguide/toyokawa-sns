@@ -10,7 +10,7 @@
 
 まで自動でやる。社長は内容を見て、公開希望日を入れて 状態=draft にするだけ。
 
-⚠️ ここでは WP には一切書き込まない。公開は既存の publish_pr_article.py（朝10時）の仕事。
+⚠️ ここでは WP には一切書き込まない。公開は既存の publish_pr_article.py（朝9時）の仕事。
 
 使い方:
   python pr_intake.py            本番（メール送信あり）
