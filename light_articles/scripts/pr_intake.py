@@ -144,6 +144,15 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool,
     shop = row.get("店名", "")
     name = row.get("申込者名") or "ご担当者"
 
+    # ★2026-10-27 お客さまへの誤送信防止（PR007はらやへ掲載済み記事の完成イメージを誤送信した事故）。
+    #   状態・連投・回数を必ず確認し、1つでも外れたら送らない（pr_send_guard.py）
+    if not dry:
+        import pr_send_guard
+        ok_send, why = pr_send_guard.check(row)
+        if not ok_send:
+            log(f"🛑 送信を止めました（{pid}）: {why}", 1)
+            return False
+
     # 申込ページで「写真あり」を選んだ人への注意（フォームの写真は仕組み上届かない・2026-08-06）
     photo_notice = []
     if "写真：あり" in (row.get("備考", "") or ""):
@@ -222,6 +231,11 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool,
         s.login(GMAIL_USER, GMAIL_PASS)
         s.send_message(msg)
     log(f"送信しました → {to}", 1)
+    try:
+        import pr_send_guard
+        pr_send_guard.record(row, "完成イメージ" + (f"＋写真{len(extra_images)}枚" if extra_images else ""))
+    except Exception as e:      # 記録に失敗しても、次の送信は「記録を読めない→送らない」で止まる
+        log(f"⚠ 送信記録の書き込みに失敗: {e}", 1)
     return True
 
 
@@ -250,6 +264,12 @@ def main():
     if not targets:
         log("📭 新しい申込はありません")
         return
+
+    # ★2026-10-27 一度に多くの相手へ送ろうとしたら、何かがおかしい（状態の一括書き換えなど）。全部止めて人が見る
+    MAX_PER_RUN = 3
+    if not args.dry and len(targets) > MAX_PER_RUN:
+        log(f"🛑 送信対象が{len(targets)}件あります（1回の上限{MAX_PER_RUN}件）。誤送信防止のため1通も送らずに止めました。PRキューの状態を確認してください")
+        sys.exit(1)
 
     log(f"新しい申込 {len(targets)}件")
     ok = 0

@@ -10,9 +10,11 @@ G:\\マイドライブ\\さくっとPR\\PR番号_店名\\ フォルダに連番(
 - EXIF回転を実画素に反映（スマホ縦撮り対策）・長辺1920px超は縮小・JPEG q85
 - 処理済みメールは状態ファイルに記録（何度実行しても二重保存しない）
 
-使い方:
-  python pr_photo_intake.py          # 取り込み実行
-  python pr_photo_intake.py --dry    # 保存せず、見つけたメールと枚数だけ表示
+使い方（2026-10-27 誤送信事故のあと変更）:
+  python pr_photo_intake.py --dry                    # 保存も送信もせず、見つけた返信を表示
+  python pr_photo_intake.py --id PR016               # PR016 の返信だけ、写真を保存（送信しない）
+  python pr_photo_intake.py --id PR016 --send        # 保存して、写真入り完成イメージを再送（1通まで）
+  ※ 状態が 申込／プレビュー送信済／手動対応 以外のPRは触らない。送信は pr_send_guard の確認を通ったときだけ
 """
 from __future__ import annotations
 
@@ -41,7 +43,7 @@ GMAIL_PASS = os.environ.get("GMAIL_APP_PASSWORD")
 PR_BASE = Path("G:/マイドライブ/さくっとPR")   # ★ライト記事とフォルダ分離（2026-08-06社長指示）
 STATE_FILE = PR_BASE / "_pr_photo_intake_state.json"
 PR_RE = re.compile(r"\bPR\d{3}\b")
-SINCE_DAYS = 60
+SINCE_DAYS = 14   # ★2026-10-27 60→14日（古い返信を拾って過去のお客さまに再送した事故）
 MAX_SIDE = 1920
 
 
@@ -146,7 +148,23 @@ def resend_preview_with_photo(pr_id: str, folder: Path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--id", help="このPR番号の返信だけ処理する（--dry 以外では必須）")
+    ap.add_argument("--send", action="store_true",
+                    help="写真入りの完成イメージを申込者へ再送する（指定しなければ写真の保存だけ）")
     args = ap.parse_args()
+    # ★2026-10-27 誤送信事故の再発防止: 本番実行は必ず1件（--id）に絞る。再送は --send を付けたときだけ・1回の実行で1通まで
+    if not args.dry and not args.id:
+        print("❌ 本番実行には --id PR000 の指定が必要です（全件を一度に処理すると、過去のお客さまへ再送してしまうため）")
+        sys.exit(1)
+    try:
+        from sheets_client import read_all_rows
+        import pr_send_guard
+        pr_states = {(r.get("ID") or "").strip(): (r.get("状態") or "").strip()
+                     for r in read_all_rows(sheet="PRキュー", spreadsheet_id=pr_send_guard.PR_SPREADSHEET_ID)}
+    except Exception as e:
+        print(f"❌ PRキューの状態を読めないので止めます: {e}")
+        sys.exit(1)
+    resent = 0
 
     if not GMAIL_USER or not GMAIL_PASS:
         print("❌ GMAIL_USER / GMAIL_APP_PASSWORD 未設定")
@@ -184,6 +202,16 @@ def main():
         pr_id = m.group(0)
         if msg_id and msg_id in state:
             continue
+        if args.id and pr_id != args.id:
+            continue
+        if pr_states.get(pr_id, "") not in pr_send_guard.ALLOWED_STATES:
+            # 掲載済み・取消などの古い申込への返信は触らない（保存も再送もしない）。二度と拾わないよう記録だけ残す
+            print(f"  ⏭ {pr_id} は状態「{pr_states.get(pr_id, '不明')}」なので対象外")
+            if msg_id and not args.dry:
+                state[msg_id] = {"pr": pr_id, "saved": 0, "at": datetime.now().isoformat(timespec="seconds"),
+                                 "note": "状態が対象外のためスキップ"}
+                STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
+            continue
 
         # 本文を取得して画像添付を集める
         _, full = imap.fetch(mid, "(BODY.PEEK[])")
@@ -218,11 +246,15 @@ def main():
                 print(f"  ⚠ 読めない画像をスキップ: {fn}")
         print(f"  ✅ 保存: {', '.join(saved)}")
         total_saved += len(saved)
-        if saved:
-            resend_preview_with_photo(pr_id, folder)
-        if msg_id:
+        if msg_id:     # ★2026-10-27 1通ごとにすぐ記録（途中で止まっても、次に同じ返信を拾わない）
             state[msg_id] = {"pr": pr_id, "saved": len(saved),
                              "at": datetime.now().isoformat(timespec="seconds")}
+            STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
+        if saved and args.send and resent == 0:
+            resend_preview_with_photo(pr_id, folder)
+            resent += 1
+        elif saved:
+            print("  ℹ 完成イメージの再送はしていません（送るときは --send を付けて、もう一度この1件だけ実行）")
 
     imap.logout()
     if not args.dry:
