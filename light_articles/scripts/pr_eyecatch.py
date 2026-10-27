@@ -584,6 +584,88 @@ def render_carousel_photo(row: dict, photo_path, output_path=None) -> Image.Imag
 
 # ───────────────────────── リール静止フレーム（1080×1920）─────────────────────────
 
+def render_169_split(row: dict, photo_path, output_path=None) -> Image.Image:
+    """16:9 アイキャッチ（表紙はチラシのとき）：額ぶちの形のまま、左の枠にチラシを切らずに入れ、右に概要を詰める
+    （2026-10-27 PR016 社長「この形を維持したまま、左側に貰った画像を当てはめて、右側に概要を詰め込んで」）"""
+    W, H = 1280, 720
+    st = data_from_row(row)
+    t = st["theme"]
+    im = Image.new("RGBA", (W, H), hx(t["bg"]))
+    d = ImageDraw.Draw(im)
+    # 左：色の枠＋チラシ（切らずに全体）
+    FX, FY, FW, FH, R = 40, 40, 700, H - 80, 24
+    d.rounded_rectangle((FX, FY, FX + FW, FY + FH), R, fill=hx(t["accent"]))
+    src = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
+    ph = src.copy()
+    ph.thumbnail((FW - 40, FH - 40), Image.LANCZOS)
+    px, py = FX + (FW - ph.width) // 2, FY + (FH - ph.height) // 2
+    mask = Image.new("L", ph.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, ph.width - 1, ph.height - 1), 14, fill=255)
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle((px + 4, py + 8, px + ph.width + 4, py + ph.height + 8), 14, fill=(0, 0, 0, 60))
+    im = Image.alpha_composite(im, sh.filter(ImageFilter.GaussianBlur(8)))
+    im.paste(ph, (px, py), mask)
+    d = ImageDraw.Draw(im)
+    # 右：ラベル → 見出し → 名前 → 日時 → 場所（縦の真ん中にまとめる）
+    tx = FX + FW + 44
+    col_w = W - tx - 46
+    c_sz, c_lines = wrap_fit(d, st["catch"], FONT_BOLD, col_w, 3, 40, 26)
+    s_sz, s_lines = wrap_fit(d, st["shop"], FONT_BOLD, col_w, 2, 46, 28)
+    when = (row.get("営業時間") or "").strip()
+    w_label = "日時" if _is_event_row(row) else "営業"
+    w_txt = re.sub("(?<=）)\\s*", chr(10), when, count=1) if ("）" in when and chr(10) not in when) else when
+    w_sz, w_lines = wrap_fit(d, w_txt, FONT_BOLD, col_w - 70, 2, 28, 20) if when else (0, [])
+    a_sz, a_lines = addr_fit(d, st["addr"], FONT_BOLD, col_w - 70, start=28, single_min=24, min_s=18) if st["addr"] else (0, [])
+    BADGE_H = 46
+    block = BADGE_H + 26 + len(c_lines) * int(c_sz * 1.32) + 22 + 3 + 26 + len(s_lines) * int(s_sz * 1.25)
+    if w_lines:
+        block += 22 + len(w_lines) * int(w_sz * 1.4)
+    if a_lines:
+        block += 14 + len(a_lines) * int(a_sz * 1.4)
+    y = max(56, (H - block) // 2)
+    pill(d, st["badge"], tx, y, hx(t["accent"]), "white", size=28)
+    y += BADGE_H + 26
+    for ln in c_lines:
+        y += c_sz
+        d.text((tx, y), ln, font=font(FONT_BOLD, c_sz), fill=hx(t["accent"]), anchor="ls")
+        y += int(c_sz * 0.32)
+    y += 22
+    d.line((tx, y, tx + 120, y), fill=hx(t["accent"]), width=3)
+    y += 3 + 26
+    for ln in s_lines:
+        y += s_sz
+        d.text((tx, y), ln, font=font(FONT_BOLD, s_sz), fill=hx(t["ink"]), anchor="ls")
+        y += int(s_sz * 0.25)
+
+    def info(label, lines, sz, y):
+        lf = font(FONT_BOLD, 20)
+        d.rounded_rectangle((tx, y + 4, tx + 56, y + 4 + 30), 15, fill=hx(t["accent"]))
+        d.text((tx + 28, y + 19), label, font=lf, fill="white", anchor="mm")
+        for ln in lines:
+            y += sz
+            d.text((tx + 70, y), ln, font=font(FONT_BOLD, sz), fill=hx(t["sub"]), anchor="ls")
+            y += int(sz * 0.4)
+        return y
+
+    if w_lines:
+        y = info(w_label, w_lines, w_sz, y + 22)
+    if a_lines:
+        y = info("場所", a_lines, a_sz, y + 14)
+    brand(d, t, W, H)
+    out = im.convert("RGB")
+    if output_path:
+        out.save(output_path)
+    return out
+
+
+def _is_event_row(row: dict) -> bool:
+    try:
+        import pr_builder
+        return pr_builder._is_event(row)
+    except Exception:
+        return False
+
+
 def is_poster_cover(row: dict) -> bool:
     """備考に「表紙はチラシ」＝届いたチラシ（1番の写真）をそのまま表紙にする（2026-10-27 PR016 社長「送ってくれた画像をアイキャッチの方がよくない？」）。
     IG1枚目とリールをチラシ版にし、IG2枚目に文字のデザインカードを入れる。記事の先頭（16:9）は文字のデザインのまま

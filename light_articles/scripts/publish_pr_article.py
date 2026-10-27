@@ -149,7 +149,7 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         if "アイキャッチもチラシ" in (row.get("備考") or ""):
             pr_eyecatch.render_169_poster(row, poster, output_path=eyecatch_path)
         else:
-            pr_eyecatch.render_169(row, photo_path=ec_photo, output_path=eyecatch_path)
+            pr_eyecatch.render_169_split(row, poster, output_path=eyecatch_path)   # 額ぶちの形・左にチラシ・右に概要（社長 2026-10-27）
         pr_eyecatch.render_carousel_photo(row, poster, ig_feed_path)
         design_card_path = ROOT / "_sample" / f"_tmp_{article_id}_ig_card.png"
         pr_eyecatch.render_45(row, photo_path=None, output_path=design_card_path)
