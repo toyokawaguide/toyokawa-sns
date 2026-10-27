@@ -171,6 +171,15 @@ html{scroll-behavior:smooth}
 
   <div class="pane">
 
+    <h2 class="sec">どんな内容ですか？</h2>
+    <div class="seg" id="kind">
+      <button type="button" data-k="shop" aria-pressed="true">🏪 お店・会社</button>
+      <button type="button" data-k="event" aria-pressed="false">🎪 イベント（開催日がある）</button>
+      <button type="button" data-k="club" aria-pressed="false">🙋 教室・サークル・団体</button>
+      <button type="button" data-k="other" aria-pressed="false">✏️ その他</button>
+    </div>
+    <div class="hint">選ぶと、下の入力欄（営業時間・開催日時など）がその内容に合わせて変わります。迷ったら「その他」でOKです（こちらで記事に合う形に整えます）</div>
+
     <h2 class="sec">デザイン</h2>
     <div class="hint">かたちは自動で切り替わります（写真なし＝ひとことが主役の色面／写真あり＝一枚の札）</div>
     <label>色</label>
@@ -187,7 +196,7 @@ html{scroll-behavior:smooth}
     </select>
     <input id="badgeFree" placeholder="自分で書く場合はこちら（空ならプルダウンを使います）" style="margin-top:6px">
 
-    <label>店名（お店・教室・団体の名前）<span class="req">※必須</span></label>
+    <label><span id="shopLabel">店名（お店・会社の名前）</span><span class="req">※必須</span></label>
     <input id="shop" value="喫茶 とよかわ" maxlength="25">
 
     <label>ひとことキャッチ（いちばん大きく出ます・30文字まで）<span class="req">※必須</span></label>
@@ -222,17 +231,23 @@ html{scroll-behavior:smooth}
 
     <h2 class="sec">記事に載るもの（画像には出ません）</h2>
 
-    <label>ジャンル<span class="req">※必須</span></label>
-    <input id="genre" placeholder="例）カフェ／美容室／学習塾／整体">
+    <label><span id="genreLabel">ひとことで言うと、どんなお店？（ジャンル）</span><span class="req">※必須</span></label>
+    <input id="genre" maxlength="15" placeholder="例）カフェ／美容室／学習塾／整体">
+    <div class="count"><span id="genreCount">0</span> / 15</div>
+    <div class="hint" id="genreHint">ひとことで書いてください（文章でなくてOK）。記事の冒頭では「<b id="genrePrev">〇〇の △△</b>さんをご紹介します」のように使います</div>
 
     <div class="row">
-      <div><label>営業時間</label><input id="hours" placeholder="例）7:00 - 18:00"></div>
-      <div><label>定休日</label><input id="closed" placeholder="例）水曜"></div>
+      <div><label><span id="hoursLabel">営業時間</span><span class="req" id="hoursReq" style="display:none">※必須</span></label><input id="hours" placeholder="例）7:00 - 18:00"></div>
+      <div id="closedBox"><label id="closedLabel">定休日</label><input id="closed" placeholder="例）水曜"></div>
     </div>
+    <div class="hint" id="hoursHint" style="display:none"></div>
     <label>リンク（ホームページ・Instagram など）</label>
     <input id="links" placeholder="例）https://... ／ @toyokawa_cafe">
     <label>特典・クーポン（あれば）</label>
     <input id="perk" placeholder="例）この記事を見たと言うと1杯サービス">
+    <label>特典の条件・注意書き（特典を書いた方は必ず）</label>
+    <input id="perkNote" placeholder="例）2026年12月末まで／お一人様1回／他の割引との併用不可">
+    <div class="hint">期限・対象・回数などの条件です。条件を書かずに特典だけを載せると、実際よりお得に見えてしまうため、記事とSNSにこのまま載せます</div>
     <label>紹介文メモ（紹介したいこと・こだわり／メモ書きでOK・こちらで文章に整えます）<span class="req">※必須</span></label>
     <textarea id="memo" placeholder="例）自家焙煎です。モーニングが人気。駐車場3台あります"></textarea>
     <label>つぶやき（読者へのひとこと・任意・お店の言葉としてそのまま載せます）</label>
@@ -243,6 +258,9 @@ html{scroll-behavior:smooth}
       <div><label>申込者名<span class="req">※必須</span></label><input id="pname" required></div>
       <div><label>メールアドレス<span class="req">※必須</span></label><input id="pmail" type="email" inputmode="email" autocomplete="email" placeholder="半角で入力（例：example@gmail.com）" required><div class="hint" id="pmail_hint" style="font-size:12px;color:#c00;display:none">全角の文字が含まれています。半角に直しました。ご確認ください</div></div>
     </div>
+    <label>メールアドレス（確認のため、もう一度）<span class="req">※必須</span></label>
+    <input id="pmail2" type="email" inputmode="email" autocomplete="off" placeholder="上と同じメールアドレスを入力">
+    <div class="hint">受付メールと完成イメージはこのアドレスに届きます。1文字でも違うと届かないため、2回入力していただいています</div>
     <div class="row">
       <div><label>電話番号（任意）</label><input id="ptel"></div>
       <div><label>公開希望日（任意・空欄ならこちらで調整します）</label><input id="pdate" placeholder="例）8月20日ごろ"></div>
@@ -277,7 +295,11 @@ html{scroll-behavior:smooth}
       受付メールをお送りしましたので、ご確認ください（届かない場合は迷惑メールフォルダもご確認を）。<br>
       写真を載せたい場合は、<strong>その受付メールに返信で添付</strong>してください（合計5枚まで）。<br>
       ※このページで選んだ写真は<strong>送信されていません</strong>。お手数ですがメール返信で改めて添付をお願いします。<br>
-      記事は公開前に完成イメージ（プレビュー）をお送りします。ご確認後の公開となりますので、ご安心ください。
+      記事は公開前に完成イメージ（プレビュー）をお送りします。ご確認後の公開となりますので、ご安心ください。<br>
+      <b style="display:block;margin-top:10px">このあとのこと</b>
+      ・受付メールの件名に<strong>受付番号（PR○○）</strong>が入っています。お問い合わせの際はこの番号をお知らせください。<br>
+      ・内容を直したいときは、<strong>もう一度申し込まずに</strong>、受付メールへの返信でお知らせください。<br>
+      ・<strong>1回のお申し込みで1つの記事</strong>になります。別の内容（新メニューとイベントなど）を載せたい場合は、別々にお申し込みください。
     </div>
   </div>
 
@@ -614,6 +636,56 @@ function normMail(v){
 }
 $('pmail').addEventListener('blur', () => { $('pmail').value = normMail($('pmail').value); });
 
+/* ================= どんな内容ですか？（お店／イベント／教室・サークル） 2026-10-27 =================
+   イベントや教室は「営業時間・定休日」に合わない（ノンマルシェが開催時間を2欄に分けて入れた・上映会が営業時間欄に日時）。
+   選んだ種類で欄の名前を変え、備考に「種類：」を入れる → pr_builder がイベント／教室の書き方にする */
+const KINDS = {
+  shop:  {name:'お店・会社',     shop:'店名（お店・会社の名前）',            hours:'営業時間', ph:'例）7:00 - 18:00',                        closed:true,  need:false, hint:'',
+          genre:'例）カフェ／美容室／学習塾／整体', glabel:'ひとことで言うと、どんなお店？（ジャンル）'},
+  event: {name:'イベント',       shop:'イベント名（例：〇〇マルシェ）',       hours:'開催日時', ph:'例）11月3日（火・祝）10:00〜16:00',       closed:false, need:true,
+          hint:'開催日と時間をまとめて1つの欄に書いてください（複数日なら「11月1日・2日 各10:00〜16:00」のように）',
+          genre:'例）マルシェ／コンサート／体験会／上映会', glabel:'ひとことで言うと、どんなイベント？（ジャンル）'},
+  club:  {name:'教室・サークル・団体', shop:'教室・サークル・団体の名前',     hours:'活動日時', ph:'例）毎週日曜 9:00〜12:00',                closed:false, need:false,
+          hint:'いつ活動しているかを書いてください（不定期なら「月2回・日程はインスタで告知」など）',
+          genre:'例）ピアノ教室／草野球チーム／子ども食堂', glabel:'ひとことで言うと、どんな教室・団体？（ジャンル）'},
+  // 2026-10-27 社長「該当しないケースが絶対出てくる」→ 4つ目。時間の欄は自由記入・任意、お休みの欄も任意で残す
+  other: {name:'その他',        shop:'名前（お店・団体・個人・企画など）', hours:'日時・時間（あれば）', ph:'例）毎月第2土曜／ネット販売のみ／12月末まで',
+          closed:true,  need:false, closedLabel:'お休み（あれば）', closedPh:'例）不定休',
+          hint:'書けるものだけで大丈夫です。日時や時間がない内容なら空欄のままでOK。うまく書けないことは「紹介文メモ」や「そのほか伝えておきたいこと」に自由に書いてください',
+          genre:'例）ハンドメイド作家／キッチンカー／無人販売所', glabel:'ひとことで言うと、何をしている？（ジャンル）'}
+};
+// ジャンル欄の下に「記事ではこう紹介されます」をその場で出す（2026-10-27 社長「ジャンルは迷う人いないかな」）
+// 過去の申込みで、文章で書く人（PR015）・種類と同じ「イベント」と書く人（PR016）がいたため
+function updateGenrePrev(){
+  $('genreCount').textContent = $('genre').value.length;
+  const g = val('genre'), s = val('shop') || '△△';
+  const ev = kind === 'event';
+  $('genrePrev').textContent = ev ? (s + ' のご案内') : ((g ? g + 'の ' : '〇〇の ') + s);
+  $('genreHint').firstChild.textContent = ev
+    ? 'ひとことで書いてください（文章でなくてOK）。ハッシュタグにも使います。記事の冒頭は「'
+    : 'ひとことで書いてください（文章でなくてOK）。記事の冒頭では「';
+  $('genreHint').lastChild.textContent = ev ? '」になります' : 'さんをご紹介します」のように使います';
+}
+['genre','shop'].forEach(id => $(id).addEventListener('input', updateGenrePrev));
+let kind = 'shop';
+function applyKind(k){
+  kind = k; const c = KINDS[k];
+  document.querySelectorAll('#kind button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'));
+  $('shopLabel').textContent = c.shop;
+  $('hoursLabel').textContent = c.hours;
+  $('hours').placeholder = c.ph;
+  $('hoursReq').style.display = c.need ? '' : 'none';
+  $('closedBox').style.display = c.closed ? '' : 'none';
+  $('closedLabel').textContent = c.closedLabel || '定休日';
+  $('closed').placeholder = c.closedPh || '例）水曜';
+  if (!c.closed) $('closed').value = '';
+  $('hoursHint').textContent = c.hint; $('hoursHint').style.display = c.hint ? '' : 'none';
+  $('genre').placeholder = c.genre; $('genreLabel').textContent = c.glabel;
+  updateGenrePrev();
+}
+document.querySelectorAll('#kind button').forEach(b => b.onclick = () => applyKind(b.dataset.k));
+updateGenrePrev();   // ★ let kind より後で呼ぶ（前で呼ぶと TDZ で以降のスクリプトが全部止まる）
+
 $('send').onclick = async () => {
   const need = [['shop','お店・教室の名前'], ['catch','ひとこと'], ['addr','住所'],
                 ['genre','ジャンル'], ['memo','紹介したいこと'],
@@ -633,16 +705,29 @@ $('send').onclick = async () => {
   if (!MAIL_RE.test($('pmail').value)){
     alert('メールアドレスは半角英数字で入力してください（例：example@gmail.com）\n全角の文字や空白が入っていると、こちらからのメールが届きません'); $('pmail').focus(); return;
   }
+  // 確認用メール：1文字でも違うと届かない（2026-10-27 PR006不達の再発防止・2回入力）
+  $('pmail2').value = normMail($('pmail2').value);
+  if ($('pmail2').value !== $('pmail').value){
+    alert('確認用のメールアドレスが、上のメールアドレスと一致しません。もう一度ご確認ください'); $('pmail2').focus(); return;
+  }
+  if (KINDS[kind].need && !val('hours')){
+    alert(KINDS[kind].hours + ' を入力してください'); $('hours').focus(); return;
+  }
+  if (val('perk') && !val('perkNote')){
+    alert('特典の条件・注意書き（期限・対象など）を入力してください\n特に条件がない場合は「なし」と書いてください'); $('perkNote').focus(); return;
+  }
   if (!$('agree').checked){ alert('同意のチェックをお願いします'); return; }
 
   const t = currentTheme();
   const biko = [
     '【申込ページから】',
+    '種類：' + KINDS[kind].name,
     'ラベル：' + badgeText(),
     '色：' + (themeChoice === 'auto' ? 'おまかせ（' + t.name + '）' : t.name),
     'かたち：' + (img ? '一枚の札（写真あり）' : '額ぶち（写真なし）'),
     '写真：' + (img ? 'あり → 受付メールへの返信で受け取る' : 'なし'),
     isFlyer() ? '【カード写真なし】文字入りデザイン画像のため、切り抜かず全面で掲載する' : '',
+    (val('perk') && val('perkNote') && val('perkNote') !== 'なし') ? '注意書き：' + val('perkNote').replace(/[\r\n]+/g, ' ').replace(/／/g, '・') : '',   // 「／」は備考の区切りなので「・」に（pr_builder._caveat が／で切る）
     val('pdate') ? '公開希望日：' + val('pdate') : '',
     val('pnote') ? 'その他：' + val('pnote') : ''
   ].filter(Boolean).join('\n');
@@ -650,7 +735,7 @@ $('send').onclick = async () => {
   const p = new URLSearchParams();
   p.set(ENTRY.shop, val('shop'));   p.set(ENTRY.genre, val('genre'));
   p.set(ENTRY.catch, val('catch')); p.set(ENTRY.addr, val('addr'));
-  p.set(ENTRY.hours, val('hours')); p.set(ENTRY.closed, val('closed'));
+  p.set(ENTRY.hours, val('hours')); p.set(ENTRY.closed, KINDS[kind].closed ? val('closed') : '');
   p.set(ENTRY.links, val('links')); p.set(ENTRY.perk, val('perk'));
   p.set(ENTRY.memo, val('memo'));   p.set(ENTRY.hitokoto, val('hitokoto'));
   p.set(ENTRY.pname, val('pname')); p.set(ENTRY.pmail, val('pmail'));
