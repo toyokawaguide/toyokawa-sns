@@ -242,6 +242,43 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool,
     return True
 
 
+def send_reply(row: dict, subject: str, text: str, attachments: list[Path], *,
+               in_reply_to: str = "", kind: str = "返信") -> bool:
+    """申込者へ、文面を指定して返信する（2026-10-27 PR016）。送信前に必ず pr_send_guard の確認を通し、送ったら送信記録に残す。
+    申込者へのメールは send_preview とこの関数以外から送らないこと（関所を通らなくなる）"""
+    import pr_send_guard
+    to = (row.get("メールアドレス") or "").strip()
+    pid = row.get("ID", "")
+    if not to:
+        log("メールアドレスが空 → 送らない", 1)
+        return False
+    ok_send, why = pr_send_guard.check(row)
+    if not ok_send:
+        log(f"🛑 送信を止めました（{pid}）: {why}", 1)
+        return False
+    msg = EmailMessage()
+    msg["From"] = GMAIL_USER
+    msg["To"] = to
+    msg["Bcc"] = GMAIL_USER
+    msg["Subject"] = subject
+    if in_reply_to:
+        msg["In-Reply-To"] = in_reply_to
+        msg["References"] = in_reply_to
+    msg.set_content(text)
+    for p in attachments:
+        sub = "png" if p.suffix.lower() == ".png" else "jpeg"
+        msg.add_attachment(p.read_bytes(), maintype="image", subtype=sub, filename=p.name)
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+        s.login(GMAIL_USER, GMAIL_PASS)
+        s.send_message(msg)
+    log(f"送信しました（{pid}・添付{len(attachments)}枚）", 1)
+    try:
+        pr_send_guard.record(row, kind)
+    except Exception as e:
+        log(f"⚠ 送信記録の書き込みに失敗: {e}", 1)
+    return True
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true", help="送信せず内容だけ表示")
