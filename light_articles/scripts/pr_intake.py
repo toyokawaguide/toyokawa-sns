@@ -99,10 +99,15 @@ def normalize_row(idx: int, row: dict):
     # 専用列に移した項目と自動判定できる「かたち」は落とし、残り（写真・その他）だけ「／」区切りで残す
     if biko.startswith("【申込ページから】"):
         keep = []
-        for key in ["写真", "その他"]:
+        # ★2026-10-27 種類（お店／イベント／教室）と注意書き（特典の条件）も残す＝pr_builder が読む。
+        #   【カード写真なし】（チラシ画像のチェック）も、これまで縮めるときに落ちていたので残す
+        for key in ["種類", "写真", "注意書き", "その他"]:
             v = pick(key)
             if v:
                 keep.append(f"{key}：{v}")
+        for line in biko.splitlines():
+            if line.strip().startswith("【カード写真なし】"):
+                keep.append(line.strip())
         compact = "【申込ページから】" + "／".join(keep) if keep else "【申込ページから】"
         if compact != biko:
             updates.append(("N", compact))

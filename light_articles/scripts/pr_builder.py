@@ -75,7 +75,7 @@ def _extra_tags(row: dict) -> str:
                 tags.append(t)
         return " ".join(tags)
     genre = (row.get("ジャンル", "") or "").strip()
-    if _is_event(row.get("店名", "")):
+    if _is_event(row):
         return ("#" + genre) if genre else ""
     return "#豊川グルメ"
 
@@ -127,8 +127,8 @@ def _info_table(row: dict) -> str:
     """店舗情報テーブル（空欄の行は出さない）"""
     items = [
         ("📍 場所", row.get("エリア・住所", "")),
-        ("📅 日時" if _is_event(row.get("店名", "")) else "🕐 営業時間", row.get("営業時間", "")),
-        ("", "") if _is_event(row.get("店名", "")) else ("📅 定休日", row.get("定休日", "")),
+        ("📅 日時" if _is_event(row) else "📅 活動日時" if _is_club(row) else "🕐 営業時間", row.get("営業時間", "")),
+        ("", "") if (_is_event(row) or _is_club(row)) else ("📅 定休日", row.get("定休日", "")),
     ] + _links_of(row)
     rows_html = []
     for label, val in items:
@@ -149,15 +149,31 @@ def _info_table(row: dict) -> str:
 
 _EVENT_WORDS = ("上映会", "講演会", "イベント", "フェス", "祭り", "まつり", "コンサート", "発表会", "展示会", "作品展", "個展", "説明会", "体験会", "ワークショップ", "マルシェ")
 
-def _is_event(shop: str) -> bool:
-    """店名欄が「〇〇上映会」「〇〇フェス」のようなイベント名なら True（2026-09-15）"""
-    s = (shop or "").strip()
+def _kind(row: dict) -> str:
+    """申込ページで選んだ種類（備考「種類：お店・会社／イベント／教室・サークル・団体」）。無ければ空（2026-10-27）"""
+    return _biko_value(row, ("種類：", "種類:"))
+
+
+def _is_event(x) -> bool:
+    """イベントなら True。x は行(dict)か店名(str)。
+    行なら申込ページの「種類：」を優先（2026-10-27）。無ければ店名が「〇〇上映会」「〇〇マルシェ」のような名前か（2026-09-15）"""
+    if isinstance(x, dict):
+        k = _kind(x)
+        if k:
+            return k.startswith("イベント")
+        x = x.get("店名", "")
+    s = (x or "").strip()
     return any(s.endswith(w) or s.endswith(w + "！") for w in _EVENT_WORDS)
+
+
+def _is_club(row: dict) -> bool:
+    """教室・サークル・団体（申込ページの種類）。営業時間欄＝活動日時・定休日は出さない（2026-10-27）"""
+    return _kind(row).startswith("教室")
 
 
 def _event_when(row: dict) -> str:
     """イベント系は「営業時間」欄を日時として使う（2026-09-15）"""
-    return (row.get("営業時間", "") or "").strip() if _is_event(row.get("店名", "")) else ""
+    return (row.get("営業時間", "") or "").strip() if _is_event(row) else ""
 
 def _venue_short(row: dict) -> str:
     """住所の（…）内＝会場名。無ければ住所そのもの"""
@@ -261,7 +277,7 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
 
     # ② リード
     # ★2026-09-15 イベント系（上映会/講演会/展/フェス等）は「〇〇さん」「映画の映画…」にならない言い回しにする（PR005 上映会）
-    if _is_event(shop):
+    if _is_event(row):
         lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は<strong>{shop}</strong>のご案内です！"
     else:
         lead = f"豊川ガイドの広告コーナー「さくっとPR」。今回は、{_genre_of(genre)}<strong>{shop}</strong>さんをご紹介します！"
@@ -321,7 +337,7 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     #    ※申込フォームで集めるのは「店主さんの言葉」なので、管理人の言葉として出さない。
     #      広告記事で媒体が推薦しているように読めると、ステマ規制の観点で問題になる（社長判断 2026-08-02）
     if tsubuyaki:
-        parts.append(f"<p>💬 {'主催者から' if _is_event(shop) else 'お店から'}：{tsubuyaki}</p>")
+        parts.append(f"<p>💬 {'主催者から' if _is_event(row) else 'お店から'}：{tsubuyaki}</p>")
 
     # ⑦b 豊川ガイドから一言（任意・シートT列に書いた時だけ・2026-08-05社長発案）
     #     広告記事内の媒体コメントなので、体験・事実ベースの言い回し推奨（過度な絶賛は優良誤認リスク）
@@ -351,7 +367,7 @@ def build_pr_content(row: dict, photo_urls: list[str] | None = None) -> str:
     parts.append("<hr/>")
     parts.append(
         "<p><small>※本記事は「さくっとPR」（豊川ガイドのユーザー様からのお申し込みによる掲載）です。"
-        "内容は掲載時点の情報です。最新の営業時間・価格・サービス内容は" + ("主催者" if _is_event(shop) else "各店舗") + "にご確認ください。</small></p>"
+        "内容は掲載時点の情報です。最新の営業時間・価格・サービス内容は" + ("主催者" if _is_event(row) else "各店舗") + "にご確認ください。</small></p>"
     )
     parts.append(
         "<p><small>「さくっとPR」は豊川ガイドの広告枠です。"
@@ -476,7 +492,7 @@ def build_pr_threads_caption(row: dict, wp_url: str) -> str:
     when, venue, credit = _event_when(row), _venue_short(row), _credit_line(row)
     note = (row.get("豊川ガイドから一言", "") or "").strip()
     if genre:
-        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
+        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(row) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
         memo_at = len(lines)
     if when:
         lines += [f"📅 {when}", f"📍 {venue}", ""]
@@ -519,7 +535,7 @@ def build_pr_instagram_caption(row: dict, wp_url: str) -> str:
     note = (row.get("豊川ガイドから一言", "") or "").strip()
     memo_lines = _sns_memo(row)   # ★[記事のみ]区間は載せない
     if genre:
-        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(shop) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
+        lines += [f"豊川ガイドの広告コーナー「さくっとPR」。" + (f"{shop}のご案内です！" if _is_event(row) else f"{_genre_of(genre)}{shop}さんの紹介です！"), ""]
     if when and not any("日時" in l for l in memo_lines):
         lines += [f"📅 {when}", ""]
     if memo_lines:   # ★IGは字数に余裕があるので紹介文メモを全部載せる（2026-09-15 社長「なるべく情報を」）
