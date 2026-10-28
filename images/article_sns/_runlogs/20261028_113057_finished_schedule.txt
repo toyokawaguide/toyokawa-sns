@@ -1,0 +1,15 @@
+time=2026-10-28T11:30:57.125352+09:00
+event=schedule
+run_id=40621295995
+label=finished
+mode_input=
+
+=== run.log (tail) ===
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/google/api_core/_python_version_support.py:254: FutureWarning: You are using a Python version (3.11.17) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2027-10-24). Please upgrade to the latest Python version, or at least Python 3.12, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象0件
+========================================================
+対象なし・終了
