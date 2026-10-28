@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-10-28T04:59:00.428241+09:00",
-  "captured_date": "2026-10-28",
+  "captured_at": "2026-10-29T05:11:30.098740+09:00",
+  "captured_date": "2026-10-29",
   "lookahead_days": 30,
   "spots": {
-    "2026-10-28": {
-      "name": "晩酌屋かわむら",
-      "is_chain": false
-    },
     "2026-10-29": {
       "name": "ACAI DAYS",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-11-27": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-11-28": {
       "name": null,
       "is_chain": false
     }
