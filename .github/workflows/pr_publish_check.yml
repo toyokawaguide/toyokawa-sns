@@ -1,20 +1,29 @@
-name: さくっとPR 9:30確認メール（出ているか確認して社長へ）
+name: さくっとPR 9:30確認（出ていなければ配信を起動して直す・社長へメール）
 
 on:
   schedule:
     # 2026-10-28 社長指示「9時半の時点で、さくっとPRの記事、インスタ等が出てるかどうか確認して、メールを送る」
     # 公開は9:00（post_pr_article.yml）。足りなければ5分おきに最大25分見直してからメールする。今日のPRが無い日はメールしない。
-    - cron: '30 0 * * *'   # 9:30 JST
+    #
+    # 2026-10-30 改修：主トリガーは Cloudflare Workers Cron（cloudflare-worker-sakutto-pr/・09:30 JST に workflow_dispatch）。
+    #   GitHub の schedule cron は 2026-07 から毎日 3〜6 時間遅れており、ここの cron だけだと確認が 15:00 過ぎになっていた。
+    #   下の cron は Cloudflare が止まった時の保険として残す。
+    #   あわせて --heal を付け、9:00 の配信が動いていなければ（状態=draft・何も出ていない）この中から配信を起動して直す。
+    - cron: '30 0 * * *'   # 9:30 JST（保険）
   workflow_dispatch:
     inputs:
       date:
         description: '確認する日 YYYY-MM-DD（空=今日）'
         required: false
 
+permissions:
+  contents: read
+  actions: write    # 出ていないとき post_pr_article.yml を workflow_dispatch で起こす（--heal）
+
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60   # 確認25分＋起動後の待ち25分＋配信そのもの（最大15分）に余裕
     defaults:
       run:
         working-directory: light_articles/scripts
@@ -48,13 +57,14 @@ jobs:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
           PYTHONIOENCODING: utf-8
         run: |
           DATE_ARG=""
           if [ -n "${{ github.event.inputs.date }}" ]; then
             DATE_ARG="--date ${{ github.event.inputs.date }}"
           fi
-          python pr_publish_check.py $DATE_ARG
+          python pr_publish_check.py $DATE_ARG --heal
 
       - name: 失敗通知（Gmail）
         if: failure()

@@ -14,6 +14,14 @@ pr_publish_check.py — さくっとPRが出ているか、毎朝9:30に確か�
 全部そろっていればすぐ「OK」のメール。足りなければ5分おきに見直し、最大 --wait 分待ってから結果をメールする
 （GHAの開始が遅れて、配信がまだ途中のことがあるため）。今日のPRが無い日はメールしない。
 
+--heal（2026-10-30 追加・GHA では常に付ける）
+  GitHub の schedule cron は 2026-07 の運用開始から毎日 3〜6 時間遅れており、9:00 の配信が
+  9:30 時点で「まだ始まってもいない」のが常態だった。そのときは見ているだけでは意味がないので、
+  「状態=draft・記事も SNS も何も出ていない」行に限り post_pr_article.yml を workflow_dispatch で
+  起動して直す（publish_pr_article.py 側の WP 既存チェック＋状態で二重投稿はしない）。
+  途中まで出ている（記事だけ・IG だけ等）ときは二重投稿を避けるため起動せず、メールで知らせる。
+  起動には GITHUB_TOKEN（workflow の permissions: actions: write）か GH_TOKEN が必要。
+
 使い方
 python pr_publish_check.py              # 本番（メールする）
 python pr_publish_check.py --dry        # メールせず結果だけ表示
@@ -43,6 +51,9 @@ from pr_builder import build_pr_x_caption
 PR_SHEET = "PRキュー"
 PR_SPREADSHEET_ID = "1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A"
 SKIP_STATES = ("取消", "統合", "サンプル")
+GH_API = "https://api.github.com"
+GH_REPO = os.environ.get("GITHUB_REPOSITORY") or "toyokawaguide/toyokawa-sns"
+PUBLISH_WORKFLOW = "post_pr_article.yml"
 GRAPH_API = "https://graph.facebook.com/v19.0"
 THREADS_API = "https://graph.threads.net/v1.0"
 JST = timezone(timedelta(hours=9))
@@ -131,11 +142,89 @@ def mark(v) -> str:
     return "✅ 出ています" if v else "❌ 見つかりません"
 
 
-def build_mail(results: list[dict], rows: list[dict], target: date) -> tuple[str, str]:
+# ---------- 出ていなければ配信を起動して直す（--heal） ----------
+def needs_publish(res: dict) -> bool:
+    """配信がまだ何も始まっていない行か。
+    状態=draft（=社長OK済みで配信待ち）で、記事・IG・リール・Threads のどれも出ていないときだけ True。
+    途中まで出ているときは、やり直すと出ている SNS が二重になるので False（メールで知らせる）。"""
+    return (res["状態"] == "draft" and not res["wp"]
+            and not res["ig_feed"] and not res["ig_reel"] and not res["threads"])
+
+
+def _gh_headers() -> dict | None:
+    tok = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not tok:
+        return None
+    return {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"}
+
+
+def publish_run_active() -> bool:
+    """配信ワークフローが今まさに動いている／順番待ちなら True（起こさずに待つ）"""
+    h = _gh_headers()
+    if not h:
+        return False
+    for st in ("queued", "in_progress", "waiting"):
+        try:
+            r = requests.get(f"{GH_API}/repos/{GH_REPO}/actions/workflows/{PUBLISH_WORKFLOW}/runs",
+                             headers=h, params={"status": st, "per_page": 5}, timeout=30)
+            if r.ok and r.json().get("total_count", 0) > 0:
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def dispatch_publish(pr_id: str) -> tuple[bool, str]:
+    """post_pr_article.yml を workflow_dispatch（pr_id 指定・mode=publish）で起こす"""
+    h = _gh_headers()
+    if not h:
+        return False, "GITHUB_TOKEN がありません"
+    try:
+        r = requests.post(f"{GH_API}/repos/{GH_REPO}/actions/workflows/{PUBLISH_WORKFLOW}/dispatches",
+                          headers=h, json={"ref": "main", "inputs": {"pr_id": pr_id, "mode": "publish"}},
+                          timeout=30)
+        return r.status_code == 204, f"HTTP {r.status_code} {r.text[:120]}".strip()
+    except Exception as e:
+        return False, str(e)[:150]
+
+
+def heal(results: list[dict], *, dry: bool) -> dict[str, str]:
+    """出ていない行の配信を起動する。戻り値: {ID: 何をしたか（メール用）}"""
+    done: dict[str, str] = {}
+    for r in results:
+        if r["ok"]:
+            continue
+        if not needs_publish(r):
+            log(f"🛑 {r['ID']}: 途中まで出ている／状態が draft でない（{r['状態'] or '空'}）ため自動起動しません", 1)
+            continue
+        if dry:
+            log(f"[DRY] {r['ID']}: 本番なら配信ワークフローを起動します", 1)
+            done[r["ID"]] = "（dry）起動はしていません"
+            continue
+        if publish_run_active():
+            log(f"⏳ {r['ID']}: 配信ワークフローが実行中／順番待ちなので起動せず待ちます", 1)
+            done[r["ID"]] = "配信ワークフローがすでに動いていたので、そのまま待ちました"
+            continue
+        ok, info = dispatch_publish(r["ID"])
+        log(f"{'🚀' if ok else '❌'} {r['ID']}: 配信ワークフローを起動 → {info}", 1)
+        done[r["ID"]] = ("9:00の配信が動いていなかったので、9:30に配信を自動で起動しました"
+                         if ok else f"配信の自動起動に失敗しました（{info}）。Claude に「さくっとPR出てない」と伝えてください")
+    return done
+
+
+def build_mail(results: list[dict], rows: list[dict], target: date,
+               healed: dict[str, str] | None = None) -> tuple[str, str]:
     all_ok = all(r["ok"] for r in results)
+    healed = healed or {}
     names = "・".join(f"{r['ID']} {r['店名']}" for r in results)
-    subject = (f"【さくっとPR】{target.month}/{target.day} 9:30確認：{'すべてOK' if all_ok else '⚠ 出ていないものがあります'}（{names}）")
+    status = "すべてOK" if all_ok else "⚠ 出ていないものがあります"
+    if all_ok and healed:
+        status = "自動で直してOK"
+    subject = (f"【さくっとPR】{target.month}/{target.day} 9:30確認：{status}（{names}）")
     lines = [f"{target.month}月{target.day}日のさくっとPRを確認しました（{datetime.now(JST):%H:%M} 時点）。", ""]
+    if healed:
+        lines += ["■ 自動対応"] + [f"・{pid}：{what}" for pid, what in healed.items()] + [""]
     by_id = {(r.get('ID') or '').strip(): r for r in rows}
     for r in results:
         lines += [f"■ {r['ID']} {r['店名']}",
@@ -178,26 +267,40 @@ def main():
     ap.add_argument("--dry", action="store_true", help="メールせず結果だけ表示")
     ap.add_argument("--date", help="確認する日 YYYY-MM-DD（省略=今日）")
     ap.add_argument("--wait", type=int, default=25, help="出ていないとき最大何分待つか（5分おきに見直す）")
+    ap.add_argument("--heal", action="store_true",
+                    help="出ていなければ配信ワークフロー（post_pr_article.yml）を起動して直す（今日の分だけ）")
     args = ap.parse_args()
-    target = parse_publish_date(args.date) if args.date else datetime.now(JST).date()
+    today = datetime.now(JST).date()
+    target = parse_publish_date(args.date) if args.date else today
+    if args.heal and target != today:
+        log(f"⚠ --heal は今日（{today}）の分にだけ働きます。{target} は確認のみ")
+        args.heal = False
 
     rows = todays_rows(target)
     if not rows:
         log(f"📭 {target} のさくっとPRはありません（メールしません）")
         return
     deadline = _time.time() + args.wait * 60
+    healed: dict[str, str] = {}
     while True:
         results = [check_one(r, target) for r in rows]
         for r in results:
             log(f"{r['ID']} {r['店名']}: wp={bool(r['wp'])} ig={bool(r['ig_feed'])} reel={bool(r['ig_reel'])} "
                 f"threads={bool(r['threads'])} 状態={r['状態']} → {'OK' if r['ok'] else '未'}")
-        if all(r["ok"] for r in results) or _time.time() + 300 > deadline:
+        if all(r["ok"] for r in results):
+            break
+        if args.heal and not healed:
+            # 初回だけ：まだ何も始まっていない行は配信を起動し、そこから改めて最大 --wait 分待つ
+            healed = heal(results, dry=args.dry)
+            if healed and not args.dry:   # 起動した／動いているのを見つけた → そこから改めて待つ
+                deadline = max(deadline, _time.time() + args.wait * 60)
+        if _time.time() + 300 > deadline:
             break
         log("…出ていないものがあるので5分後に見直します")
         _time.sleep(300)
         rows = todays_rows(target)   # 状態の変化（投稿済）も読み直す
 
-    subject, body = build_mail(results, rows, target)
+    subject, body = build_mail(results, rows, target, healed)
     log(subject)
     if args.dry:
         print(body)

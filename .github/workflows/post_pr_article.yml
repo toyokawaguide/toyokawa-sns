@@ -4,7 +4,15 @@ on:
   schedule:
     # 2026-10-28 社長指示：公開を10:00→9:00に早める（9:30に自動確認メール・Xは社長が10:00に手動予約）
     # 二重発火しても publish_pr_article.py の skip-if-published と下の concurrency で安全。
-    - cron: '0 0 * * *'    # 9:00 JST
+    #
+    # ⚠️ 2026-10-30 調査：この schedule cron は 2026-07 の運用開始からずっと毎日 3〜6 時間遅れて到着している
+    #   （9:00 の枠が実際に動くのは 14:00〜18:00。cron を 4 本に増やしても変わらず）。
+    #   そのため PR004 以降はほぼ毎回 Claude が手で workflow_dispatch する手動運用になっていた。
+    # → 主トリガーは Cloudflare Workers Cron（cloudflare-worker-sakutto-pr/・09:00 JST に workflow_dispatch）。
+    #   ライト記事（19:00）・通常記事SNS（7:00）が 2026-06 から使っているのと同じ作り。
+    #   下の cron は Cloudflare が止まった時の保険として残す（遅れて来ても「投稿済」の行は拾わない）。
+    #   さらに 9:30 の pr_publish_check.yml が、配信が動いていなければ --heal で起動して直す。
+    - cron: '0 0 * * *'    # 9:00 JST（保険）
     - cron: '10 0 * * *'   # 9:10 JST（保険）
     - cron: '20 0 * * *'   # 9:20 JST（保険）
     - cron: '0 3 * * *'    # 12:00 JST（最終保険）

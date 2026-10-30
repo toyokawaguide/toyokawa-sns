@@ -1,0 +1,14 @@
+name = "sakutto-pr-cron"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# Cloudflare の Cron は UTC。JST = UTC + 9 時間。
+#   "0 0 * * *"  … 09:00 JST  さくっとPR 配信（post_pr_article.yml / mode=publish）
+#   "30 0 * * *" … 09:30 JST  出ているか確認＋出ていなければ起動して直す（pr_publish_check.yml）
+# GitHub の schedule cron は毎日 3〜6 時間遅れるが、Cloudflare Cron はほぼ時刻どおりに発火する。
+[triggers]
+crons = ["0 0 * * *", "30 0 * * *"]
+
+# Secret はコードに書かず、ダッシュボード or `wrangler secret put` で登録：
+#   GITHUB_PAT   … toyokawa-sns の Actions: Read and write 権限の fine-grained PAT
+#   TRIGGER_KEY  … 手動テストURL用の合言葉（任意の文字列）
