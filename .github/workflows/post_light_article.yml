@@ -24,6 +24,12 @@ on:
           - dry-run
         default: 'publish'
 
+# 2026-10-31 19:00 に36秒差で2回起動 → 2つが同時に走って両方SNS投稿（Cloudflareのタイマー保存直後）。
+# 同時に走らせず順番待ちにする → 後の回は前の回が「投稿済」にしたのを見てスキップする
+concurrency:
+  group: light-article-publish
+  cancel-in-progress: false
+
 jobs:
   light_article:
     runs-on: ubuntu-latest
