@@ -134,7 +134,7 @@ def mark(v) -> str:
 def build_mail(results: list[dict], rows: list[dict], target: date) -> tuple[str, str]:
     all_ok = all(r["ok"] for r in results)
     names = "・".join(f"{r['ID']} {r['店名']}" for r in results)
-    subject = (f"【さくっとPR】{target.month}/{target.day} 9:30確認：{'すべてOK' if all_ok else '⚠ 出ていないものがあります'}（{names}）")
+    subject = (f"【さくっとPR】{target.month}/{target.day} 朝の確認：{'すべてOK' if all_ok else '⚠ 出ていないものがあります'}（{names}）")
     lines = [f"{target.month}月{target.day}日のさくっとPRを確認しました（{datetime.now(JST):%H:%M} 時点）。", ""]
     by_id = {(r.get('ID') or '').strip(): r for r in rows}
     for r in results:
@@ -149,10 +149,10 @@ def build_mail(results: list[dict], rows: list[dict], target: date) -> tuple[str
                 lines.append(f"　※{label}の確認中にエラー：{r[k]}")
         lines.append("")
         if r["wp"]:
-            lines += ["▼ Xの投稿文（10:00の予約はこのままで大丈夫です）",
+            lines += ["▼ Xの投稿文（このまま11時ごろに投稿して大丈夫です）",
                       build_pr_x_caption(by_id[r["ID"]], r["wp"]), ""]
         else:
-            lines += ["⚠ 記事がまだ出ていないので、Xの10:00予約は止めておいてください（リンク先が開けません）。", ""]
+            lines += ["⚠ 記事がまだ出ていないので、Xの投稿は待ってください（リンク先が開けません）。", ""]
     if not all_ok:
         lines += ["出ていないものがあるときは、Claude に「さくっとPR出てない」と伝えてください。",
                   "（手動でやり直すと、出ているSNSまで二重に投稿されることがあるので、どれが出ていないかを見てから直します）", ""]
@@ -180,6 +180,13 @@ def main():
     ap.add_argument("--wait", type=int, default=25, help="出ていないとき最大何分待つか（5分おきに見直す）")
     args = ap.parse_args()
     target = parse_publish_date(args.date) if args.date else datetime.now(JST).date()
+
+    # 2026-10-31 社長「Xは11時ごろ投稿するので10時半までにメールがほしい」
+    # 起動は Cloudflare Worker の 9:35。GitHub純正タイマーは毎日5時間遅れ（15時台）で役に立たないので、
+    # タイマー起動で 10:45 を過ぎていたらメールしない（遅いメールが二通目として届かないように）
+    if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and datetime.now(JST).time() > datetime.strptime("10:45", "%H:%M").time():
+        log(f"⏭ GitHubタイマーが遅れて {datetime.now(JST):%H:%M} に動いた → X投稿に間に合わないのでメールしない")
+        return
 
     rows = todays_rows(target)
     if not rows:
