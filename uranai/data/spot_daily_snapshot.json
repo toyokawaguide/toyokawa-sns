@@ -1,38 +1,34 @@
 {
-  "captured_at": "2026-10-31T04:53:46.124162+09:00",
-  "captured_date": "2026-10-31",
+  "captured_at": "2026-11-01T04:11:42.589520+09:00",
+  "captured_date": "2026-11-01",
   "lookahead_days": 30,
   "spots": {
-    "2026-10-31": {
-      "name": "コバックカーズ豊川インター店",
-      "is_chain": false
-    },
     "2026-11-01": {
       "name": null,
       "is_chain": false
     },
     "2026-11-02": {
-      "name": null,
+      "name": "GESS COFFEE",
       "is_chain": false
     },
     "2026-11-03": {
-      "name": null,
+      "name": "米のだや",
       "is_chain": false
     },
     "2026-11-04": {
-      "name": null,
+      "name": "ローソン",
       "is_chain": false
     },
     "2026-11-05": {
-      "name": null,
+      "name": "多㐂",
       "is_chain": false
     },
     "2026-11-06": {
-      "name": null,
+      "name": "バーシティレイクス",
       "is_chain": false
     },
     "2026-11-07": {
-      "name": null,
+      "name": "53rd roast",
       "is_chain": false
     },
     "2026-11-08": {
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-11-30": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-01": {
       "name": null,
       "is_chain": false
     }
