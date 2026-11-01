@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-01T04:11:42.589520+09:00",
-  "captured_date": "2026-11-01",
+  "captured_at": "2026-11-02T04:27:36.282467+09:00",
+  "captured_date": "2026-11-02",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-01": {
-      "name": null,
-      "is_chain": false
-    },
     "2026-11-02": {
       "name": "GESS COFFEE",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-01": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-02": {
       "name": null,
       "is_chain": false
     }
