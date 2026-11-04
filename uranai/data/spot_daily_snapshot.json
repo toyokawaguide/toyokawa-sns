@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-04T05:52:04.579069+09:00",
-  "captured_date": "2026-11-04",
+  "captured_at": "2026-11-05T06:12:08.880353+09:00",
+  "captured_date": "2026-11-05",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-04": {
-      "name": "ローソン",
-      "is_chain": false
-    },
     "2026-11-05": {
       "name": "多㐂",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-04": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-05": {
       "name": null,
       "is_chain": false
     }
