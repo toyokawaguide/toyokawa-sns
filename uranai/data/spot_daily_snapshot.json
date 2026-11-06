@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-06T06:25:12.037986+09:00",
-  "captured_date": "2026-11-06",
+  "captured_at": "2026-11-07T05:47:30.308231+09:00",
+  "captured_date": "2026-11-07",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-06": {
-      "name": "バーシティレイクス",
-      "is_chain": false
-    },
     "2026-11-07": {
       "name": "53rd roast",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-06": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-07": {
       "name": null,
       "is_chain": false
     }
