@@ -210,7 +210,7 @@ def build_content(row: dict, eyecatch_id: int = None,
     URL_CONTACT = "https://toyokawa-rentallife.com/inquiry/"
     URL_INSTAGRAM = "https://www.instagram.com/toyokawaguide/"
     URL_X = "https://x.com/toyokawaguide"
-    URL_LINE = "https://line.me/ti/p/UhnW5Kpvyb"
+    URL_LINE = "https://line.me/R/ti/p/@356azknd"
 
     parts.append(f"<!-- wp:paragraph -->")
     parts.append(f"<p>豊川市民の皆様、いつも本当にありがとうございます！</p>")
@@ -237,7 +237,7 @@ def build_content(row: dict, eyecatch_id: int = None,
     parts.append(f'<li><a href="{URL_CONTACT}" target="_blank" rel="noopener">お問い合わせフォーム</a></li>')
     parts.append(f'<li><a href="{URL_INSTAGRAM}" target="_blank" rel="noopener">インスタグラム</a></li>')
     parts.append(f'<li><a href="{URL_X}" target="_blank" rel="noopener">Ｘ</a></li>')
-    parts.append(f'<li><a href="{URL_LINE}" target="_blank" rel="noopener">ＬＩＮＥ（非公式）</a></li>')
+    parts.append(f'<li><a href="{URL_LINE}" target="_blank" rel="noopener">ＬＩＮＥ（公式）</a></li>')
     parts.append(f"</ul>")
     parts.append(f"<!-- /wp:list -->")
     parts.append("")
@@ -363,7 +363,7 @@ def build_x_caption(row: dict, wp_url: str) -> str:
         title = f"【{series.LABEL}】{place}"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
 
-    closing = "豊川市のちょっとした変化、見つけたらDMで教えてね👀"
+    closing = "豊川市のちょっとした変化、見つけたらDMかLINEで教えてね👀"
     hashtags = f"#豊川市 #豊川ガイド #とよサポ {series.hashtag()}"
     detail = f"▼ 詳細\n{wp_url}"
     ts = _tsubuyaki_block(row)
@@ -417,7 +417,7 @@ def build_threads_caption(row: dict, wp_url: str) -> str:
         title = f"【{series.LABEL}】{place}"
         lead = f"街でちょっと気になった{place}の話、ゆるっとお届け。"
 
-    closing = "豊川市のちょっとした変化、見つけたらDMで教えてね👀"
+    closing = "豊川市のちょっとした変化、見つけたらDMかLINEで教えてね👀"
     hashtags = f"#豊川市 #豊川ガイド #とよサポ {series.hashtag()}"
 
     lines = [title, "", lead]
@@ -456,7 +456,7 @@ def build_instagram_caption(row: dict, wp_url: str) -> str:
         "▼ 詳細",
         "プロフィールのリンクから本文をどうぞ",
         "",
-        "👀 豊川市のちょっとした変化、見つけたらDMで教えてね",
+        "👀 豊川市のちょっとした変化、見つけたらDMかLINEで教えてね",
         "",
         f"#豊川市 #豊川ガイド #とよサポ {series.hashtag()} #地域メディア",
     ]
