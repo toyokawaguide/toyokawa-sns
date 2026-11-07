@@ -1,0 +1,47 @@
+time=2026-11-08T07:04:31.859810+09:00
+event=workflow_dispatch
+run_id=42418544562
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS150 【逆にあっぱれ！】新豊町にも葬儀場が出来る！「出雲殿互助会の… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS150_* サブフォルダ検索中...
+✅ Drive: SNS150_2026.11.08【逆にあっぱれ！】新豊町にも葬儀場が出来る！「出雲殿互助会の家族葬」が2027年秋頃にオープン予定っぽい。豊川市、空前の葬儀場ブーム到来です！！ (id=1oOrMX_7Af...)
+  📥 DL: 0.jpg (163 KB)
+  📥 DL: 1.jpg (406 KB)
+  📥 DL: 2.jpg (426 KB)
+  📥 DL: 3.jpg (407 KB)
+  📥 DL: 4.jpg (382 KB)
+  📥 DL: 5.jpg (657 KB)
+  ✅ SNS150: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: 出雲殿互助会の家族葬
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS150_* サブフォルダ検索中...
+✅ Drive: SNS150_2026.11.08【逆にあっぱれ！】新豊町にも葬儀場が出来る！「出雲殿互助会の家族葬」が2027年秋頃にオープン予定っぽい。豊川市、空前の葬儀場ブーム到来です！！ (id=1oOrMX_7Af...)
+  📷 フィード 7枚生成
+    📤 Pages へ 7枚 commit 902aa06（反映待ち…）
+    ✅ Pages 配信確認 7枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS150_* サブフォルダ検索中...
+✅ Drive: SNS150_2026.11.08【逆にあっぱれ！】新豊町にも葬儀場が出来る！「出雲殿互助会の家族葬」が2027年秋頃にオープン予定っぽい。豊川市、空前の葬儀場ブーム到来です！！ (id=1oOrMX_7Af...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'error': 'container failed: 400 {"error":{"message":"Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.","type":"OAuthExc'}
+  📷 IG Feed カルーセル
+    → {'post_id': '18021915182954668', 'dry': False}
+  🎬 IG Reels
+  container_id=17961823188254312 file_size=5,610,731 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18417652297082879', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/17XLDHUv6rc
+    → {'status': 'ok', 'video_id': '17XLDHUv6rc', 'url': 'https://youtube.com/shorts/17XLDHUv6rc', 'privacy': 'private'}
+  📊 状態→投稿済
