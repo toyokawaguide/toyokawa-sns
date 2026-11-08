@@ -38,6 +38,32 @@ import pr_builder
 import eyecatch_generator
 from notify import GMAIL_USER, GMAIL_PASS
 
+# 申込者に見える差出人（2026-11-09 ドメイン移行）。
+# ★Gmail の SMTP で From だけ info@ にすると「gmail.com 経由」になり本人確認(SPF/DKIM)が通らない（実測 2026-11-09）。
+#   なので XSERVER の送信サーバーに info@ で直接ログインして送る。パスワードは環境変数 INFO_MAIL_PASSWORD（GitHub Secrets / .env）
+#   未設定のときは従来どおり rentallife の Gmail から送る（受付・完成イメージが止まるより良い）
+import os as _os
+PUBLIC_FROM = "豊川ガイド <info@toyokawaguide.com>"
+INFO_MAIL_USER = "info@toyokawaguide.com"
+INFO_MAIL_PASS = _os.environ.get("INFO_MAIL_PASSWORD")
+INFO_SMTP_HOST, INFO_SMTP_PORT = "sv8876.xserver.jp", 465
+
+
+def _smtp_send(msg) -> None:
+    """申込者あてメールの送信口。From はここで決める（呼び出し側で From を入れない）"""
+    del msg["From"]
+    if INFO_MAIL_PASS:
+        msg["From"] = PUBLIC_FROM
+        with smtplib.SMTP_SSL(INFO_SMTP_HOST, INFO_SMTP_PORT) as s:
+            s.login(INFO_MAIL_USER, INFO_MAIL_PASS)
+            s.send_message(msg)
+    else:
+        log("⚠ INFO_MAIL_PASSWORD 未設定 → 従来どおり Gmail から送ります", 1)
+        msg["From"] = GMAIL_USER
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+            s.login(GMAIL_USER, GMAIL_PASS)
+            s.send_message(msg)
+
 SHEET = "PRキュー"
 # ★2026-08-05 PRキューは専用スプレッドシートに分離（ライト記事の本番タブとの同居をやめた）
 PR_SPREADSHEET_ID = "1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A"
@@ -219,7 +245,6 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool,
         return True
 
     msg = EmailMessage()
-    msg["From"] = GMAIL_USER
     msg["To"] = to
     msg["Bcc"] = GMAIL_USER                      # 送った控えを社長にも残す
     msg["Subject"] = f"【{SITE}】さくっとPR 完成イメージのご確認（{pid}・{shop}）"
@@ -230,9 +255,7 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool,
         sub = "png" if p.suffix.lower() == ".png" else "jpeg"
         msg.add_attachment(p.read_bytes(), maintype="image", subtype=sub,
                            filename=f"{pid}_{i}枚目{p.suffix}")
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(GMAIL_USER, GMAIL_PASS)
-        s.send_message(msg)
+    _smtp_send(msg)
     log(f"送信しました → {to}", 1)
     try:
         import pr_send_guard
@@ -257,7 +280,6 @@ def send_reply(row: dict, subject: str, text: str, attachments: list[Path], *,
         log(f"🛑 送信を止めました（{pid}）: {why}", 1)
         return False
     msg = EmailMessage()
-    msg["From"] = GMAIL_USER
     msg["To"] = to
     msg["Bcc"] = GMAIL_USER
     msg["Subject"] = subject
@@ -268,9 +290,7 @@ def send_reply(row: dict, subject: str, text: str, attachments: list[Path], *,
     for p in attachments:
         sub = "png" if p.suffix.lower() == ".png" else "jpeg"
         msg.add_attachment(p.read_bytes(), maintype="image", subtype=sub, filename=p.name)
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(GMAIL_USER, GMAIL_PASS)
-        s.send_message(msg)
+    _smtp_send(msg)
     log(f"送信しました（{pid}・添付{len(attachments)}枚）", 1)
     try:
         pr_send_guard.record(row, kind)

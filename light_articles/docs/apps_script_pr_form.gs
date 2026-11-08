@@ -28,6 +28,7 @@ var SPREADSHEET_ID = '1grn6UiQf8HqxcRSB3tMiZBLWGQCT1H7fCUNqv5CBA7A';   // ★さ
 var SHEET_NAME = 'PRキュー';
 var OWNER_MAIL = 'toyokawa.rentallife@gmail.com';   // 社長への通知先
 var SITE_NAME  = '豊川ガイド';
+var PUBLIC_FROM = 'info@toyokawaguide.com';   // ★申込者に見える差出人（2026-11-09 ドメイン移行）。Gmailの「他のアドレス」に登録済みのエイリアス
 var SERIES     = 'さくっとPR';
 
 /** 掲載基準（フォームの説明にも、受付メールにも同じ文面を使う） */
@@ -196,7 +197,7 @@ function onPrFormSubmit(e) {
   var mailNg = !MAIL_RE.test(to);
 
   if (to && !mailNg) {
-    MailApp.sendEmail({
+    sendToApplicant_({
       to: to,
       subject: '【' + SITE_NAME + '】' + SERIES + ' お申し込みを受け付けました（' + id + '）',
       body: [
@@ -270,3 +271,32 @@ function nextPrId(sh, head) {
   });
   return 'PR' + ('00' + (max + 1)).slice(-3);
 }
+
+
+/**
+ * 申込者あてのメールを info@toyokawaguide.com 名義で送る（2026-11-09）。
+ * GmailApp の from は Gmail の「他のアドレス」に登録済みのアドレスだけ使える。
+ * 何らかの理由で使えないときは、受付メールが届かない方が困るので従来どおり MailApp で送る（差出人は Gmail のまま）。
+ */
+function sendToApplicant_(o) {
+  try {
+    GmailApp.sendEmail(o.to, o.subject, o.body, { from: PUBLIC_FROM, name: SITE_NAME });
+  } catch (err) {
+    console.warn('info@ 名義で送れなかったので通常送信に切り替え: ' + err);
+    MailApp.sendEmail({ to: o.to, subject: o.subject, body: o.body, name: SITE_NAME });
+  }
+}
+
+/**
+ * 貼り替えたあとに1回だけ実行する（Gmail の権限の許可を出すため）。何も送らない。
+ * 実行ログに「info@toyokawaguide.com を使えます」と出れば準備完了。
+ */
+function authorizeInfoMail() {
+  var aliases = GmailApp.getAliases();
+  if (aliases.indexOf(PUBLIC_FROM) >= 0) {
+    console.log(PUBLIC_FROM + ' を使えます（準備完了）');
+  } else {
+    console.log('⚠ ' + PUBLIC_FROM + ' が Gmail の「他のアドレス」に見つかりません。登録済みのもの: ' + aliases.join(', '));
+  }
+}
+
