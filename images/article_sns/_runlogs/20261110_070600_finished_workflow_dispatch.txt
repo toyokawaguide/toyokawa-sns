@@ -1,0 +1,48 @@
+time=2026-11-10T07:06:00.419413+09:00
+event=workflow_dispatch
+run_id=42707848010
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS152 【小坂井東小学校区】国道1号線より東側、宿町に新たな「内科＆… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS152_* サブフォルダ検索中...
+✅ Drive: SNS152_2026.11.10【小坂井東小学校区】国道1号線より東側、宿町に新たな「内科＆調剤薬局」が出来るみたい！開院は2027年の秋頃かな？これはありがたいかもー！ (id=1JZPSI-iBw...)
+  📥 DL: 0.jpg (264 KB)
+  📥 DL: 1.jpg (363 KB)
+  📥 DL: 2.jpg (361 KB)
+  📥 DL: 3.jpg (353 KB)
+  📥 DL: 4.jpg (355 KB)
+  📥 DL: 5.jpg (781 KB)
+  📥 DL: 6.jpg (792 KB)
+  ✅ SNS152: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: 内科＆調剤薬局
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS152_* サブフォルダ検索中...
+✅ Drive: SNS152_2026.11.10【小坂井東小学校区】国道1号線より東側、宿町に新たな「内科＆調剤薬局」が出来るみたい！開院は2027年の秋頃かな？これはありがたいかもー！ (id=1JZPSI-iBw...)
+  📷 フィード 8枚生成
+    📤 Pages へ 8枚 commit d80b262（反映待ち…）
+    ✅ Pages 配信確認 8枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS152_* サブフォルダ検索中...
+✅ Drive: SNS152_2026.11.10【小坂井東小学校区】国道1号線より東側、宿町に新たな「内科＆調剤薬局」が出来るみたい！開院は2027年の秋頃かな？これはありがたいかもー！ (id=1JZPSI-iBw...)
+カテゴリ=ニューオープン / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'error': 'container failed: 400 {"error":{"message":"Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.","type":"OAuthExc'}
+  📷 IG Feed カルーセル
+    → {'post_id': '18033577745906550', 'dry': False}
+  🎬 IG Reels
+  container_id=17962124910254312 file_size=5,610,739 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18482858578115510', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/p6DavkLfDR0
+    → {'status': 'ok', 'video_id': 'p6DavkLfDR0', 'url': 'https://youtube.com/shorts/p6DavkLfDR0', 'privacy': 'private'}
+  📊 状態→投稿済
