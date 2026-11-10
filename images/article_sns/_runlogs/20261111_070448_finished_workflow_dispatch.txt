@@ -1,0 +1,43 @@
+time=2026-11-11T07:04:48.596346+09:00
+event=workflow_dispatch
+run_id=42910486383
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS153 【ちゃんと備えよう！】2026年11月8日の深夜1時頃に地震… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS153_* サブフォルダ検索中...
+✅ Drive: SNS153_2026.11.11【ちゃんと備えよう！】2026年11月8日の深夜1時頃に地震発生、豊川市でも震度4を観測しました。防災グッズをもう一度点検して万が一に備えようぜ！ (id=1i1FN-j_7o...)
+  📥 DL: 0.jpg (422 KB)
+  📥 DL: 1.jpg (664 KB)
+  ✅ SNS153: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: ちゃんと備えよう！
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS153_* サブフォルダ検索中...
+✅ Drive: SNS153_2026.11.11【ちゃんと備えよう！】2026年11月8日の深夜1時頃に地震発生、豊川市でも震度4を観測しました。防災グッズをもう一度点検して万が一に備えようぜ！ (id=1i1FN-j_7o...)
+  📷 フィード 3枚生成
+    📤 Pages へ 3枚 commit a7d7945（反映待ち…）
+    ✅ Pages 配信確認 3枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS153_* サブフォルダ検索中...
+✅ Drive: SNS153_2026.11.11【ちゃんと備えよう！】2026年11月8日の深夜1時頃に地震発生、豊川市でも震度4を観測しました。防災グッズをもう一度点検して万が一に備えようぜ！ (id=1i1FN-j_7o...)
+カテゴリ=豊川市の話題 / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'error': 'container failed: 400 {"error":{"message":"Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.","type":"OAuthExc'}
+  📷 IG Feed カルーセル
+    → {'post_id': '18189948331417749', 'dry': False}
+  🎬 IG Reels
+  container_id=17962298283254312 file_size=5,610,719 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '17920149129465929', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/bVeumUJ-A2Y
+    → {'status': 'ok', 'video_id': 'bVeumUJ-A2Y', 'url': 'https://youtube.com/shorts/bVeumUJ-A2Y', 'privacy': 'private'}
+  📊 状態→投稿済
