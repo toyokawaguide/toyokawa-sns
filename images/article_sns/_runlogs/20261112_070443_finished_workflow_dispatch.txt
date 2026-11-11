@@ -1,0 +1,44 @@
+time=2026-11-12T07:04:43.384018+09:00
+event=workflow_dispatch
+run_id=43108047648
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS154 【お知らせ】豊川ガイドの「公式LINE」ができました！非公式… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS154_* サブフォルダ検索中...
+✅ Drive: SNS154_2026.11.12【お知らせ】豊川ガイドの「公式LINE」ができました！非公式LINEからお引っ越し。お気軽に情報提供をお願いしたく候。写真1枚大歓迎！ (id=1xlYcbvnMg...)
+  📥 DL: 0.jpg (178 KB)
+  📥 DL: 1.jpg (258 KB)
+  📥 DL: 2.jpg (375 KB)
+  ✅ SNS154: 0と1は同じ写真（差 3.8）
+  🎨 赤文字: 公式LINE
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS154_* サブフォルダ検索中...
+✅ Drive: SNS154_2026.11.12【お知らせ】豊川ガイドの「公式LINE」ができました！非公式LINEからお引っ越し。お気軽に情報提供をお願いしたく候。写真1枚大歓迎！ (id=1xlYcbvnMg...)
+  📷 フィード 4枚生成
+    📤 Pages へ 4枚 commit 643c45e（反映待ち…）
+    ✅ Pages 配信確認 4枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS154_* サブフォルダ検索中...
+✅ Drive: SNS154_2026.11.12【お知らせ】豊川ガイドの「公式LINE」ができました！非公式LINEからお引っ越し。お気軽に情報提供をお願いしたく候。写真1枚大歓迎！ (id=1xlYcbvnMg...)
+カテゴリ=お知らせ / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'error': 'container failed: 400 {"error":{"message":"Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.","code":190,"type'}
+  📷 IG Feed カルーセル
+    → {'post_id': '18019576562747674', 'dry': False}
+  🎬 IG Reels
+  container_id=17962462716254312 file_size=5,610,729 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18102996860552554', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/7leRmHdQUGI
+    → {'status': 'ok', 'video_id': '7leRmHdQUGI', 'url': 'https://youtube.com/shorts/7leRmHdQUGI', 'privacy': 'private'}
+  📊 状態→投稿済
