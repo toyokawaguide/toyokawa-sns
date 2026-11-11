@@ -43,6 +43,12 @@ THEMES = [
          sub="#8a8a8a", panel="light"),
 ]
 NAME2THEME = {t["name"]: t for t in THEMES}
+# ★2026-11-11 さくっと物件紹介用の色。THEMES には入れない（入れると「おまかせ」の色の計算がズレる）
+NAME2THEME["すみれ"] = dict(id="sumire", name="すみれ", bg="#f7f3fd", ink="#33284d", accent="#7a5cc0", sub="#7d7396")
+
+# 画像の右下などに出すシリーズ名。別シリーズ（さくっと物件紹介）は配信スクリプトの先頭で
+# pr_eyecatch.SERIES_NAME = "さくっと物件紹介" と差し替える。さくっとPRは既定のまま＝絵は変わらない
+SERIES_NAME = "さくっとPR"
 
 try:
     import budoux
@@ -325,7 +331,7 @@ def addr_line(d, t, text, x, y, max_w, color=None, stroke=0):
 
 
 def brand(d, t, W, H, color=None):
-    d.text((W - 60, H - 36), "豊川ガイド｜さくっとPR",
+    d.text((W - 60, H - 36), "豊川ガイド｜" + SERIES_NAME,
            font=font(FONT_BOLD, 26), fill=color or hx(t["sub"]), anchor="rs")
 
 
@@ -408,7 +414,7 @@ def render_45(row: dict, photo_path=None, output_path=None):
             f = fit_one(d, st["addr"], FONT_BOLD, 34, W - 300, 22)
             d.text((W // 2, 1180), st["addr"], font=f, fill=hx(t["sub"]), anchor="ms")
         # クレジットは札の枠の内側に（枠かぶり対策 2026-08-05）
-        d.text((W - 78, H - 72), "豊川ガイド｜さくっとPR",
+        d.text((W - 78, H - 72), "豊川ガイド｜" + SERIES_NAME,
                font=font(FONT_BOLD, 26), fill=hx(t["sub"]), anchor="rs")
 
     out = im.convert("RGB")
@@ -502,7 +508,7 @@ def render_169(row: dict, photo_path=None, output_path=None):
                       outline="white", width=3)
             fukuro(st["addr"], f_a, tx + 42, H - 58)
         d.rounded_rectangle((16, 16, W - 17, H - 17), 14, outline=hx(t["accent"]), width=6)
-        fukuro("豊川ガイド｜さくっとPR", font(FONT_BOLD, 26), W - 60, H - 52, anchor="rs")
+        fukuro("豊川ガイド｜" + SERIES_NAME, font(FONT_BOLD, 26), W - 60, H - 52, anchor="rs")
 
     out = im.convert("RGB")
     if output_path:
@@ -542,8 +548,8 @@ def render_carousel_photo(row: dict, photo_path, output_path=None) -> Image.Imag
 
     # 上部：さくっとPR（飾り線つき）
     f_top = font(FONT_BOLD, 46)
-    tw = d.textlength("さくっとPR", font=f_top)
-    d.text((W // 2, 138), "さくっとPR", font=f_top, fill=hx(t["accent"]), anchor="ms")
+    tw = d.textlength(SERIES_NAME, font=f_top)
+    d.text((W // 2, 138), SERIES_NAME, font=f_top, fill=hx(t["accent"]), anchor="ms")
     d.line((W // 2 - tw / 2 - 120, 122, W // 2 - tw / 2 - 28, 122), fill=hx(t["accent"]), width=3)
     d.line((W // 2 + tw / 2 + 28, 122, W // 2 + tw / 2 + 120, 122), fill=hx(t["accent"]), width=3)
 
@@ -691,7 +697,7 @@ def render_169_poster(row: dict, photo_path, output_path=None) -> Image.Image:
     d = ImageDraw.Draw(bg)
     d.rounded_rectangle((24, 22, 24 + 92, 22 + 44), 22, fill=(255, 255, 255))
     d.text((24 + 46, 22 + 22), "PR", font=font(FONT_BOLD, 26), fill=hx(t["accent"]), anchor="mm")
-    txt = "豊川ガイド｜さくっとPR"
+    txt = "豊川ガイド｜" + SERIES_NAME
     f = font(FONT_BOLD, 22)
     tw = d.textlength(txt, font=f)
     d.rounded_rectangle((W - tw - 56, H - 48, W - 20, H - 14), 17, fill=(255, 255, 255))
