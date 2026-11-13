@@ -172,7 +172,10 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     #     いつものストーリーと同じ形＋【PR】＋「記事はプロフィールのリンクから」（リンクスタンプはAPIで付けられない）
     story_path = ROOT / "_sample" / f"_tmp_{article_id}_story.png"
     try:
-        pr_eyecatch.render_story(row, eyecatch_path, story_path, target_date.year, target_date.month)
+        # 帯：0番（16:9用の写真）→ 1枚目の写真 → 無ければ（チラシだけ・カード写真なし）額ぶちのアイキャッチ
+        story_photo = ec_photo or (first_photo if poster is None else None)
+        pr_eyecatch.render_story(row, story_photo or eyecatch_path, story_path, target_date.year, target_date.month,
+                                 is_photo=story_photo is not None)
         log(f"📱 ストーリー画像生成: {story_path.name}", 1)
     except Exception as e:
         story_path = None

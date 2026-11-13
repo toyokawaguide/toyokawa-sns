@@ -738,7 +738,8 @@ def _fox_logo_blue(size: int) -> Image.Image:
     return Image.open(ROOT / "_assets" / "fox_logo_blue.png").convert("RGBA").resize((size, size), Image.LANCZOS)
 
 
-def render_story(row: dict, eyecatch_path, output_path=None, year: int | None = None, month: int | None = None) -> Image.Image:
+def render_story(row: dict, band_path, output_path=None, year: int | None = None, month: int | None = None,
+                 is_photo: bool = False) -> Image.Image:
     """インスタのストーリー（1080×1920）。2026-11-14 社長「PRの配信のときにストーリーも自動で」
     いつものストーリー（claude/ストーリー画像/make_story.py）と同じ作り：白背景・豊川ガイド/toyokawaguide/年月・
     真ん中に写真の帯（＝このPRの16:9アイキャッチ）・左下に青い狐。
@@ -751,8 +752,14 @@ def render_story(row: dict, eyecatch_path, output_path=None, year: int | None = 
     d.text((W // 2, 398), "toyokawaguide", font=font(serif, 74), fill=INK, anchor="mm")
     if year and month:
         d.text((W // 2, 548), f"{year} 年 {month} 月", font=font(serif, 74), fill=INK, anchor="mm")
-    ec = Image.open(eyecatch_path).convert("RGB")
-    base.paste(ImageOps.fit(ec, (W, 608), Image.LANCZOS), (0, 656))
+    # 帯：写真があれば文字なしの写真だけ（2026-11-14 社長「文字入りカードだとごちゃごちゃ・見えづらい」）
+    #     写真が使えないとき（チラシだけ・カード写真なし）は呼び出し側が額ぶちのアイキャッチを渡す
+    band = ImageOps.exif_transpose(Image.open(band_path)).convert("RGB")
+    if is_photo:
+        band = cover(band, W, 608, fy=photo_fy(row), zoom=photo_zoom(row))
+    else:
+        band = ImageOps.fit(band, (W, 608), Image.LANCZOS)
+    base.paste(band, (0, 656))
     # 【PR】＋店名（ステマ規制：PRであることを必ず見える所に）
     shop = (row.get("店名") or "").strip()
     fpr = font(FONT_BOLD, 56)
