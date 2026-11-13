@@ -7,7 +7,7 @@ publish_pr_article.py — さくっとPR（広告記事）自動投稿メイン�
 2. 写真（G:\\マイドライブ\\ライト記事\\{PRID}_{店名}\\ or Drive API）ロード
 3. アイキャッチ（PRバッジ）＋IG Feed画像 生成→WPメディアアップ
 4. WP予約投稿（カテゴリ=pr・9:00・slug=pr001形式）
-5. Threads / IG Feed / IG Reels / IG ストーリー 自動投稿（ストーリーは2026-11-14〜）
+5. Threads / IG Feed / IG Reels 自動投稿（ストーリー画像は作ってメールに添付・投稿は社長が手で 2026-11-14〜）
 6. Sheets 状態更新＋Gmail通知（X予約用テキスト）
 
 【使い方】
@@ -37,8 +37,7 @@ from eyecatch_generator import (generate_ig_feed, generate_eyecatch_photo,
 from sns_clients import (post_threads, post_instagram_feed,
                           post_instagram_feed_carousel,
                           post_instagram_reel_resumable,
-                          post_instagram_reel_by_url,
-                          post_instagram_story)
+                          post_instagram_reel_by_url)
 from generate_reel import render_static_reel
 from publish_light_article import get_article_photos, parse_publish_date
 
@@ -101,12 +100,22 @@ def get_pr_rows_for(target: date) -> list[tuple[int, dict]]:
 
 
 def send_pr_x_mail(article_id: str, title: str, x_text: str, publish_at: str,
-                   wp_url: str, dry: bool):
-    """X予約用テキストをGmail送信（notifyの雛形をPR用件名で）"""
+                   wp_url: str, dry: bool, story_path=None):
+    """X予約用テキストをGmail送信（notifyの雛形をPR用件名で）
+    2026-11-14: ストーリー画像を添付（社長「その都度確認する形で」→ 自動投稿はせず、社長が見てから手で投稿・リンクスタンプも付けられる）"""
     try:
         from notify import send_x_caption_mail
+        note = ""
+        if story_path:
+            note = ("📱 インスタのストーリー用の画像を添付しました。\n"
+                    "良ければスマホに保存してストーリーに投稿し、リンクスタンプ（記事へ）を付けてください。\n"
+                    f"リンク先: {wp_url}\n"
+                    "投稿したら、ハイライト「さくっとPR」に追加してください。")
         return send_x_caption_mail(article_id, f"[さくっとPR] {title}", x_text,
-                                   publish_at, wp_url, dry=dry)
+                                   publish_at, wp_url, dry=dry,
+                                   attachments=[story_path] if story_path else None,
+                                   subject=f"【さくっとPR】{publish_at[:10]} 公開・X予約用テキスト＋ストーリー画像",
+                                   note=note)
     except Exception as e:
         log(f"⚠ Gmail通知失敗（続行）: {e}", 1)
         return {"error": str(e)}
@@ -297,14 +306,8 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
             log(f"  → (fallback) {fb}", 2)
     except Exception as e:
         log(f"⚠ Reels失敗（続行）: {e}", 1)
-    # === IG ストーリー（2026-11-14）。失敗しても記事・他のSNSは止めない ===
-    if story_path is not None:
-        try:
-            story_url = "(dry)" if sns_dry else upload_media(story_path)["source_url"]
-            rs = post_instagram_story(story_url, dry=sns_dry)
-            log(f"📱 IG ストーリー（dry={sns_dry}）: {rs}", 1)
-        except Exception as e:
-            log(f"⚠ IG ストーリー失敗（続行）: {e}", 1)
+    # === IG ストーリー：自動投稿はしない（2026-11-14 社長「その都度確認する形で」）。
+    #     画像はX予約用メールに添付 → 社長が見てから手で投稿（リンクスタンプも付けられる） ===
 
     # === Sheets 状態更新＋X文通知 ===
     x_text = build_pr_x_caption(row, wp_url)
@@ -315,7 +318,7 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         except Exception as e:
             log(f"⚠ Sheets更新失敗（続行）: {e}", 1)
     send_pr_x_mail(article_id, title, x_text, publish_dt.isoformat(), wp_url,
-                   dry=use_draft)
+                   dry=use_draft, story_path=story_path)
 
     print("\n---------- 📋 X 投稿用（コピペ） ----------")
     print(x_text)

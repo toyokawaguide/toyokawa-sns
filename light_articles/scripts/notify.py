@@ -20,9 +20,12 @@ GMAIL_PASS = os.environ.get("GMAIL_APP_PASSWORD")
 
 def send_x_caption_mail(article_id: str, title: str, x_text: str,
                          publish_at: str, wp_url: str = "",
-                         dry: bool = True) -> dict:
-    """X予約用テキストを Gmail で送信（社長がスマホからコピペ用）"""
-    subject = f"【ライト記事】{publish_at[:10]} 19:00 公開・X予約用テキスト"
+                         dry: bool = True, attachments=None, subject: str | None = None,
+                         note: str = "") -> dict:
+    """X予約用テキストを Gmail で送信（社長がスマホからコピペ用）
+    2026-11-14: attachments（画像のパスのリスト）・subject・note を追加（さくっとPRのストーリー画像を添付するため）。
+    指定しなければ従来どおり（ライト記事は変わらない）"""
+    subject = subject or f"【ライト記事】{publish_at[:10]} 19:00 公開・X予約用テキスト"
     body = f"""明日 {publish_at} 公開予定のライト記事のX投稿用テキストです。
 スマホからコピーして、X公式アプリの予約投稿機能で {publish_at[:10]} 19:00 にセットしてください。
 
@@ -35,7 +38,7 @@ WP URL: {wp_url}
 ------------ ここまで ------------
 
 スマホでサクッと予約しちゃってください。
-"""
+""" + (("\n" + note + "\n") if note else "")
     if dry:
         print(f"[DRY][Gmail] subject={subject}")
         print(f"[DRY][Gmail] body preview:\n{body[:300]}...")
@@ -44,7 +47,18 @@ WP URL: {wp_url}
     if not GMAIL_USER or not GMAIL_PASS:
         return {"error": "GMAIL_USER / GMAIL_APP_PASSWORD 未設定"}
 
-    msg = MIMEText(body, "plain", "utf-8")
+    if attachments:
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.image import MIMEImage
+        msg = MIMEMultipart()
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+        for ap in attachments:
+            ap = Path(ap)
+            part = MIMEImage(ap.read_bytes(), _subtype=ap.suffix.lstrip(".").lower().replace("jpg", "jpeg"))
+            part.add_header("Content-Disposition", "attachment", filename=ap.name)
+            msg.attach(part)
+    else:
+        msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = GMAIL_USER
     msg["To"] = GMAIL_USER  # 自分宛て
