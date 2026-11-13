@@ -733,6 +733,49 @@ def render_reel_frame(row: dict, photo_path=None, output_path=None) -> Image.Ima
     return base
 
 
+def _fox_logo_blue(size: int) -> Image.Image:
+    """豊川ガイドの青い狐ロゴ（透過済み _assets/fox_logo_blue.png。GHAに numpy が無いので事前に作って置いてある）"""
+    return Image.open(ROOT / "_assets" / "fox_logo_blue.png").convert("RGBA").resize((size, size), Image.LANCZOS)
+
+
+def render_story(row: dict, eyecatch_path, output_path=None, year: int | None = None, month: int | None = None) -> Image.Image:
+    """インスタのストーリー（1080×1920）。2026-11-14 社長「PRの配信のときにストーリーも自動で」
+    いつものストーリー（claude/ストーリー画像/make_story.py）と同じ作り：白背景・豊川ガイド/toyokawaguide/年月・
+    真ん中に写真の帯（＝このPRの16:9アイキャッチ）・左下に青い狐。
+    リンクスタンプはAPIで付けられないので、吹き出しの代わりに「【PR】店名・ひとこと」と「記事はプロフィールのリンクから」"""
+    W, H = 1080, 1920
+    INK, RED, GRAY, NAVY = (20, 20, 25), (215, 25, 35), (95, 95, 105), (12, 52, 125)
+    serif = str(ROOT / "_assets" / "fonts" / "HGRME.TTC")
+    base = Image.new("RGB", (W, H), "white"); d = ImageDraw.Draw(base)
+    d.text((W // 2, 262), "豊川ガイド", font=font(serif, 150), fill=INK, anchor="mm")
+    d.text((W // 2, 398), "toyokawaguide", font=font(serif, 74), fill=INK, anchor="mm")
+    if year and month:
+        d.text((W // 2, 548), f"{year} 年 {month} 月", font=font(serif, 74), fill=INK, anchor="mm")
+    ec = Image.open(eyecatch_path).convert("RGB")
+    base.paste(ImageOps.fit(ec, (W, 608), Image.LANCZOS), (0, 656))
+    # 【PR】＋店名（ステマ規制：PRであることを必ず見える所に）
+    shop = (row.get("店名") or "").strip()
+    fpr = font(FONT_BOLD, 56)
+    pr_w = d.textlength("【PR】", font=fpr)
+    fs = fit_one(d, shop, FONT_BOLD, 64, W - 160 - pr_w, 36)
+    sw = d.textlength(shop, font=fs)
+    x0 = (W - (pr_w + sw)) / 2
+    d.text((x0, 1350), "【PR】", font=fpr, fill=RED, anchor="lm")
+    d.text((x0 + pr_w, 1350), shop, font=fs, fill=INK, anchor="lm")
+    catch = _card_catch(row.get("ひとことキャッチ")).replace("\n", " ")
+    if catch:
+        s, lines = wrap_fit(d, catch, FONT_BOLD, W - 200, 2, 46, 30)
+        y = 1440
+        for ln in lines[:2]:
+            d.text((W // 2, y), ln, font=font(FONT_BOLD, s), fill=GRAY, anchor="mm"); y += int(s * 1.35)
+    d.text((620, 1690), "記事は @toyokawaguide の", font=font(FONT_BOLD, 42), fill=NAVY, anchor="mm")
+    d.text((620, 1750), "プロフィールのリンクから", font=font(FONT_BOLD, 42), fill=NAVY, anchor="mm")
+    lg = _fox_logo_blue(220); base.paste(lg, (14, 1650), lg)
+    if output_path:
+        base.save(output_path)
+    return base
+
+
 # ───────────────────────── 動作見本 ─────────────────────────
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ publish_pr_article.py — さくっとPR（広告記事）自動投稿メイン�
 2. 写真（G:\\マイドライブ\\ライト記事\\{PRID}_{店名}\\ or Drive API）ロード
 3. アイキャッチ（PRバッジ）＋IG Feed画像 生成→WPメディアアップ
 4. WP予約投稿（カテゴリ=pr・9:00・slug=pr001形式）
-5. Threads / IG Feed 自動投稿
+5. Threads / IG Feed / IG Reels / IG ストーリー 自動投稿（ストーリーは2026-11-14〜）
 6. Sheets 状態更新＋Gmail通知（X予約用テキスト）
 
 【使い方】
@@ -37,7 +37,8 @@ from eyecatch_generator import (generate_ig_feed, generate_eyecatch_photo,
 from sns_clients import (post_threads, post_instagram_feed,
                           post_instagram_feed_carousel,
                           post_instagram_reel_resumable,
-                          post_instagram_reel_by_url)
+                          post_instagram_reel_by_url,
+                          post_instagram_story)
 from generate_reel import render_static_reel
 from publish_light_article import get_article_photos, parse_publish_date
 
@@ -167,6 +168,16 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
     render_static_reel(reel_frame, reel_path)
     log(f"🎬 リール動画生成: {reel_path.name} ({reel_path.stat().st_size/1024:.0f} KB)", 1)
 
+    # === ストーリー画像（1080×1920）2026-11-14 社長「PRの配信のときにストーリーも自動で」 ===
+    #     いつものストーリーと同じ形＋【PR】＋「記事はプロフィールのリンクから」（リンクスタンプはAPIで付けられない）
+    story_path = ROOT / "_sample" / f"_tmp_{article_id}_story.png"
+    try:
+        pr_eyecatch.render_story(row, eyecatch_path, story_path, target_date.year, target_date.month)
+        log(f"📱 ストーリー画像生成: {story_path.name}", 1)
+    except Exception as e:
+        story_path = None
+        log(f"⚠ ストーリー画像の生成に失敗（ストーリーだけ出さずに続行）: {e}", 1)
+
     title = build_pr_title(row)
     log(f"📰 タイトル: {title}", 1)
 
@@ -283,6 +294,14 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
             log(f"  → (fallback) {fb}", 2)
     except Exception as e:
         log(f"⚠ Reels失敗（続行）: {e}", 1)
+    # === IG ストーリー（2026-11-14）。失敗しても記事・他のSNSは止めない ===
+    if story_path is not None:
+        try:
+            story_url = "(dry)" if sns_dry else upload_media(story_path)["source_url"]
+            rs = post_instagram_story(story_url, dry=sns_dry)
+            log(f"📱 IG ストーリー（dry={sns_dry}）: {rs}", 1)
+        except Exception as e:
+            log(f"⚠ IG ストーリー失敗（続行）: {e}", 1)
 
     # === Sheets 状態更新＋X文通知 ===
     x_text = build_pr_x_caption(row, wp_url)

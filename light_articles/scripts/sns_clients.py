@@ -375,7 +375,19 @@ def post_instagram_story(image_url: str, dry: bool = True) -> dict:
             return {"error": f"container failed: {r1.status_code} {r1.text[:300]}",
                     "image_url": image_url}
         container_id = r1.json()["id"]
-        time.sleep(3)
+        # 2026-11-14 さくっとPRで毎回使うので、公開前に処理完了（FINISHED）を待つ（最大約60秒）
+        for _ in range(20):
+            time.sleep(3)
+            try:
+                st = requests.get(f"{GRAPH_API}/{container_id}",
+                                  params={"fields": "status_code", "access_token": token},
+                                  timeout=30).json().get("status_code")
+            except Exception:
+                st = None
+            if st == "FINISHED":
+                break
+            if st == "ERROR":
+                return {"error": "story container ERROR", "image_url": image_url}
         r2 = requests.post(f"{GRAPH_API}/{ig_id}/media_publish",
                            data={"creation_id": container_id, "access_token": token},
                            timeout=60)
