@@ -1,0 +1,48 @@
+time=2026-11-15T07:05:34.034621+09:00
+event=workflow_dispatch
+run_id=43645785570
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS157 【最高かよ！！】トロふわたこ焼き「鬼たこ」のキッチンカーがプ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS157_* サブフォルダ検索中...
+✅ Drive: SNS157_2026.11.15【最高かよ！！】トロふわたこ焼き「鬼たこ」のキッチンカーがプリオ東駐輪場にオープンするぞ！土日限定。本場大阪仕込みのたこ焼きだって！ (id=1wiibxhMFs...)
+  📥 DL: 0.jpg (503 KB)
+  📥 DL: 1.jpg (621 KB)
+  📥 DL: 2.jpg (705 KB)
+  📥 DL: 3.jpg (666 KB)
+  📥 DL: 4.jpg (876 KB)
+  📥 DL: 5.jpg (793 KB)
+  📥 DL: 6.jpg (722 KB)
+  ✅ SNS157: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: トロふわたこ焼き「鬼たこ」
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS157_* サブフォルダ検索中...
+✅ Drive: SNS157_2026.11.15【最高かよ！！】トロふわたこ焼き「鬼たこ」のキッチンカーがプリオ東駐輪場にオープンするぞ！土日限定。本場大阪仕込みのたこ焼きだって！ (id=1wiibxhMFs...)
+  📷 フィード 8枚生成
+    📤 Pages へ 8枚 commit 3c0ed27（反映待ち…）
+    ✅ Pages 配信確認 8枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS157_* サブフォルダ検索中...
+✅ Drive: SNS157_2026.11.15【最高かよ！！】トロふわたこ焼き「鬼たこ」のキッチンカーがプリオ東駐輪場にオープンするぞ！土日限定。本場大阪仕込みのたこ焼きだって！ (id=1wiibxhMFs...)
+カテゴリ=ニューオープン / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18109511599979556', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18106576745018712', 'dry': False}
+  🎬 IG Reels
+  container_id=17962956237254312 file_size=5,610,718 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18090388295299733', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/zPDCfTYfDL0
+    → {'status': 'ok', 'video_id': 'zPDCfTYfDL0', 'url': 'https://youtube.com/shorts/zPDCfTYfDL0', 'privacy': 'private'}
+  📊 状態→投稿済
