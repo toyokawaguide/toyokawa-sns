@@ -294,7 +294,7 @@ def main():
         for d in sorted(spot_map):
             wd_jp = WEEKDAY_JP_FULL[d.weekday()]
             info = spot_map[d]
-            disp = f"お近くの{info['name']}" if info["is_chain"] else info["name"]
+            disp = (f"お近くの{info['name']}" if info["is_chain"] else info["name"]) if info["name"] else "（空欄）"
             lines.append(f"    {d}（{wd_jp}）: {disp}")
     lines.append("")
 
