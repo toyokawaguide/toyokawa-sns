@@ -265,7 +265,8 @@ def main():
 
     # 翌週 月〜土 のラッキースポット入力チェック（最優先）
     spot_map, src = check_lucky_spot_input(next_monday)
-    missing = [d for d in sorted(spot_map) if not spot_map[d]["name"]]
+    missing = [d for d in sorted(spot_map) if not spot_map[d]["name"] and d.weekday() != 6]   # 日曜は空でもOK（振り返りだけになる）
+    sun_blank = [d for d in sorted(spot_map) if not spot_map[d]["name"] and d.weekday() == 6]
 
     lines = []
     lines.append(f"豊川ガイド占い 週次リマインダー  {today_jst} 配信")
@@ -289,7 +290,7 @@ def main():
             lines.append(f"    ・{d}（{wd_jp}）が空欄です")
         lines.append("  → Google Sheets「ラッキースポット入力」シートのB列に記入")
     else:
-        lines.append("  ✅ 月〜日の7日すべて入力済み")
+        lines.append("  ✅ 月〜土はすべて入力済み" + ("（日曜は空欄＝振り返りだけの記事になります・入れたいときはB列に）" if sun_blank else "・日曜も入力済み"))
         for d in sorted(spot_map):
             wd_jp = WEEKDAY_JP_FULL[d.weekday()]
             info = spot_map[d]
