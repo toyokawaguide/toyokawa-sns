@@ -155,7 +155,8 @@ def generate_sunday_instagram(target_date, summary, lucky_spots_week, output_pat
 
     # === ブロック1:今週のラッキースポットおさらい(上半分) ===
     sp_y = 425
-    sp_h = 260  # 280→260 募集ブロック分を確保
+    seven = len(lucky_spots_week) >= 7      # 2026-11-15 日曜（今日）も入れた7件
+    sp_h = 260 if not seven else 316
     d.rounded_rectangle([50, sp_y, W - 50, sp_y + sp_h], radius=18,
                        fill=WHITE, outline=BLUE, width=3)
     d.text((70, sp_y + 18), "◆ 今週のラッキースポットおさらい", font=f(FBd, 26), fill=BLUE)
@@ -167,9 +168,11 @@ def generate_sunday_instagram(target_date, summary, lucky_spots_week, output_pat
     sp_cell_w = (W - 140 - 20) // 2
     sp_cell_h = 60
     
+    rows_n = 4 if seven else 3
+    if seven: sp_cell_h = 56
     for i, sp in enumerate(lucky_spots_week):
-        col = i // 3
-        row = i % 3
+        col = i // rows_n
+        row = i % rows_n
         sx = sp_grid_x + col * (sp_cell_w + 20)
         sy = sp_grid_y + row * sp_cell_h
         # 曜日ピル
@@ -189,7 +192,7 @@ def generate_sunday_instagram(target_date, summary, lucky_spots_week, output_pat
 
     # === ブロック2:ラッキースポット募集告知(下半分・案B:上中下分割) ===
     tm_y = sp_y + sp_h + 16
-    tm_h = 300  # 280→300 署名分の余白
+    tm_h = 300 if not seven else 252
     d.rounded_rectangle([50, tm_y, W - 50, tm_y + tm_h], radius=18, fill=BLUE)
     
     # 上段:ヘッダー
@@ -206,24 +209,25 @@ def generate_sunday_instagram(target_date, summary, lucky_spots_week, output_pat
     cf = f(FBd, 32)
     cb1 = d.textbbox((0, 0), catch1, font=cf)
     cb2 = d.textbbox((0, 0), catch2, font=cf)
-    d.text(((W - (cb1[2]-cb1[0]))//2, tm_y + 100), catch1, font=cf, fill=WHITE)
-    d.text(((W - (cb2[2]-cb2[0]))//2, tm_y + 152), catch2, font=cf, fill=WHITE)
+    cy0 = 100 if not seven else 84
+    d.text(((W - (cb1[2]-cb1[0]))//2, tm_y + cy0), catch1, font=cf, fill=WHITE)
+    d.text(((W - (cb2[2]-cb2[0]))//2, tm_y + cy0 + 48), catch2, font=cf, fill=WHITE)
     
     # 名言の署名(右寄せ・もう少し内側に)
     sign = "— by 豊川ガイド"
     sf_sign = f(FM, 22)
     sb_sign = d.textbbox((0, 0), sign, font=sf_sign)
     # 右端から180pxの位置に(80→180)
-    d.text((W - 180 - (sb_sign[2]-sb_sign[0]), tm_y + 205), sign, font=sf_sign, fill=GOLD)
+    d.text((W - 180 - (sb_sign[2]-sb_sign[0]), tm_y + (205 if not seven else 176)), sign, font=sf_sign, fill=GOLD)
     
     # 区切り線(細い金線)
-    d.rectangle([100, tm_y + 246, W - 100, tm_y + 248], fill=GOLD)
+    d.rectangle([100, tm_y + (246 if not seven else 208), W - 100, tm_y + (248 if not seven else 210)], fill=GOLD)
     
     # 下段:案内(自薦・他薦)
     bottom = "自薦・他薦どっちもOK!お気軽にどうぞ"
     bf = f(FBd, 20)
     bb = d.textbbox((0, 0), bottom, font=bf)
-    d.text(((W - (bb[2]-bb[0]))//2, tm_y + 256), bottom, font=bf, fill=GOLD)
+    d.text(((W - (bb[2]-bb[0]))//2, tm_y + (256 if not seven else 218)), bottom, font=bf, fill=GOLD)
 
     # 注釈
     note_y = tm_y + tm_h + 12
@@ -409,3 +413,87 @@ if __name__ == "__main__":
     generate_sunday_wp(target, summary, spots_week,
                        './output/日曜_WP_v7.png')
     print("日曜版 IG+WP 完成")
+
+
+
+def generate_sunday_spot_card(target_date, spot, output_path):
+    """日曜版IG 1枚目（1080×1080・あとで _finalize_ig_image で 1080×1350 に）：本日（日曜）のラッキースポット＋ひとこと。2026-11-15"""
+    W, H = 1080, 1080
+    img = Image.new("RGB", (W, H), BEIGE)
+    d = ImageDraw.Draw(img)
+    date_str = date_to_str(target_date)
+    HEADER_H = 160
+    d.rectangle([0, 0, W, HEADER_H], fill=BLUE)
+    date_font = f(FBd, 52)
+    date_bbox = date_font.getbbox(date_str)
+    d.text((50, (HEADER_H - (date_bbox[3] - date_bbox[1])) // 2 - date_bbox[1]), date_str, font=date_font, fill=WHITE)
+    logo_orig = Image.open(_LOGO_PATH)
+    th = 110; tw = int(logo_orig.size[0] * th / logo_orig.size[1])
+    logo = logo_orig.resize((tw, th)); img.paste(logo, (W - tw - 35, (HEADER_H - th) // 2), logo)
+
+    title_y = 195
+    draw_star(d, 130, title_y + 38, 28, GOLD); draw_star(d, W - 130, title_y + 38, 28, GOLD)
+    title = "豊川ガイド的　 今日の占い"
+    tf = f(FB, 54); tb = d.textbbox((0, 0), title, font=tf)
+    d.text(((W - (tb[2] - tb[0])) // 2, title_y), title, font=tf, fill=BLUE)
+    line_y = title_y + 95
+    d.rectangle([(W - 200) // 2, line_y, (W + 200) // 2, line_y + 5], fill=GOLD)
+
+    name = (spot.get("name") or "").strip()
+    memo = (spot.get("memo") or "").strip().lstrip("📅").strip()
+    # ひとことの行分け（語の途中で切らない・最大3行・入らなければ最後を…）
+    max_w = W - 100 - 120
+    memo_lines, mf = [], None
+    if memo:
+        try:
+            import budoux
+            chunks = budoux.load_default_japanese_parser().parse(memo)
+        except Exception:
+            chunks = list(memo)
+        for size, mx in ((38, 2), (32, 3), (28, 3)):
+            mf = f(FBd, size); memo_lines, cur = [], ""
+            for c in chunks:
+                if d.textlength(cur + c, font=mf) <= max_w: cur += c
+                else:
+                    if cur: memo_lines.append(cur)
+                    cur = c
+            if cur: memo_lines.append(cur)
+            if len(memo_lines) <= mx: break
+        if len(memo_lines) > 3:
+            memo_lines = memo_lines[:3]
+            last = memo_lines[-1]
+            while last and d.textlength(last + "…", font=mf) > max_w: last = last[:-1]
+            memo_lines[-1] = last + "…"
+    lh = int(mf.size * 1.45) if mf else 0
+
+    box_y = line_y + 40
+    box_h = 330 + (len(memo_lines) * lh + 46 if memo_lines else 0)
+    d.rounded_rectangle([50, box_y, W - 50, box_y + box_h], radius=24, fill=WHITE, outline=GOLD, width=5)
+    for txt, size, yy in (("管理人の独断と偏見と忖度による", 32, 36), ("【本日（日曜）のラッキースポット】", 36, 86)):
+        ff = f(FBd, size); bb = d.textbbox((0, 0), txt, font=ff)
+        d.text(((W - (bb[2] - bb[0])) // 2, box_y + yy), txt, font=ff, fill=BLUE)
+    ns = 110 if len(name) <= 6 else 88 if len(name) <= 10 else 64
+    nf = f(FB, ns); nb = d.textbbox((0, 0), name, font=nf)
+    while (nb[2] - nb[0]) > W - 180 and ns > 40:
+        ns -= 8; nf = f(FB, ns); nb = d.textbbox((0, 0), name, font=nf)
+    d.text(((W - (nb[2] - nb[0])) // 2, box_y + 165), name, font=nf, fill=BLUE)
+    if memo_lines:
+        my = box_y + 318
+        d.rounded_rectangle([80, my - 16, W - 80, my + lh * len(memo_lines) + 4], radius=16, fill=(255, 246, 190))
+        for i, ln in enumerate(memo_lines):
+            lb = d.textbbox((0, 0), ln, font=mf)
+            d.text(((W - (lb[2] - lb[0])) // 2, my + i * lh), ln, font=mf, fill=TEXT_DARK)
+
+    ny = box_y + box_h + 26
+    for i, ln in enumerate(["※ラッキースポットがお休みのときは", "また別の日に行ってみてね！"]):
+        ff = f(FM, 26); bb = d.textbbox((0, 0), ln, font=ff)
+        d.text(((W - (bb[2] - bb[0])) // 2, ny + i * 38), ln, font=ff, fill=TEXT_DARK)
+    cy = ny + 96
+    if cy + 110 <= H - 10:
+        d.rounded_rectangle([110, cy, W - 110, cy + 110], radius=18, fill=BLUE, outline=GOLD, width=4)
+        m1 = "★ ラッキースポット絶賛募集中！ ★"; ff = f(FBd, 32); bb = d.textbbox((0, 0), m1, font=ff)
+        d.text(((W - (bb[2] - bb[0])) // 2, cy + 16), m1, font=ff, fill=GOLD)
+        m2 = "DMでこっそり教えてね♪"; ff = f(FM, 24); bb = d.textbbox((0, 0), m2, font=ff)
+        d.text(((W - (bb[2] - bb[0])) // 2, cy + 64), m2, font=ff, fill=WHITE)
+    img.save(output_path)
+    return output_path

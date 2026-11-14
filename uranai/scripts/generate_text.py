@@ -428,6 +428,10 @@ def call_template_data_api(weekday_key: str, target_date: date, spot: Spot, extr
     return json.loads(raw_clean)
 
 
+def _html_escape(s: str) -> str:
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def fill_template(weekday_key: str, data: dict, target_date: date, spot: Spot) -> str:
     """テンプレートに data を流し込む（ランキング系曜日）"""
     weekday_full = {
@@ -466,6 +470,10 @@ def fill_template(weekday_key: str, data: dict, target_date: date, spot: Spot) -
         "{intro_text}": intro,
         "{spot_name}": spot.name,
         "{beta_notice}": beta_notice,
+        # 入力シートD列「ひとこと（イベントなど）」。空なら何も出さない（2026-11-15）
+        "{spot_memo_block}": (f'<p style="font-size:1em; color:#333; margin:14px 0 0; line-height:1.7; background:#fff; '
+                              f'border-radius:8px; padding:10px 14px; text-align:left;">📅 {_html_escape(getattr(spot, "memo", "") or "")}</p>'
+                              if (getattr(spot, "memo", "") or "").strip() else ""),
     }
 
     if weekday_key == "tue":
@@ -492,6 +500,9 @@ def fill_template(weekday_key: str, data: dict, target_date: date, spot: Spot) -
             placeholders[f"{{spot_{key}}}"] = spots_week.get(key, "-")
             past_d = target_date - _td(days=6 - i)
             placeholders[f"{{date_{key}}}"] = f"{past_d.month}/{past_d.day}"
+        # 2026-11-15 日曜（今日）もおさらいに入れる
+        placeholders["{spot_sun}"] = (f"お近くの{spot.name}" if getattr(spot, "is_chain", False) else spot.name) or "-"
+        placeholders["{date_sun}"] = f"{target_date.month}/{target_date.day}"
     elif weekday_key in ("fri", "sat"):
         # 金/土：TOP10（stars はアイキャッチと同じ get_top10_stars(seed) を使う）
         from uranai_fri_sat import get_top10_stars, format_star_score

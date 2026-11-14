@@ -660,7 +660,7 @@ def run_sns_only(target_date: date) -> dict:
     bridge = json.loads(bridge_file.read_text(encoding="utf-8"))
     data = bridge.get("data", {})
     items = bridge.get("items", [])
-    spot = SimpleNamespace(**bridge.get("spot", {"name": "", "is_chain": False, "source": "", "area": ""}))
+    spot = SimpleNamespace(**bridge.get("spot", {"name": "", "is_chain": False, "source": "", "area": "", "memo": ""}))
     post_url = bridge.get("post_url")
     ig_image_url = bridge.get("ig_image_url")
     ig2_image_url = bridge.get("ig2_image_url")
@@ -671,7 +671,7 @@ def run_sns_only(target_date: date) -> dict:
     try:
         from generate_reel import generate_reel
         generate_reel(target_date=target_date, weekday_key=weekday_key, items=items,
-                      spot={"name": spot.name, "area": getattr(spot, "area", "")},
+                      spot={"name": spot.name, "area": getattr(spot, "area", ""), "memo": getattr(spot, "memo", "")},
                       output_path=reel_video, data=data)
         print(f"  Reel再生成: {reel_video.name} ({reel_video.stat().st_size/1024:.0f}KB)")
     except Exception as e:
@@ -774,13 +774,31 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
         except Exception as e_ig2:
             print(f"  [warn] IG2枚目生成失敗（1枚で続行）: {e_ig2}")
             ig2_img = None
+        # 2026-11-15 日曜：1枚目＝本日（日曜）のスポット、2枚目＝今週のまとめ（日曜入り）。失敗したら今までどおり1枚
+        if weekday_key == "sun":
+            try:
+                from uranai_sunday import generate_sunday_spot_card, generate_sunday_instagram
+                from generate_image import _finalize_ig_image
+                sw = (article.get("data") or {}).get("spots_week", {}) or {}
+                week = [{"day": j, "name": sw.get(k, "-")} for j, k in zip("月火水木金土", ["mon", "tue", "wed", "thu", "fri", "sat"])]
+                week.append({"day": "日", "name": (f"お近くの{spot.name}" if getattr(spot, "is_chain", False) else spot.name)})
+                sun2 = OUTPUT_DIR / f"{target_date}_{weekday_key}_ig2.png"
+                generate_sunday_instagram(target_date, {}, week, str(sun2)); _finalize_ig_image(sun2, target_date)
+                sun1 = OUTPUT_DIR / f"{target_date}_{weekday_key}_ig_spot.png"
+                generate_sunday_spot_card(target_date, {"name": (f"お近くの{spot.name}" if getattr(spot, "is_chain", False) else spot.name),
+                                                        "memo": getattr(spot, "memo", "")}, str(sun1))
+                _finalize_ig_image(sun1, target_date)
+                ig_img, ig2_img = sun1, sun2
+                print(f"  日曜IG: 1枚目={sun1.name}（本日のスポット） 2枚目={sun2.name}（まとめ・日曜入り）")
+            except Exception as e_sun:
+                print(f"  [warn] 日曜IG 2枚組の生成失敗（今までどおり1枚で続行）: {e_sun}")
         # Reel動画生成（失敗してもメインフローは止めない）
         try:
             from generate_reel import generate_reel
             generate_reel(
                 target_date=target_date, weekday_key=weekday_key,
                 items=items,
-                spot={"name": spot.name, "area": getattr(spot, "area", "")},
+                spot={"name": spot.name, "area": getattr(spot, "area", ""), "memo": getattr(spot, "memo", "")},
                 output_path=reel_video,
                 data=article.get("data", {}),  # 日曜の spots_week 用
             )
@@ -871,7 +889,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                 "data": article.get("data", {}),
                 "items": _items_to_jsonable(items),
                 "spot": {"name": spot.name, "is_chain": getattr(spot, "is_chain", False),
-                          "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
+                          "source": getattr(spot, "source", ""), "area": getattr(spot, "area", ""), "memo": getattr(spot, "memo", "")},
                 "post_url": post_url,
                 "ig_image_url": ig_image_url,
                 "ig2_image_url": ig2_image_url,
@@ -892,7 +910,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
                 "data": article.get("data", {}),
                 "items": _items_to_jsonable(items),
                 "spot": {"name": spot.name, "is_chain": getattr(spot, "is_chain", False),
-                          "source": getattr(spot, "source", ""), "area": getattr(spot, "area", "")},
+                          "source": getattr(spot, "source", ""), "area": getattr(spot, "area", ""), "memo": getattr(spot, "memo", "")},
                 "post_url": post_url,
                 "ig_image_url": ig_image_url,
                 "ig2_image_url": ig2_image_url,

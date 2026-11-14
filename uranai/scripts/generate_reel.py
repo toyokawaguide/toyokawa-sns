@@ -363,7 +363,7 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
 
     # ===== セクション1: 今週のラッキースポットおさらい =====
     sec1_y = line_y + 30
-    sec1_h = 560
+    sec1_h = 560 + (16 if (data.get("spots_week") or {}).get("sun") else 0)
     sec1_r = 24
     d.rounded_rectangle([content_x_left, sec1_y, content_x_right, sec1_y + sec1_h],
                         radius=sec1_r, fill=WHITE, outline=GOLD, width=3)
@@ -383,6 +383,9 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
     spot_y_start = sec1_y + 110
     spot_h = 62
     spot_gap = 10
+    if spots_week.get("sun"):   # 2026-11-15 日曜（今日）のスポットも振り返りに入れる。7行に収まるよう少し詰める
+        day_labels.append(("日", "sun", 0))
+        spot_h, spot_gap = 56, 8
     badge_size = 48
     from datetime import timedelta as _td
     # 日付フィールドを右揃えで揃える: 5/24 など最大幅を計算
@@ -486,6 +489,39 @@ def _scene_sunday_summary(target_date: date, data: dict, *,
 # シーン: ラッキースポット拡大
 # ============================================================
 
+def _memo_lines(d, text: str, max_w: int):
+    """ひとことを最大3行に。36→30→26px と小さくして収め、それでも入らなければ最後を「…」で切る"""
+    if not text:
+        return [], None
+    text = text.lstrip("📅").strip()   # 絵文字はリールのフォントに無く□になるので付けない（2026-11-15）
+    try:
+        import budoux
+        chunks = budoux.load_default_japanese_parser().parse(text)
+    except Exception:
+        chunks = list(text)
+    for size, max_lines in ((44, 2), (38, 2), (34, 3), (30, 3)):
+        mf = f(FBd, size)
+        lines, cur = [], ""
+        for c in chunks:
+            if d.textlength(cur + c, font=mf) <= max_w:
+                cur += c
+            else:
+                if cur: lines.append(cur)
+                cur = c
+                while d.textlength(cur, font=mf) > max_w:      # 1語が長すぎるときは文字で切る
+                    k = len(cur)
+                    while k > 1 and d.textlength(cur[:k], font=mf) > max_w: k -= 1
+                    lines.append(cur[:k]); cur = cur[k:]
+        if cur: lines.append(cur)
+        if len(lines) <= max_lines:
+            return lines, mf
+    lines = lines[:max_lines]
+    last = lines[-1]
+    while last and d.textlength(last + "…", font=mf) > max_w: last = last[:-1]
+    lines[-1] = last + "…"
+    return lines, mf
+
+
 def _scene_spot(target_date: date, lucky_spot: dict, *,
                 badge_text: str, sub_title: str,
                 draw_planet_icon) -> Image.Image:
@@ -514,7 +550,8 @@ def _scene_spot(target_date: date, lucky_spot: dict, *,
     box_x0 = CONTENT_LEFT + 20
     box_x1 = CONTENT_RIGHT - 20
     box_y = content_y + 150
-    box_h = 420
+    memo_lines, memo_font = _memo_lines(d, (lucky_spot.get("memo") or "").strip(), (CONTENT_RIGHT - 20) - (CONTENT_LEFT + 20) - 90)
+    box_h = 420 + (len(memo_lines) * int(memo_font.size * 1.45) + 50 if memo_lines else 0)
     d.rounded_rectangle([box_x0, box_y, box_x1, box_y + box_h],
                         radius=28, fill=WHITE, outline=GOLD, width=5)
     box_cx = (box_x0 + box_x1) // 2
@@ -545,6 +582,15 @@ def _scene_spot(target_date: date, lucky_spot: dict, *,
     d.text((box_cx - (nb[2] - nb[0]) // 2, box_y + 220),
            name, font=nf, fill=BLUE)
     # エリア表示は削除
+    # ひとこと（入力シートD列・イベントなど）。薄い黄色の帯に📅付きで（2026-11-15）
+    if memo_lines:
+        lh = int(memo_font.size * 1.45)
+        my = box_y + 390
+        d.rounded_rectangle([box_x0 + 30, my - 18, box_x1 - 30, my + lh * len(memo_lines) + 6],
+                            radius=16, fill=(255, 246, 190))
+        for i, ln in enumerate(memo_lines):
+            lb = d.textbbox((0, 0), ln, font=memo_font)
+            d.text((box_cx - (lb[2] - lb[0]) // 2, my + i * lh), ln, font=memo_font, fill=TEXT_DARK)
 
     # 注意書き（紺背景なのでベージュ・大きく）
     note = "※ラッキースポットがお休みのときは"
@@ -687,12 +733,18 @@ def generate_reel(*, target_date: date, weekday_key: str,
     if weekday_key == "sun":
         if not data or not data.get("spots_week"):
             raise ValueError("日曜は data['spots_week'] が必須です")
+        if (spot or {}).get("name"):
+            data = dict(data); data["spots_week"] = dict(data["spots_week"], sun=spot["name"])
         sun_img = _scene_sunday_summary(target_date, data,
                                           badge_text=badge_text,
                                           draw_planet_icon=planet_func)
         scenes = [("sunday_summary", sun_img,
                     SCENE_DURATIONS.get("top_first", 5.0) * 2)]  # 1シーンで10秒
-        # ラッキースポット拡大シーン（今週のスポット振り返り風）はスキップ
+        # 2026-11-15 社長「1枚目に日曜のラッキースポット、2枚目に振り返り（日曜も入れる）」
+        if (spot or {}).get("name"):
+            img_spot = _scene_spot(target_date, spot, badge_text=badge_text, sub_title=sub_title,
+                                   draw_planet_icon=planet_func)
+            scenes.insert(0, ("spot", img_spot, SCENE_DURATIONS.get("spot", 5.0)))
         total_dur = sum(s[2] for s in scenes)
         print(f"  reel: {weekday_key} {len(scenes)}シーン 計{total_dur:.1f}秒")
         # ffmpeg で MP4 出力（既存ロジックへフォールスルー）

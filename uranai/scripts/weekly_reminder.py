@@ -97,7 +97,7 @@ def check_lucky_spot_input(next_monday: date):
         spot_map = {date: {"name": str|None, "is_chain": bool}}
     """
     rows, source = fetch_input_sheet_rows()
-    targets = [next_monday + timedelta(days=i) for i in range(6)]  # 月〜土
+    targets = [next_monday + timedelta(days=i) for i in range(7)]  # 月〜日（2026-11-15 日曜もスポットを入れる）
     if rows is None:
         return {d: {"name": None, "is_chain": False} for d in targets}, "none"
     found = {}
@@ -122,10 +122,12 @@ def build_x_reservation_text(d: date, wd: str, name: str | None, is_chain: bool)
     ymd = d.strftime("%Y%m%d")
     url = f"https://toyokawa-rentallife.com/{d.year}/{d.month:02d}/{d.day:02d}/uranai-{ymd}/"
     if wd == "sun":
+        spot_disp = (f"お近くの{name}" if is_chain else name) if name else "⚠️未入力（Sheetsに記入してください）"
         return (
             f"🔮{md}({wd_jp})今週まとめ&来週運勢\n\n"
             f"今週も1週間お疲れさまでした!\n\n"
-            f"🌱今週のラッキースポット6選まとめと\n"
+            f"🦊本日のラッキースポット\n{spot_disp}\n\n"
+            f"今週のラッキースポットまとめと\n"
             f"来週の運勢のヒントは記事で👇\n\n"
             f"{url}\n\n"
             f"明日からまた毎朝のお楽しみに✨\n\n"
@@ -271,9 +273,9 @@ def main():
     lines.append("")
 
     # 0. ラッキースポット入力チェック（社長が見落とさないよう冒頭配置）
-    lines.append("【0】翌週ラッキースポット入力チェック（月〜土）")
+    lines.append("【0】翌週ラッキースポット入力チェック（月〜日）")
     lines.append("-" * 40)
-    lines.append(f"  対象: {next_monday}（月）〜 {next_saturday}（土） ※日曜は週まとめのため不要")
+    lines.append(f"  対象: {next_monday}（月）〜 {next_monday + timedelta(days=6)}（日） ※D列「ひとこと」は任意")
     src_label = {"sheets": "Google Sheets"}.get(src, "🚨 取得失敗（Sheets参照不可）")
     lines.append(f"  データソース: {src_label}")
     if src != "sheets":
@@ -287,7 +289,7 @@ def main():
             lines.append(f"    ・{d}（{wd_jp}）が空欄です")
         lines.append("  → Google Sheets「ラッキースポット入力」シートのB列に記入")
     else:
-        lines.append("  ✅ 月〜土の6日すべて入力済み")
+        lines.append("  ✅ 月〜日の7日すべて入力済み")
         for d in sorted(spot_map):
             wd_jp = WEEKDAY_JP_FULL[d.weekday()]
             info = spot_map[d]
@@ -368,11 +370,8 @@ def main():
         d = next_monday + timedelta(days=i)
         wd = weekday_keys[d.weekday()]
         wd_jp = WEEKDAY_JP_FULL[d.weekday()]
-        if wd == "sun":
-            txt = build_x_reservation_text(d, wd, None, False)
-        else:
-            info = spot_map.get(d, {"name": None, "is_chain": False})
-            txt = build_x_reservation_text(d, wd, info["name"], info["is_chain"])
+        info = spot_map.get(d, {"name": None, "is_chain": False})
+        txt = build_x_reservation_text(d, wd, info["name"], info["is_chain"])
         lines.append(f"━━━ {d}（{wd_jp}）— 予約 6:00 ━━━")
         lines.append(txt)
         lines.append("")
