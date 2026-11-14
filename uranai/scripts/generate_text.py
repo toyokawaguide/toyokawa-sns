@@ -470,7 +470,7 @@ def fill_template(weekday_key: str, data: dict, target_date: date, spot: Spot) -
         "{intro_text}": intro,
         "{spot_name}": spot.name,
         "{beta_notice}": beta_notice,
-        # 入力シートD列「ひとこと（イベントなど）」。空なら何も出さない（2026-11-15）
+        # 入力シートF列「ひとこと（イベントなど）」。空なら何も出さない（2026-11-15）
         "{spot_memo_block}": (f'<p style="font-size:1em; color:#333; margin:14px 0 0; line-height:1.7; background:#fff; '
                               f'border-radius:8px; padding:10px 14px; text-align:left;">📅 {_html_escape(getattr(spot, "memo", "") or "")}</p>'
                               if (getattr(spot, "memo", "") or "").strip() else ""),

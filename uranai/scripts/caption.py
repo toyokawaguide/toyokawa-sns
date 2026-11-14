@@ -52,7 +52,7 @@ def _chain(name: str, is_chain: bool) -> str:
 
 
 def _memo(spot) -> str:
-    """入力シートD列「ひとこと（イベントなど）」→ キャプション用の1行（空なら空）。2026-11-15"""
+    """入力シートF列「ひとこと（イベントなど）」→ キャプション用の1行（空なら空）。2026-11-15"""
     m = (getattr(spot, "memo", "") or "").strip()
     return f"\n📅{m}" if m else ""
 

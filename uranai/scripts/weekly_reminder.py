@@ -276,7 +276,7 @@ def main():
     # 0. ラッキースポット入力チェック（社長が見落とさないよう冒頭配置）
     lines.append("【0】翌週ラッキースポット入力チェック（月〜日）")
     lines.append("-" * 40)
-    lines.append(f"  対象: {next_monday}（月）〜 {next_monday + timedelta(days=6)}（日） ※D列「ひとこと」は任意")
+    lines.append(f"  対象: {next_monday}（月）〜 {next_monday + timedelta(days=6)}（日） ※F列「ひとこと（イベントなど）」は任意")
     src_label = {"sheets": "Google Sheets"}.get(src, "🚨 取得失敗（Sheets参照不可）")
     lines.append(f"  データソース: {src_label}")
     if src != "sheets":

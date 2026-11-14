@@ -582,7 +582,7 @@ def _scene_spot(target_date: date, lucky_spot: dict, *,
     d.text((box_cx - (nb[2] - nb[0]) // 2, box_y + 220),
            name, font=nf, fill=BLUE)
     # エリア表示は削除
-    # ひとこと（入力シートD列・イベントなど）。薄い黄色の帯に📅付きで（2026-11-15）
+    # ひとこと（入力シートF列・イベントなど）。薄い黄色の帯に📅付きで（2026-11-15）
     if memo_lines:
         lh = int(memo_font.size * 1.45)
         my = box_y + 390

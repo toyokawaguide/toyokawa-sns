@@ -108,7 +108,8 @@ def lookup_input_sheet(wb, target_date: date) -> Spot | None:
         A: 配信日
         B: スポット名
         C: チェーン店?（空欄でない=チェーン店扱い）
-        D: ひとこと（イベントなど）… 記事・SNSにそのまま添える（2026-11-15 追加・空なら何もしない）
+        D: 重複チェック（式）／E: 類似チェック（式）… 読まない
+        F: ひとこと（イベントなど）… 記事・SNS・リールに添える（2026-11-15 追加・空なら何もしない）
     """
     rows = _get_rows(wb, INPUT_SHEET)
     if rows is None:
@@ -128,7 +129,7 @@ def lookup_input_sheet(wb, target_date: date) -> Spot | None:
             name = str(r[1] or "").strip()
             chain_flag = str(r[2] or "").strip() if len(r) > 2 else ""
             is_chain = bool(chain_flag)  # 何か入力されてれば True
-            memo = str(r[3] or "").strip() if len(r) > 3 else ""
+            memo = str(r[5] or "").strip() if len(r) > 5 else ""   # F列（D・E列は重複/類似チェックの式なので使わない）
             if not name:
                 return None
             return Spot(name=name, is_chain=is_chain, source="input", memo=memo)
