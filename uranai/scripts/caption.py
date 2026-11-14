@@ -435,3 +435,23 @@ def make_instagram_reel_caption(weekday_key: str, data: dict, spot, target_date:
         return _make_instagram_caption_top3(weekday_key, data, spot, target_date)
 
     return ""
+
+
+# ============================================================
+# 2026-11-15 日曜の入力が空のとき（スポット名が空）は、本日のスポットの行とおさらいの日曜の行を出さない
+# ============================================================
+def _wrap_sun(fn):
+    def w(weekday_key, data, spot, target_date, *a, **k):
+        t = fn(weekday_key, data, spot, target_date, *a, **k)
+        if weekday_key == "sun" and not (getattr(spot, "name", "") or "").strip():
+            t = re.sub(r"🦊本日(（日曜）)?のラッキースポット\n[^\n]*(\n📅[^\n]*)?\n\n", "", t)
+            t = re.sub(r"\n・\d+/\d+\(日\) *(?=\n)", "", t)
+        return t
+    w.__name__ = fn.__name__
+    return w
+
+
+make_x_caption = _wrap_sun(make_x_caption)
+make_threads_caption = _wrap_sun(make_threads_caption)
+make_instagram_caption = _wrap_sun(make_instagram_caption)
+make_instagram_reel_caption = _wrap_sun(make_instagram_reel_caption)

@@ -503,6 +503,9 @@ def fill_template(weekday_key: str, data: dict, target_date: date, spot: Spot) -
         # 2026-11-15 日曜（今日）もおさらいに入れる
         placeholders["{spot_sun}"] = (f"お近くの{spot.name}" if getattr(spot, "is_chain", False) else spot.name) or "-"
         placeholders["{date_sun}"] = f"{target_date.month}/{target_date.day}"
+        if not (spot.name or "").strip():   # 日曜の入力が空 → 今までどおり（箱も日曜の行も出さない）
+            template = "\n".join(ln for ln in template.split("\n")
+                                  if "【本日（日曜）のラッキースポット】" not in ln and "{date_sun}（日曜）" not in ln)
     elif weekday_key in ("fri", "sat"):
         # 金/土：TOP10（stars はアイキャッチと同じ get_top10_stars(seed) を使う）
         from uranai_fri_sat import get_top10_stars, format_star_score

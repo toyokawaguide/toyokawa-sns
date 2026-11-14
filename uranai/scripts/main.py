@@ -717,7 +717,10 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
     # ---------- Step 1: ラッキースポット選定 ----------
     print("[1/7] ラッキースポット選定")
     spot = select_lucky_spot(target_date)
-    print(f"  → {spot.name} (is_chain={spot.is_chain}, source={spot.source})")
+    if weekday_key == "sun" and spot.source != "input":
+        # 2026-11-15 日曜は入力シートに書いたときだけ「本日のラッキースポット」を出す（空ならマスタから選ばず、今までどおり振り返りだけ）
+        spot.name, spot.memo = "", ""
+    print(f"  → {spot.name or '（日曜・入力なし＝スポットを出さない）'} (is_chain={spot.is_chain}, source={spot.source})")
     result["steps"]["spot"] = {"name": spot.name, "is_chain": spot.is_chain, "source": spot.source}
 
     # ---------- Step 2: 文脈ヒント生成 ----------
@@ -775,7 +778,7 @@ def run_pipeline(target_date: date, dry: bool = False, publish: bool = False,
             print(f"  [warn] IG2枚目生成失敗（1枚で続行）: {e_ig2}")
             ig2_img = None
         # 2026-11-15 日曜：1枚目＝本日（日曜）のスポット、2枚目＝今週のまとめ（日曜入り）。失敗したら今までどおり1枚
-        if weekday_key == "sun":
+        if weekday_key == "sun" and spot.name:
             try:
                 from uranai_sunday import generate_sunday_spot_card, generate_sunday_instagram
                 from generate_image import _finalize_ig_image
