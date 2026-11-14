@@ -1,42 +1,38 @@
 {
-  "captured_at": "2026-11-14T06:20:51.229613+09:00",
-  "captured_date": "2026-11-14",
+  "captured_at": "2026-11-15T04:51:03.132175+09:00",
+  "captured_date": "2026-11-15",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-14": {
-      "name": "メキシポン",
-      "is_chain": false
-    },
     "2026-11-15": {
-      "name": null,
+      "name": "魚福屋",
       "is_chain": false
     },
     "2026-11-16": {
-      "name": null,
+      "name": "セブンイレブン",
       "is_chain": false
     },
     "2026-11-17": {
-      "name": null,
+      "name": "縁結びカフェ スイート・ファイン",
       "is_chain": false
     },
     "2026-11-18": {
-      "name": null,
+      "name": "Plaza A 豊川店",
       "is_chain": false
     },
     "2026-11-19": {
-      "name": null,
+      "name": "東京庵",
       "is_chain": false
     },
     "2026-11-20": {
-      "name": null,
+      "name": "HOANG NAM FOODS",
       "is_chain": false
     },
     "2026-11-21": {
-      "name": null,
+      "name": "Bee Terrace",
       "is_chain": false
     },
     "2026-11-22": {
-      "name": null,
+      "name": "香味食彩 たま",
       "is_chain": false
     },
     "2026-11-23": {
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-14": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-15": {
       "name": null,
       "is_chain": false
     }
