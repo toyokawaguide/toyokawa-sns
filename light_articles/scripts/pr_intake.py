@@ -246,6 +246,9 @@ def send_preview(row: dict, title: str, body: str, img: Path, *, dry: bool,
 
     msg = EmailMessage()
     msg["To"] = to
+    if not GMAIL_USER:   # ★2026-11-14 PR019: 空のまま送ると控えが社長に届かない（ローカル.envに無かった）→送らずに止める
+        log("🛑 GMAIL_USER が空のため送りません（控えが社長に届かなくなる）。.env を確認してください", 1)
+        return False
     msg["Bcc"] = GMAIL_USER                      # 送った控えを社長にも残す
     msg["Subject"] = f"【{SITE}】さくっとPR 完成イメージのご確認（{pid}・{shop}）"
     msg.set_content(text)
@@ -281,6 +284,9 @@ def send_reply(row: dict, subject: str, text: str, attachments: list[Path], *,
         return False
     msg = EmailMessage()
     msg["To"] = to
+    if not GMAIL_USER:   # ★2026-11-14 PR019: 空のまま送ると控えが社長に届かない（ローカル.envに無かった）→送らずに止める
+        log("🛑 GMAIL_USER が空のため送りません（控えが社長に届かなくなる）。.env を確認してください", 1)
+        return False
     msg["Bcc"] = GMAIL_USER
     msg["Subject"] = subject
     if in_reply_to:
