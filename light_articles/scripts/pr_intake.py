@@ -350,6 +350,10 @@ def main():
             log(f"❌ 失敗: {e}", 1)
 
     log(f"\n完了: {ok} / {len(targets)}")
+    # ★2026-11-14 PR019: 送信エラーを握りつぶして「成功」で終わり、申込者を20時間待たせた。
+    #   1件でも失敗したら終了コード1にする → GHAが赤＋失敗通知（処理対象が1件以上あるため）
+    if not args.dry and ok < len(targets):
+        sys.exit(1)
 
 
 if __name__ == "__main__":
