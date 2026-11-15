@@ -165,8 +165,13 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         pr_eyecatch.render_45(row, photo_path=None, output_path=design_card_path)
         log(f"🎨 表紙はチラシ（{poster.name}）→ IG1枚目＝チラシ・2枚目＝デザインカード", 1)
     else:
-        pr_eyecatch.render_169(row, photo_path=(ec_photo or first_photo), output_path=eyecatch_path)
-        log(f"🎨 アイキャッチ16:9（{'一枚の札' if first_photo else '額ぶち'}）: {eyecatch_path.name}", 1)
+        if "アイキャッチもチラシ" in (row.get("備考") or "") and photos:
+            # ★2026-11-15 PR019：16:9の文字がキービジュアルのタイトルに重なる→記事の先頭だけチラシを切らずに出す（IG表紙は一枚の札のまま）
+            pr_eyecatch.render_169_poster(row, photos[0], output_path=eyecatch_path)
+            log(f"🎨 アイキャッチ16:9（チラシ版・{photos[0].name}）: {eyecatch_path.name}", 1)
+        else:
+            pr_eyecatch.render_169(row, photo_path=(ec_photo or first_photo), output_path=eyecatch_path)
+            log(f"🎨 アイキャッチ16:9（{'一枚の札' if first_photo else '額ぶち'}）: {eyecatch_path.name}", 1)
         pr_eyecatch.render_45(row, photo_path=first_photo, output_path=ig_feed_path)
         log(f"📷 IG Feed 4:5（{'一枚の札' if first_photo else '額ぶち'}）: {ig_feed_path.name}", 1)
 

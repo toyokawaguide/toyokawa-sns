@@ -687,8 +687,9 @@ def render_169_poster(row: dict, photo_path, output_path=None) -> Image.Image:
     src = ImageOps.exif_transpose(Image.open(photo_path)).convert("RGB")
     bg = ImageOps.fit(src, (W, H)).filter(ImageFilter.GaussianBlur(28))
     bg = Image.blend(bg, Image.new("RGB", (W, H), (255, 255, 255)), 0.35).convert("RGBA")
-    ph = src.copy()
-    ph.thumbnail((W - 120, H - 110), Image.LANCZOS)
+    # ★2026-11-15 PR019：thumbnail は拡大しない→小さい画像（横800px級）が真ん中にちょこんと載った。枠いっぱいまで拡大する
+    k = min((W - 120) / src.width, (H - 110) / src.height)
+    ph = src.resize((max(1, round(src.width * k)), max(1, round(src.height * k))), Image.LANCZOS)
     x, y = (W - ph.width) // 2, (H - ph.height) // 2 - 14
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     ImageDraw.Draw(sh).rounded_rectangle((x + 6, y + 10, x + ph.width + 6, y + ph.height + 10), 14, fill=(0, 0, 0, 70))
