@@ -95,7 +95,7 @@ def main():
     for ci, chunk in enumerate(chunks):
         B = Image.new("RGB", (card.width * len(chunk) + G * (len(chunk) + 1), card.height + T + G * 2), (255, 255, 255)); db = ImageDraw.Draw(B)
         a0, a1 = ci * PER + 1, ci * PER + len(chunk)
-        ttl = f"Instagramで使う画像（{a0}枚目〜{a1}枚目）" if len(chunks) > 1 else "Instagramで使う画像（左から1枚目・2枚目…）"
+        ttl = f"Instagramで使う画像（{a0}枚目〜{a1}枚目）" if len(chunks) > 1 else ("Instagramで使う画像（左から1枚目・2枚目…）" if len(pics) > 1 else "Instagramで使う画像（1枚）")
         draw_runs(db, G, 22, ttl, 32, (20, 40, 90), bold=True)
         for k, pic in enumerate(chunk): B.paste(pic, (G + k * (card.width + G), T + G))
         outB = _versioned(D / f"{ID} Instagram確認用-{ci + 1}.png")
