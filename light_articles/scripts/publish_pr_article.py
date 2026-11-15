@@ -269,6 +269,10 @@ def process_row(row_index: int, row: dict, *, dry_run: bool, use_draft: bool,
         if "表紙写真はカルーセルなし" in (row.get("備考") or "") and first_photo is not None and first_photo in carousel_photos:
             carousel_photos = [p for p in carousel_photos if p != first_photo]
             log("🔁 表紙写真をカルーセルから外す（備考指定）", 1)
+        # ★2026-11-15 PR019：備考「IGは1枚だけ」→ 表紙カードだけの単発投稿（届いた画像が1枚で、表紙に全部入っているとき）
+        if "IGは1枚だけ" in (row.get("備考") or ""):
+            carousel_photos = []
+            log("🔁 IGは1枚だけ（備考指定）→ カルーセルにしない", 1)
         # IGカルーセルは1投稿10枚まで。1枚目がPRカードなので写真は9枚が上限で、
         # それを超えた分は post_instagram_feed_carousel 側で黙って切られる。
         # 気づかないまま「送ったのに載っていない」が起きるので警告を出す（2026-08-14）
