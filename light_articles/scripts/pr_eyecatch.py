@@ -410,7 +410,13 @@ def render_45(row: dict, photo_path=None, output_path=None):
         PX, PW, PH = 140, W - 280, 1100 - PY
         rounded_photo(im, photo, PX, PY, PW, PH, 18, photo_fy(row), photo_zoom(row))
         d.rounded_rectangle((PX, PY, PX + PW, PY + PH), 18, outline=hx(t["accent"]), width=4)
-        if st["addr"]:
+        when = (row.get("営業時間") or "").strip() if _is_event_row(row) else ""
+        if when and st["addr"]:
+            # ★2026-11-15 PR019 社長「開催時期・開催場所を1枚目の下に入れた方が分かりやすい」→ イベントは2行で出す
+            for txt, yy in ((f"開催時期：{when}", 1168), (f"開催場所：{st['addr']}", 1222)):
+                f = fit_one(d, txt, FONT_BOLD, 34, W - 240, 22)
+                d.text((W // 2, yy), txt, font=f, fill=hx(t["ink"]), anchor="ms")
+        elif st["addr"]:
             f = fit_one(d, st["addr"], FONT_BOLD, 34, W - 300, 22)
             d.text((W // 2, 1180), st["addr"], font=f, fill=hx(t["sub"]), anchor="ms")
         # クレジットは札の枠の内側に（枠かぶり対策 2026-08-05）
