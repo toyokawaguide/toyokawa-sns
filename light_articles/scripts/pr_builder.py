@@ -484,7 +484,10 @@ def _ig_handles(row: dict) -> list:
 
 def _ig_line(row: dict) -> str:
     hs = _ig_handles(row)
-    return ("📷 お店のInstagram：" + " / ".join("@" + h for h in hs)) if hs else ""
+    # ★2026-11-15 PR019：イベントは「お店の」ではない／問い合わせ（📩 …DMへ）に同じ@が出るなら重ねて出さない
+    if hs and all(("@" + h) in (_contact(row) + _contact(row, "ig")) for h in hs):
+        return ""
+    return (("📷 主催者のInstagram：" if _is_event(row) else "📷 お店のInstagram：") + " / ".join("@" + h for h in hs)) if hs else ""
 
 
 def build_pr_threads_caption(row: dict, wp_url: str) -> str:
