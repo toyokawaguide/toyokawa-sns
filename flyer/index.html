@@ -29,7 +29,7 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
 .topv{position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;background:#e60012;color:#fff;font-weight:900;font-size:15px;border:0;border-radius:24px;padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .tomk{display:block;margin:4mm auto 10mm;background:#fff;color:#111;font-weight:900;font-size:15px;border:2px solid #111;border-radius:22px;padding:8px 18px}
 .prevtitle .pvhint{display:block;font-size:12px;font-weight:700;opacity:.85}
-@media print{html,body{background:#fff}.pv{display:block!important;height:auto!important;overflow:visible!important;position:static!important}.page{margin:0;box-shadow:none;break-after:page}.noprint{display:none!important}}
+@media print{html,body{background:#fff}.pv{display:block!important;height:auto!important;overflow:visible!important;position:static!important}.page{margin:0;box-shadow:none;break-after:page}.page{zoom:.95;margin:7.8mm auto 0}.noprint{display:none!important}}
 .stroke{paint-order:stroke fill;-webkit-text-stroke:var(--sw,6px) var(--sc,#111)}
 
 /* ===== ヘッダー（放射＋袋文字） ===== */
@@ -257,14 +257,14 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
 .maker .mini{width:100%}
 .maker .mini .mi{position:absolute;left:0;top:0;transform-origin:0 0}
 .maker .mini .mi .sbox{position:absolute;inset:0;overflow:hidden}
-.house{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:3mm;padding:3.5mm;background:#fffbe0}
-.house .hc{border:.8mm solid #111;border-radius:2.5mm;background:#fff;padding:4mm 5mm;display:flex;flex-direction:column;gap:3mm;overflow:hidden}
+.house{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:3mm;padding:3mm;background:#fffbe0}
+.house .hc{border:.8mm solid #111;border-radius:2.5mm;background:#fff;padding:3.5mm 5mm;display:flex;flex-direction:column;justify-content:center;gap:2.5mm;overflow:hidden}   /* 2026-11-18 社長「宣伝なしの微妙な余白」→ 上下中央にそろえる・左の枠のはみ出しを解消 */
 .house .hl{background:#fff;border-color:#06c755;border-width:1.2mm}.house .hl .ht{color:#e60012}.house .hl .hn b{color:#06a64a}.house .hl .lb{align-self:flex-start;background:#06c755;color:#fff;font-weight:900;font-size:4mm;padding:.6mm 3mm;border-radius:5mm}.house .hl .hq .q{width:27mm;height:27mm;padding:0}.house .hq .q img{width:100%;height:100%;display:block}
-.house .ht{font-family:"Dela Gothic One";font-size:9mm;line-height:1.15;color:#e60012}
+.house .ht{font-family:"Dela Gothic One";font-size:8mm;line-height:1.12;color:#e60012}
 .house .hr .ht{color:#0b2f7a}
-.house .hp{font-weight:700;font-size:3.6mm;line-height:1.6}
+.house .hp{font-weight:700;font-size:3.4mm;line-height:1.55}
 .house .hp b{color:#e60012}
-.house .hq{margin-top:auto;display:flex;align-items:center;gap:4mm}
+.house .hq{margin-top:1mm;display:flex;align-items:center;gap:4mm}
 .house .hq .q{width:24mm;height:24mm;background:#fff;padding:1mm;flex:none}
 .house .hq .q svg{width:100%;height:100%;display:block}
 .house .hn{font-weight:900;font-size:4mm;line-height:1.45}
