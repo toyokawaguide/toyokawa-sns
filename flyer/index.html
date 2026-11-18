@@ -134,12 +134,12 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
 .qi .n{font-size:2.15mm;font-weight:700;line-height:1.25;margin-top:.6mm;height:5.4mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .qi .n .qd{font-weight:900;color:var(--c);margin-right:.6mm}   /* 2026-11-15 社長「QRにも日付を」 */
 .qi .n i{font-style:normal;color:#fff;background:var(--c);font-weight:900;padding:0 .8mm;margin-right:.6mm}
-.adwrap{flex:1;min-height:0;display:flex;flex-direction:column;margin:0 4mm;border:1mm solid #111}
-.adwarn{flex:none;display:flex;align-items:center;gap:2.5mm;background:#fff;border-bottom:.6mm solid #111;padding:1.6mm 3mm}
-.adwarn .tag{flex:none;background:#111;color:#fff;font-weight:900;font-size:4mm;line-height:1;padding:1.4mm 2.6mm;letter-spacing:.1em}
-.adwarn .tx{font-size:3.1mm;font-weight:700;line-height:1.45;color:#111}
-.adwarn .tx b{font-weight:900;color:var(--red)}
-.ad{flex:1;min-height:0;position:relative;overflow:hidden}
+.sbwrap{flex:1;min-height:0;display:flex;flex-direction:column;margin:0 4mm;border:1mm solid #111}
+.sbnote{flex:none;display:flex;align-items:center;gap:2.5mm;background:#fff;border-bottom:.6mm solid #111;padding:1.6mm 3mm}
+.sbnote .tag{flex:none;background:#111;color:#fff;font-weight:900;font-size:4mm;line-height:1;padding:1.4mm 2.6mm;letter-spacing:.1em}
+.sbnote .tx{font-size:3.1mm;font-weight:700;line-height:1.45;color:#111}
+.sbnote .tx b{font-weight:900;color:var(--red)}
+.sbox{flex:1;min-height:0;position:relative;overflow:hidden}
 .bk-ft{flex:none;display:flex;align-items:center;gap:3mm;padding:2mm 4mm;margin-top:2mm;background:var(--navy);color:#fff}
 .bk-ft .qr{width:16mm;height:16mm;background:#fff;padding:.7mm;flex:none}
 .bk-ft .qr svg{width:100%;height:100%;display:block}
@@ -148,56 +148,56 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
 .bk-ft .take{margin-left:auto;background:#fff;color:var(--red);font-weight:900;font-size:3.6mm;padding:1.5mm 3mm;border-radius:6mm;flex:none}
 
 /* ===== 宣伝枠のパターン（A〜D）。--ac=お店が選んだ色、--k=文字の縮み ===== */
-.adx{position:absolute;inset:0;background:#fff;--k:1}
-.adx .pr{display:inline-block;font-weight:900;font-size:calc(3mm*var(--k));border:.5mm solid #111;padding:.1mm 2mm;background:#fff;color:#111;line-height:1.4;flex:none}
-.adx .shop{font-family:"Dela Gothic One";font-size:calc(8.5mm*min(var(--k),1.1));line-height:1.15;color:var(--adink);word-break:keep-all;overflow-wrap:anywhere}
-.adx .catch,.adx .msg,.adx .cp,.card .tx{word-break:auto-phrase;text-wrap:pretty}
-.adx .catch{font-weight:900;font-size:calc(5.2mm*var(--k));line-height:1.35}
-.adx .msg{font-size:calc(3.5mm*var(--k));font-weight:500;line-height:1.6;white-space:pre-wrap}
-.adx .cp{background:var(--yel);border:.7mm dashed var(--adink);padding:calc(2mm*var(--k));font-weight:900;font-size:calc(4.4mm*var(--k));color:var(--adink);text-align:center;line-height:1.35}
-.adx .cp small{display:block;font-size:calc(2.8mm*var(--k));color:#111}
-.adx .info{font-size:calc(3.1mm*var(--k));font-weight:700;line-height:1.55;white-space:pre-wrap}
-.adx .sq{width:20mm;flex:none;text-align:center;font-size:2.3mm;font-weight:900}
-.adx .sq svg{width:20mm;height:20mm;display:block}
-.adx .bot{display:flex;align-items:flex-end;gap:3mm}
-.adx .ph{position:relative;overflow:hidden;background:#f2f2f2}
-.adx .ph .bl{position:absolute;inset:-6mm;background:center/cover no-repeat;filter:blur(3mm);opacity:.55}
-.adx .ph img{position:absolute;inset:1.5mm;width:calc(100% - 3mm);height:calc(100% - 3mm);object-fit:contain;filter:drop-shadow(0 .4mm 1mm rgba(0,0,0,.25))}
-.adx .ph .pr{position:absolute;right:2mm;top:2mm;z-index:2}
+.sbx{position:absolute;inset:0;background:#fff;--k:1}
+.sbx .pr{display:inline-block;font-weight:900;font-size:calc(3mm*var(--k));border:.5mm solid #111;padding:.1mm 2mm;background:#fff;color:#111;line-height:1.4;flex:none}
+.sbx .shop{font-family:"Dela Gothic One";font-size:calc(8.5mm*min(var(--k),1.1));line-height:1.15;color:var(--adink);word-break:keep-all;overflow-wrap:anywhere}
+.sbx .catch,.sbx .msg,.sbx .cp,.card .tx{word-break:auto-phrase;text-wrap:pretty}
+.sbx .catch{font-weight:900;font-size:calc(5.2mm*var(--k));line-height:1.35}
+.sbx .msg{font-size:calc(3.5mm*var(--k));font-weight:500;line-height:1.6;white-space:pre-wrap}
+.sbx .cp{background:var(--yel);border:.7mm dashed var(--adink);padding:calc(2mm*var(--k));font-weight:900;font-size:calc(4.4mm*var(--k));color:var(--adink);text-align:center;line-height:1.35}
+.sbx .cp small{display:block;font-size:calc(2.8mm*var(--k));color:#111}
+.sbx .info{font-size:calc(3.1mm*var(--k));font-weight:700;line-height:1.55;white-space:pre-wrap}
+.sbx .sq{width:20mm;flex:none;text-align:center;font-size:2.3mm;font-weight:900}
+.sbx .sq svg{width:20mm;height:20mm;display:block}
+.sbx .bot{display:flex;align-items:flex-end;gap:3mm}
+.sbx .ph{position:relative;overflow:hidden;background:#f2f2f2}
+.sbx .ph .bl{position:absolute;inset:-6mm;background:center/cover no-repeat;filter:blur(3mm);opacity:.55}
+.sbx .ph img{position:absolute;inset:1.5mm;width:calc(100% - 3mm);height:calc(100% - 3mm);object-fit:contain;filter:drop-shadow(0 .4mm 1mm rgba(0,0,0,.25))}
+.sbx .ph .pr{position:absolute;right:2mm;top:2mm;z-index:2}
 /* 写真は形のまま・切らない。max-width と max-height の両方で縛ると、縦横の比率を保ったまま一番大きく入る */
-.adx .pic{display:block;max-width:100%;max-height:100%;width:auto;height:auto;border:.5mm solid #fff;box-shadow:0 .4mm 1.6mm rgba(0,0,0,.3);background:#fff}
-.adx .pw{display:flex;align-items:flex-start;justify-content:center;min-width:0;min-height:0;flex:none}
+.sbx .pic{display:block;max-width:100%;max-height:100%;width:auto;height:auto;border:.5mm solid #fff;box-shadow:0 .4mm 1.6mm rgba(0,0,0,.3);background:#fff}
+.sbx .pw{display:flex;align-items:flex-start;justify-content:center;min-width:0;min-height:0;flex:none}
 /* A：写真が左（写真の形で幅が決まる） */
-.adA{display:flex;gap:3mm;padding:3mm;background:var(--tint,#fff)}
-.adA .pw{max-width:56%;height:100%}
-.adA .r{flex:1;min-width:0;display:flex;flex-direction:column;gap:calc(1.6mm*var(--k));overflow:hidden}
-.adA .bot{margin-top:auto}
-.adA .lc{display:flex;flex-direction:column;gap:2.5mm;max-width:56%;min-width:0;flex:none}
-.adA .lc .pw{max-width:100%;flex:0 1 auto;min-height:0;justify-content:flex-start}
-.adA .lc .info{flex:none;border-top:.5mm solid var(--adink);padding-top:1.5mm}
+.sbA{display:flex;gap:3mm;padding:3mm;background:var(--tint,#fff)}
+.sbA .pw{max-width:56%;height:100%}
+.sbA .r{flex:1;min-width:0;display:flex;flex-direction:column;gap:calc(1.6mm*var(--k));overflow:hidden}
+.sbA .bot{margin-top:auto}
+.sbA .lc{display:flex;flex-direction:column;gap:2.5mm;max-width:56%;min-width:0;flex:none}
+.sbA .lc .pw{max-width:100%;flex:0 1 auto;min-height:0;justify-content:flex-start}
+.sbA .lc .info{flex:none;border-top:.5mm solid var(--adink);padding-top:1.5mm}
 /* B：文字が主役（上に色の帯で お店の名前＋キャッチを大きく、写真は右下に小さめ） */
-.adB{display:flex;flex-direction:column}
-.adB .hero{flex:none;background:var(--ac);color:var(--on);padding:3mm 5mm calc(3.5mm*var(--k));display:flex;flex-direction:column;gap:calc(1.2mm*var(--k))}
-.adB .hero .top1{display:flex;align-items:center;gap:3mm}
-.adB .hero .shop{color:var(--on);font-size:calc(7mm*min(var(--k),1.1))}
-.adB .hero .catch{color:var(--on);font-size:calc(8mm*var(--k));line-height:1.3}
-.adB .hero .catch span{background:linear-gradient(transparent 72%,rgba(255,255,255,.28) 72%)}
-.adB .bd{flex:1;min-height:0;display:flex;gap:4mm;padding:3mm 4mm}
-.adB .bd .lt{flex:1;min-width:0;display:flex;flex-direction:column;gap:calc(1.8mm*var(--k));overflow:hidden}
-.adB .bd .lt .bot{margin-top:auto}
-.adB .bd .pw{max-width:38%;height:100%;align-items:center}
+.sbB{display:flex;flex-direction:column}
+.sbB .hero{flex:none;background:var(--ac);color:var(--on);padding:3mm 5mm calc(3.5mm*var(--k));display:flex;flex-direction:column;gap:calc(1.2mm*var(--k))}
+.sbB .hero .top1{display:flex;align-items:center;gap:3mm}
+.sbB .hero .shop{color:var(--on);font-size:calc(7mm*min(var(--k),1.1))}
+.sbB .hero .catch{color:var(--on);font-size:calc(8mm*var(--k));line-height:1.3}
+.sbB .hero .catch span{background:linear-gradient(transparent 72%,rgba(255,255,255,.28) 72%)}
+.sbB .bd{flex:1;min-height:0;display:flex;gap:4mm;padding:3mm 4mm}
+.sbB .bd .lt{flex:1;min-width:0;display:flex;flex-direction:column;gap:calc(1.8mm*var(--k));overflow:hidden}
+.sbB .bd .lt .bot{margin-top:auto}
+.sbB .bd .pw{max-width:38%;height:100%;align-items:center}
 /* C：写真なし。お店の色の地に白いカード */
-.adC{background:var(--ac)}
-.adC .card2{position:absolute;inset:3.5mm;background:#fff;border-radius:2.5mm;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:calc(1.8mm*var(--k)) 5mm;padding:4.5mm 6mm;overflow:hidden}
-.adC .hd2{grid-column:1/-1;display:flex;align-items:center;gap:3mm;border-bottom:.6mm solid var(--adink);padding-bottom:calc(1.5mm*var(--k))}
-.adC .shop{font-size:calc(9.5mm*min(var(--k),1.1))}
-.adC .mainc{display:flex;flex-direction:column;justify-content:center;gap:calc(2.6mm*var(--k));min-height:0;overflow:hidden}
-.adC .catch{font-size:calc(6.4mm*var(--k));line-height:1.35}
-.adC .catch span{background:linear-gradient(transparent 62%,#fff38a 62%)}
-.adC .side2{display:flex;flex-direction:column;justify-content:center;gap:3mm;max-width:62mm}
-.adC .ft2{grid-column:1/-1;display:flex;align-items:flex-end;gap:4mm}
-.adC .ft2 .info{flex:1}
-.ad .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2mm;background:#fffbe0;text-align:center}
+.sbC{background:var(--ac)}
+.sbC .card2{position:absolute;inset:3.5mm;background:#fff;border-radius:2.5mm;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:calc(1.8mm*var(--k)) 5mm;padding:4.5mm 6mm;overflow:hidden}
+.sbC .hd2{grid-column:1/-1;display:flex;align-items:center;gap:3mm;border-bottom:.6mm solid var(--adink);padding-bottom:calc(1.5mm*var(--k))}
+.sbC .shop{font-size:calc(9.5mm*min(var(--k),1.1))}
+.sbC .mainc{display:flex;flex-direction:column;justify-content:center;gap:calc(2.6mm*var(--k));min-height:0;overflow:hidden}
+.sbC .catch{font-size:calc(6.4mm*var(--k));line-height:1.35}
+.sbC .catch span{background:linear-gradient(transparent 62%,#fff38a 62%)}
+.sbC .side2{display:flex;flex-direction:column;justify-content:center;gap:3mm;max-width:62mm}
+.sbC .ft2{grid-column:1/-1;display:flex;align-items:flex-end;gap:4mm}
+.sbC .ft2 .info{flex:1}
+.sbox .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2mm;background:#fffbe0;text-align:center}
 
 /* ===== 作成ページ（入力欄）。印刷には出ない ===== */
 .maker{max-width:210mm;margin:6mm 6px 0;margin-left:auto;margin-right:auto;background:#fff;border-radius:3mm;padding:5mm 6mm;font-size:15px;line-height:1.6;color:#111}
@@ -256,7 +256,7 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
 .maker .mini{border:2px solid #111;background:#fffbe0;overflow:hidden;position:relative}
 .maker .mini{width:100%}
 .maker .mini .mi{position:absolute;left:0;top:0;transform-origin:0 0}
-.maker .mini .mi .ad{position:absolute;inset:0;overflow:hidden}
+.maker .mini .mi .sbox{position:absolute;inset:0;overflow:hidden}
 .house{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:3mm;padding:3.5mm;background:#fffbe0}
 .house .hc{border:.8mm solid #111;border-radius:2.5mm;background:#fff;padding:4mm 5mm;display:flex;flex-direction:column;gap:3mm;overflow:hidden}
 .house .hl{background:#fff;border-color:#06c755;border-width:1.2mm}.house .hl .ht{color:#e60012}.house .hl .hn b{color:#06a64a}.house .hl .lb{align-self:flex-start;background:#06c755;color:#fff;font-weight:900;font-size:4mm;padding:.6mm 3mm;border-radius:5mm}.house .hl .hq .q{width:27mm;height:27mm;padding:0}.house .hq .q img{width:100%;height:100%;display:block}
@@ -430,9 +430,9 @@ function back(){
   document.getElementById("back").innerHTML = `
   <div class="bk-hd"><h2>スマホで続きを読む！</h2><p>${D.label}の全${D.total||items.length}本<br>QRコードを読み取ると記事が開きます</p></div>
   <div class="qrs" style="grid-template-columns:repeat(${Math.max(6,Math.ceil(items.length/6))},1fr)">${qrs}</div>
-  <div class="adwrap">
-    ${NOAD()?"":`<div class="adwarn"><span class="tag">広告</span><span class="tx"><b>このスペースはお店の広告（PR）です。</b>内容は掲載店が作成したもので、豊川ガイドが確認・保証したものではありません。</span></div>`}
-    <div class="ad">${ad}</div>
+  <div class="sbwrap">
+    ${NOAD()?"":`<div class="sbnote"><span class="tag">広告</span><span class="tx"><b>このスペースはお店の広告（PR）です。</b>内容は掲載店が作成したもので、豊川ガイドが確認・保証したものではありません。</span></div>`}
+    <div class="sbox">${ad}</div>
   </div>
   <div class="bk-ft">
     <div class="qr">${qrSvg(INTRO)}</div>
@@ -456,14 +456,14 @@ function HOUSE(){
 }
 const ADS = {
   get D(){ return this.A; },   // 2026-11-14 クーポン券つき(D)は廃止。保存済みでDの人はAで出す
-  A: a => `<div class="adx adA">${a.photo?`<div class="lc">${pic(a.photo)}<div class="info">${info(a)}</div></div>`:''}
+  A: a => `<div class="sbx sbA">${a.photo?`<div class="lc">${pic(a.photo)}<div class="info">${info(a)}</div></div>`:''}
     <div class="r"><div><span class="pr">PR</span></div><div class="shop">${esc(a.shop)}</div><div class="catch">${esc(a.catch)}</div>
     ${a.msg?`<div class="msg">${esc(a.msg)}</div>`:''}${a.coupon?`<div class="cp">${esc(a.coupon)}<small>このチラシを見せてください</small></div>`:''}
     <div class="bot">${a.photo?'<div style="flex:1"></div>':`<div class="info" style="flex:1">${info(a)}</div>`}${sq(a)}</div></div></div>`,
-  B: a => `<div class="adx adB"><div class="hero"><div class="top1"><span class="pr">PR</span><div class="shop">${esc(a.shop)}</div></div><div class="catch"><span>${esc(a.catch)}</span></div></div>
+  B: a => `<div class="sbx sbB"><div class="hero"><div class="top1"><span class="pr">PR</span><div class="shop">${esc(a.shop)}</div></div><div class="catch"><span>${esc(a.catch)}</span></div></div>
     <div class="bd"><div class="lt">${a.msg?`<div class="msg">${esc(a.msg)}</div>`:''}${a.coupon?`<div class="cp">${esc(a.coupon)}<small>このチラシを見せてください</small></div>`:''}
     <div class="bot"><div class="info" style="flex:1">${info(a)}</div>${sq(a)}</div></div>${pic(a.photo)}</div></div>`,
-  C: a => `<div class="adx adC"><div class="card2">
+  C: a => `<div class="sbx sbC"><div class="card2">
     <div class="hd2"><span class="pr">PR</span><div class="shop">${esc(a.shop)}</div></div>
     <div class="mainc"><div class="catch"><span>${esc(a.catch)}</span></div>${a.msg?`<div class="msg">${esc(a.msg)}</div>`:''}</div>
     <div class="side2">${a.coupon?`<div class="cp">${esc(a.coupon)}<small>このチラシを見せてください</small></div>`:''}</div>
@@ -492,26 +492,26 @@ function renderAll(){
 // 宣伝枠だけ描き直す（入力中はこれだけ。チラシ全体は作り直さない）
 function renderAd(){
   setAc();
-  const box=document.querySelector('#back .ad'); if(!box) return;
+  const box=document.querySelector('#back .sbox'); if(!box) return;
   box.innerHTML = adHtml();
   fitAd(); if(window.drawMini) window.drawMini();
 }
 window.renderAd = renderAd;
 // 宣伝枠の文字があふれたら縮める
 function fitAd(){
-  const box=document.querySelector('#back .ad'); const inner=box && box.firstElementChild; if(!inner||!AD||NOAD()) return;
+  const box=document.querySelector('#back .sbox'); const inner=box && box.firstElementChild; if(!inner||!AD||NOAD()) return;
   let k=1.5; inner.style.setProperty('--k',k);
   for(let i=0;i<40 && (inner.scrollHeight>box.clientHeight+1 || [...inner.querySelectorAll('.r,.l,.rt,.lt,.card2,.mainc')].some(e=>e.scrollHeight>e.clientHeight+1));i++){ k-=0.04; inner.style.setProperty('--k',k.toFixed(2)); }
 }
 window.renderAll = renderAll;
 // 作成ページの見本：本物の宣伝枠と同じ大きさで作り、作成ページの幅に縮めて見せる
 window.drawMini = function(){
-  const mini=document.getElementById('mini'); const box=document.querySelector('#back .ad'); if(!mini||!box) return;
+  const mini=document.getElementById('mini'); const box=document.querySelector('#back .sbox'); if(!mini||!box) return;
   const pzv=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pz'))||1;
   const r=box.getBoundingClientRect(); const w=r.width/pzv, h=r.height/pzv; if(!w||!h) return;
   const z=mini.clientWidth/w;
   mini.style.height=(h*z)+'px';
-  mini.innerHTML=`<div class="mi" style="width:${w}px;height:${h}px;transform:scale(${z})"><div class="ad">${box.innerHTML}</div></div>`;
+  mini.innerHTML=`<div class="mi" style="width:${w}px;height:${h}px;transform:scale(${z})"><div class="sbox">${box.innerHTML}</div></div>`;
 };
 window.addEventListener('resize',()=>window.drawMini&&window.drawMini());
 function pz(){ const pv=document.getElementById('pv'); const wide=document.body.classList.contains('mk') && window.innerWidth>=1100; const w=wide&&pv ? pv.clientWidth-16 : document.documentElement.clientWidth; document.documentElement.style.setProperty('--pz', Math.min(1,(w-12)/(210*96/25.4)).toFixed(3)); }
@@ -526,7 +526,7 @@ pz(); window.addEventListener('resize',pz);
   document.getElementById('maker').addEventListener('focusin', e=>{
     if(!(document.body.classList.contains('mk') && window.innerWidth>=1100)) return;
     const pv=document.getElementById('pv'); const tgt = e.target.closest('#arts') ? 'front' : (e.target.closest('.grid2') ? 'back' : null);
-    if(tgt){ const el = tgt==='back' ? (document.querySelector('#back .ad') || document.getElementById('back')) : document.getElementById('front');
+    if(tgt){ const el = tgt==='back' ? (document.querySelector('#back .sbox') || document.getElementById('back')) : document.getElementById('front');
       const top = pv.scrollTop + el.getBoundingClientRect().top - pv.getBoundingClientRect().top - (tgt==='back' ? Math.max(8, (pv.clientHeight - el.getBoundingClientRect().height)/2) : 8);
       pv.scrollTo({top, behavior:'smooth'}); }
   }); })();
