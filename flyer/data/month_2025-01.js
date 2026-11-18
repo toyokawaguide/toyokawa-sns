@@ -1,0 +1,251 @@
+window.FLYER_DATA = {
+ "ym": "2025-01",
+ "label": "2025年1月号",
+ "month": 1,
+ "range": "1/1〜1/31",
+ "built": "2026-11-15",
+ "items": [
+  {
+   "id": 17695,
+   "date": "2025-01-10",
+   "md": "1/10",
+   "kick": "ニューオープン",
+   "head": "２０２５年１月下旬、プリオ１階、小さな一画に何かオープンするらしい。※マムの後釜の話ではない。",
+   "shop": "",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/01/10/newopen_2025_1_prio_1f/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/prio1f_gaikan-768x432.jpg"
+  },
+  {
+   "id": 17984,
+   "date": "2025-01-14",
+   "md": "1/14",
+   "kick": "ニューオープン",
+   "head": "２０２５年２月初旬、プリオ１階、「高価買取おたからや」が出来るみたい。※マムの後釜はまだ分からん。",
+   "shop": "高価買取おたからや",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/01/14/newopen_2025_2_prio1f_otakaraya/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/otakaraya_gaikan-768x432.jpg"
+  },
+  {
+   "id": 18052,
+   "date": "2025-01-16",
+   "md": "1/16",
+   "kick": "移転リニューアルオープン",
+   "head": "閉店した赤ちゃん筆センターの建物を活用して「タカギユニフォーム」が移転してくるぞ！リノベーションを手掛けるのはイトコーだ！！",
+   "shop": "タカギユニフォーム",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/01/16/relocation_renewalopen_akachanhudecenter_takagiuniform_itoko/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/takagiuniform_gaikan-768x432.jpg"
+  },
+  {
+   "id": 18262,
+   "date": "2025-01-18",
+   "md": "1/18",
+   "kick": "ＪＡ跡地の今",
+   "head": "国道１号線沿い、２０２２年３月末に閉館した「やすらぎ会館ごゆ」の跡地に出来るのは物流会社だって。",
+   "shop": "やすらぎ会館ごゆ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/01/18/jaatochinoima_r1_yasuragikaikangoyu/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/lonco_japan_gaikan-768x432.jpg"
+  },
+  {
+   "id": 18340,
+   "date": "2025-01-20",
+   "md": "1/20",
+   "kick": "移転オープン",
+   "head": "佐奈川沿いにあったクレープ屋さん「ｑｕｅｒｏｆｕｎｅ」が、イオン豊川開運通店のすぐ横に移転するぞー！今度は駐車場もある！！",
+   "shop": "ｑｕｅｒｏｆｕｎｅ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/01/20/relocation_renewalopen_querofune_aeon_yoko/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/querofune_iten_gaikan-768x432.jpg"
+  },
+  {
+   "id": 19022,
+   "date": "2025-01-27",
+   "md": "1/27",
+   "kick": "企業版ニューオープン",
+   "head": "三谷原町にあったＦＯＲＢＥＳというフィットネスジム跡地に、「タケヒロレッカー」という会社が出来たって。",
+   "shop": "タケヒロレッカー",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/01/27/company_newopen_miyaharacho_takehirowrecker/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/takehirowrecker_gaikan-768x432.jpg"
+  },
+  {
+   "id": 19249,
+   "date": "2025-01-31",
+   "md": "1/31",
+   "kick": "バーガーキング",
+   "head": "２０２５年１月３０日、ついに豊川市でオープン！乗るしかない、このビッグウェーブに…！！",
+   "shop": "",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/01/31/burgerking_2025_1_30_open_bigwave/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/burgerking_open_2-768x432.jpg"
+  },
+  {
+   "id": 17846,
+   "date": "2025-01-12",
+   "md": "1/12",
+   "kick": "ようこそ大人へ",
+   "head": "２０２５年１月１２日、豊川市の文化会館で「二十歳の集い」が開催されてた。お父さん・お母さん、子育て本当にお疲れ様でした！そして私たちも若かりし頃を思い出そう！",
+   "shop": "二十歳の集い",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2025/01/12/welcome_to_adulthood_2025_1_12_hatachinotsudoi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/hatachinotsudoi_1-768x432.jpg"
+  },
+  {
+   "id": 17070,
+   "date": "2025-01-01",
+   "md": "1/1",
+   "kick": "２０２５年初詣",
+   "head": "県内屈指の参拝客数を誇る豊川稲荷。行き方と駐車場をお伝えします！ついでに寄れる観光スポットはある？",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/01/01/2025_hatsumoude_toyokawainari_directions_parking/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/2025_01_01_top-768x432.jpg"
+  },
+  {
+   "id": 17151,
+   "date": "2025-01-02",
+   "md": "1/2",
+   "kick": "豊川のウワサ",
+   "head": "２０２４年１０月末で閉店した「精文館書店一宮店」の跡地は何が出来る？",
+   "shop": "精文館書店一宮店",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/01/02/toyokawanouwasa_2024_10_close_seibunkanshoten_atochi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/seibunkan_ichinomiya_atochi_gaikan-768x432.jpg"
+  },
+  {
+   "id": 17541,
+   "date": "2025-01-08",
+   "md": "1/8",
+   "kick": "２０２５年１月１日",
+   "head": "イオン豊川店（旧サティ）の店名がイオン豊川開運通店に変わったという、割とどうでも良い話題。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/01/08/2025_1_1_aeontoyokawaten_aeontoyokawakaiundoriten_henkou/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/aeon_toyokawakaiundoriten_gaikan-768x432.jpg"
+  },
+  {
+   "id": 17837,
+   "date": "2025-01-12",
+   "md": "1/12",
+   "kick": "豊川のウワサ",
+   "head": "２０２５年１月１０日、笑顔で大団円を迎えたヤマトストアー。跡地にはどうやらまた…？ヤマトストアーの関係者から聞いた話。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/01/12/toyokawanouwasa_2025_1_10_close_yamatostore_atochi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/yamatostore_close_2_gaikan-768x432.jpg"
+  },
+  {
+   "id": 18480,
+   "date": "2025-01-21",
+   "md": "1/21",
+   "kick": "ＪＡ跡地の今",
+   "head": "２０２４年６月３０日に閉店した、八幡駅近くの「産直ひろば中部」はさらっさらーの…更地になりました。",
+   "shop": "産直ひろば中部",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/01/21/jaatochinoima_yawataeki_sanchokuhirobachubu_sarachi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/sanchokuhirobachubu_sarachi_gaikan-768x432.jpg"
+  },
+  {
+   "id": 18853,
+   "date": "2025-01-26",
+   "md": "1/26",
+   "kick": "プリオで何が起きている？",
+   "head": "１階にあるゴルフウェアショップ「シロキヤ」が、諸般の事情により地下へ移転するらしい。",
+   "shop": "シロキヤ",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/01/26/whats_happening_prio_1f_shirokiya_b1_iten/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/shirokiya_iten_6-768x432.jpg"
+  },
+  {
+   "id": 18637,
+   "date": "2025-01-29",
+   "md": "1/29",
+   "kick": "ＪＡ跡地の今",
+   "head": "国府高校近く、国道１号線沿いにあった「ＪＡひまわり　国府支店」は、どうやら売却されるらしい。",
+   "shop": "ＪＡひまわり　国府支店",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/01/29/jaatochinoima_jahimawari_koushiten_atochi_baikyaku/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/jahimawari_koushiten_gaikan-768x432.jpg"
+  },
+  {
+   "id": 17534,
+   "date": "2025-01-08",
+   "md": "1/8",
+   "kick": "閉店情報",
+   "head": "２０２５年が始まって早々、大悲報が…！プリオ１階に入っているフードマーケットマム豊川店が１月末で閉店！！次の予想と希望は？",
+   "shop": "",
+   "kind": "CLOSE",
+   "url": "https://toyokawa-rentallife.com/2025/01/08/close_2025_daihihou_prio_1f_mom/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/mom_toyokawaten_1-768x432.jpg"
+  },
+  {
+   "id": 18126,
+   "date": "2025-01-16",
+   "md": "1/16",
+   "kick": "閉店情報",
+   "head": "まさかの大悲報再び！プリオ地下１階のアメイジングワールドも２０２５年１月末で閉店！！これもしかしたら…",
+   "shop": "",
+   "kind": "CLOSE",
+   "url": "https://toyokawa-rentallife.com/2025/01/16/close_2025_daihihou_prio_b1f_amazing_world/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/amazing_world_1-768x432.jpg"
+  },
+  {
+   "id": 18279,
+   "date": "2025-01-19",
+   "md": "1/19",
+   "kick": "閉店情報",
+   "head": "餃子の雪松に続き、一宮町にあった冷凍餃子の無人販売所「福ちゃん餃子」も２０２４年１２月末で閉店していたらしい。やはり無人販売は厳しいのか？",
+   "shop": "福ちゃん餃子",
+   "kind": "CLOSE",
+   "url": "https://toyokawa-rentallife.com/2025/01/19/close_ichinomiyacho_mujin_fukuchangyouza/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/fukuchan_gyouza_gaikan-768x432.jpg"
+  },
+  {
+   "id": 18709,
+   "date": "2025-01-24",
+   "md": "1/24",
+   "kick": "閉店情報？",
+   "head": "間違ってたらすみません。豊川インター近くの「福ちゃんらーめん　豊川インター店」は閉店しちゃったっぽい？",
+   "shop": "福ちゃんらーめん　豊川インター店",
+   "kind": "CLOSE",
+   "url": "https://toyokawa-rentallife.com/2025/01/24/close_sorry_wrong_toyokawainter_fukuchanramen/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/fukuchan_ramen_gaikan-768x432.jpg"
+  },
+  {
+   "id": 19430,
+   "date": "2025-02-03",
+   "md": "2/3",
+   "kick": "新築賃貸物件の在庫／２０２５年１月末時点",
+   "head": "新築★長期空室王の「Ａｉ」は新記録達成！さすがにね、繁忙期だから全体的にかなり決まってきてはいるが…。",
+   "shop": "2025年1月末時点・新築賃貸物件の在庫",
+   "kind": "CHINTAI",
+   "url": "https://toyokawa-rentallife.com/2025/02/03/2025_1_shinchiku_ai_shinkiroku_tassei/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/02/2025_1_toyokawashi_chintaibukken_shinchikuzaikojokyo-768x432.jpg"
+  },
+  {
+   "id": 18569,
+   "date": "2025-01-22",
+   "md": "1/22",
+   "kick": "豊川市の詐欺事件",
+   "head": "豊川市に住む６０代の男性が約４０００万円を騙し取られてしまったという、、、このニュースを見て思うこと。",
+   "shop": "",
+   "kind": "ALERT",
+   "url": "https://toyokawa-rentallife.com/2025/01/22/toyokawashi_sagi_40000000_damasareta/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/toyokawashi_sagi_40000000-768x432.jpg"
+  },
+  {
+   "id": 18938,
+   "date": "2025-01-27",
+   "md": "1/27",
+   "kick": "２０２５年１月２５日",
+   "head": "豊川市桜町で火災発生。改めて「火災の恐ろしさ」と「万が一の備え」について考えておこう。",
+   "shop": "火災の恐ろしさ",
+   "kind": "ALERT",
+   "url": "https://toyokawa-rentallife.com/2025/01/27/2025_1_25_toyokawashisakuramachi_kasai/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/01/sakuramachi_kasai-768x432.jpg"
+  }
+ ]
+};

@@ -1,0 +1,262 @@
+window.FLYER_DATA = {
+ "ym": "2024-06",
+ "label": "2024年6月号",
+ "month": 6,
+ "range": "6/1〜6/30",
+ "built": "2026-11-15",
+ "items": [
+  {
+   "id": 11498,
+   "date": "2024-06-05",
+   "md": "6/5",
+   "kick": "ニューオープン",
+   "head": "２０２４年５月２１日、蔵子６丁目に「はらや ＭＡＺＥ ＳＯＢＡ」がついにオープン！",
+   "shop": "はらや ＭＡＺＥ ＳＯＢＡ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/05/newopen_2024_5_21_haraya_mazesoba_open/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/はらやＭＡＺＥＳＯＢＡ-2　外観-768x432.jpg"
+  },
+  {
+   "id": 11560,
+   "date": "2024-06-09",
+   "md": "6/9",
+   "kick": "ニューオープン",
+   "head": "カフェロブ豊川店が今度は「本気ハンバーグ」というお店をオープンさせるらしい。",
+   "shop": "本気ハンバーグ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/09/newopen_caferob_toyokawaten_honki_hamburg_open/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/honki_hamburg_gaikan-768x432.jpg"
+  },
+  {
+   "id": 11526,
+   "date": "2024-06-09",
+   "md": "6/9",
+   "kick": "ニューオープン",
+   "head": "豊川市にＢＭＷのバイクのお店がオープンするぞ！２０２４年秋頃、国道１号線沿い、場所は御油町です。",
+   "shop": "",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/09/newopen_toyokawashi_bmw_bike_2024_autumn/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/ＢＭＷＭｏｔｏｒｒａｄ　外観-768x432.jpg"
+  },
+  {
+   "id": 11591,
+   "date": "2024-06-11",
+   "md": "6/11",
+   "kick": "ニューオープン",
+   "head": "少年サッカーチーム「ＡＳラランジャ豊川」が平尾町にスタジアムを作ったって。その名も「ララポルト」だ！",
+   "shop": "ＡＳラランジャ豊川",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/11/newopen_soccer_as_laranja_toyokawa_hiraocho_stadium_lara_porto/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/ララポルト　外観-768x432.jpg"
+  },
+  {
+   "id": 11612,
+   "date": "2024-06-12",
+   "md": "6/12",
+   "kick": "ニューオープン",
+   "head": "末広通にステーキとパンケーキのお店「ＥＮＴＥＲ ＳＥＥＫ」が出来るぞ！２０２４年６月２０日オープン予定だよー。",
+   "shop": "ＥＮＴＥＲ ＳＥＥＫ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/12/newopen_suehirodori_steakpancake_enter_seek_2024_6_20/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/ＥＮＴＥＲ　ＳＥＥＫ　外観-768x432.jpg"
+  },
+  {
+   "id": 11647,
+   "date": "2024-06-13",
+   "md": "6/13",
+   "kick": "ニューオープン",
+   "head": "伊奈町縫殿に「ゲンキー伊奈店」が出来るぞー！２０２５年２月頃にオープン予定？",
+   "shop": "ゲンキー伊奈店",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/13/newopen_inachonuidono_genky_inaten_2025_2/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/ゲンキー伊奈店　外観-768x432.jpg"
+  },
+  {
+   "id": 11679,
+   "date": "2024-06-15",
+   "md": "6/15",
+   "kick": "ニューオープン",
+   "head": "イオンモール豊川の近くに介護施設が出来るみたい。市街化調整区域ね。",
+   "shop": "",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/15/newopen_aeonmalltoyokawa_kaigoshisetsu_shigaikachoseikuiki/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/クレシェンテ八幡　外観-768x432.jpg"
+  },
+  {
+   "id": 11659,
+   "date": "2024-06-15",
+   "md": "6/15",
+   "kick": "ニューオープン",
+   "head": "２０２４年６月１５日オープン？コインランドリー「シャン２４豊川八幡店」、東三河最大級らしいぞ！チョコザップが出来たところね。",
+   "shop": "シャン２４豊川八幡店",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/15/newopen_2024_6_15_coin_laundry_schon24_toyokawayawataten/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/シャン２４豊川八幡店　外観-768x432.jpg"
+  },
+  {
+   "id": 11708,
+   "date": "2024-06-18",
+   "md": "6/18",
+   "kick": "ニューオープン",
+   "head": "２０２４年６月２８日、冷凍スイーツ専門店「Ｒｅｉｃａ」がアミカのセカンドブランドとしてオープンするぞ！",
+   "shop": "Ｒｅｉｃａ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/18/newopen_2024_6_28_reitosweets_reica_amica_secondbrand_open/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/Ｒｅｉｃａ豊川店　外観-768x432.jpg"
+  },
+  {
+   "id": 11737,
+   "date": "2024-06-20",
+   "md": "6/20",
+   "kick": "ニューオープン",
+   "head": "２０２４年５月？賃貸仲介の会社「スタイルホーム豊川店」がこそっとオープンしてた！",
+   "shop": "スタイルホーム豊川店",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/20/newopen_2024_5_chintaichukai_stylehome_toyokawaten_open/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/スタイルホーム豊川店　外観-768x432.jpg"
+  },
+  {
+   "id": 11748,
+   "date": "2024-06-21",
+   "md": "6/21",
+   "kick": "ニューオープン",
+   "head": "２０２４年６月６日、三蔵子町にコイン洗車「ＲＡＫＵ」がオープン！純水仕上げがポイントですぞー！",
+   "shop": "ＲＡＫＵ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/21/newopen_2024_6_6_sanzogocho_coin_car_wash_raku_junsuishiage/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/純水洗車ＲＡＫＵ　外観-768x432.jpg"
+  },
+  {
+   "id": 11787,
+   "date": "2024-06-25",
+   "md": "6/25",
+   "kick": "ニューオープン",
+   "head": "御油町、国道１号線沿いに「四川料理　天翔」がオープンしてた。阿里山の跡地ですね。",
+   "shop": "四川料理　天翔",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/25/newopen_goyucho_r1_shisenryori_tensho_open_arisanatochi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/天翔　外観-768x432.jpg"
+  },
+  {
+   "id": 11827,
+   "date": "2024-06-28",
+   "md": "6/28",
+   "kick": "２０２４年８月２４日（土）",
+   "head": "豊川手筒まつりが復活するぞ！その名も「とよかわ輝まつり２０２４」だ！！",
+   "shop": "とよかわ輝まつり２０２４",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/06/28/2024_8_24_toyokawatedsutsumatsuri_hukkatsu_toyokawa_kagayaki_matsuri_2024/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/とよかわ輝まつり２０２４　外観-768x432.jpg"
+  },
+  {
+   "id": 11485,
+   "date": "2024-06-03",
+   "md": "6/3",
+   "kick": "２０２４年６月２日（日）",
+   "head": "リレーマラソンやってたのでちょっと覗いてみました。メンバーとの絆が深まりそう！",
+   "shop": "",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/06/03/2024_6_2_relay_marathon_nozoitemita_kizunahukamaru/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/リレーマラソン-768x432.jpg"
+  },
+  {
+   "id": 10690,
+   "date": "2024-06-26",
+   "md": "6/26",
+   "kick": "これは何？",
+   "head": "豊川市にこんな自販機があったとは！＜５＞食べ物でも飲み物でもありません！",
+   "shop": "",
+   "kind": "GOURMET",
+   "url": "https://toyokawa-rentallife.com/2024/06/26/what_is_this_place_toyokawashi_jihanki_5_nomimono_tabemono/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/花幸　外観-768x432.jpg"
+  },
+  {
+   "id": 11832,
+   "date": "2024-06-30",
+   "md": "6/30",
+   "kick": "",
+   "head": "花の自販機があるなら、花の無人販売もあっていいよね！大崎町にある「パンジー屋」がまさにそれ。",
+   "shop": "パンジー屋",
+   "kind": "GOURMET",
+   "url": "https://toyokawa-rentallife.com/2024/06/30/hananojihanki_hananomujinhanbai_oosakicho_pansy_ya/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/pansy_ya_gaikan-768x432.jpg"
+  },
+  {
+   "id": 11506,
+   "date": "2024-06-06",
+   "md": "6/6",
+   "kick": "",
+   "head": "閉店した野口町の「タイキ豊川八幡店」、解体完了しました。次はどうなる…？",
+   "shop": "タイキ豊川八幡店",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2024/06/06/heiten_taiki_kaitaikanryo_tsugiha/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/タイキ解体完了　外観-768x432.jpg"
+  },
+  {
+   "id": 11783,
+   "date": "2024-06-24",
+   "md": "6/24",
+   "kick": "",
+   "head": "２０２４年６月２１日（金）、豊川市が梅雨入りしたことをお知らせします。平年より２週間以上遅いらしいよ。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2024/06/24/2024_6_21_toyokawashi_tsuyuiri/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/２０２４年豊川市梅雨入り　外観-768x432.jpg"
+  },
+  {
+   "id": 11815,
+   "date": "2024-06-27",
+   "md": "6/27",
+   "kick": "",
+   "head": "三蔵子保育園、建て替えて新しくなってた！２０２４年３月？に完成してたらしい。床暖房付きの部屋もあるぞ！",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2024/06/27/sanzogohoikuen_tatekae_2024_3_yukadanbou/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/三蔵子保育園　外観-768x432.jpg"
+  },
+  {
+   "id": 11581,
+   "date": "2024-06-10",
+   "md": "6/10",
+   "kick": "閉店情報",
+   "head": "八幡駅近くの「産直ひろば中部」が閉店しちゃうみたい。２０２４年６月３０日まで。",
+   "shop": "産直ひろば中部",
+   "kind": "CLOSE",
+   "url": "https://toyokawa-rentallife.com/2024/06/10/close_yawataeki_sanchokuhirobachubuten_heiten_2024_6_30/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/産直ひろば中部店閉店　外観-1-768x432.jpg"
+  },
+  {
+   "id": 11769,
+   "date": "2024-06-22",
+   "md": "6/22",
+   "kick": "テナント・土地",
+   "head": "千両街道沿い、ぎょぎょランド近くの「セブンイレブン豊川千両町店」の跡地はどうなってる？",
+   "shop": "セブンイレブン豊川千両町店",
+   "kind": "TENANT",
+   "url": "https://toyokawa-rentallife.com/2024/06/22/tenant_land_seveneleven_atochi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/セブンイレブン豊川千両町店跡地　外観-768x432.jpg"
+  },
+  {
+   "id": 11854,
+   "date": "2024-07-02",
+   "md": "7/2",
+   "kick": "新築賃貸物件の在庫／２０２４年６月末時点",
+   "head": "大東建託は６月だけで６棟の新築情報を出してきました。在庫がヤバイ。",
+   "shop": "2024年6月末時点・新築賃貸物件の在庫",
+   "kind": "CHINTAI",
+   "url": "https://toyokawa-rentallife.com/2024/07/02/2024_6_daitokentaku_6gatsu_6tou_shinchiku_zaikoyabai/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/07/２０２４年６月末時点　豊川市賃貸物件　新築在庫状況-768x432.png"
+  },
+  {
+   "id": 11515,
+   "date": "2024-06-08",
+   "md": "6/8",
+   "kick": "２０２４年６月６日",
+   "head": "豊川市伊奈町南山新田で火災発生。",
+   "shop": "",
+   "kind": "ALERT",
+   "url": "https://toyokawa-rentallife.com/2024/06/08/2024_6_6_inachominamiyamashinden_kasai/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/伊奈町火事　外観-768x432.jpg"
+  }
+ ]
+};

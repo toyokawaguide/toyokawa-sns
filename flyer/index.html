@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>豊川ガイド 月刊チラシ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Noto+Sans+JP:wght@500;700;900&family=RocknRoll+One&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="data/months.js"></script>
+<script>/* ?m=2025-07 のように号を選べる。無い・不正なら最新号 */(function(){var m=new URLSearchParams(location.search).get("m")||"";var ok=/^[0-9]{4}-[0-9]{2}$/.test(m)&&(window.FLYER_MONTHS||[]).indexOf(m)>=0;document.write("<scr"+"ipt src=\"data/"+(ok?"month_"+m:"latest")+".js\"></scr"+"ipt>");})();</script>
+<!--DATA-->
+<style>
+@page { size: A4 portrait; margin: 0; }
+:root{
+  --red:#e60012; --red2:#c4000f; --yel:#fff100; --navy:#0b2f7a; --ink:#111; --white:#fff;
+  --new:#e60012; --event:#0068b7; --gourmet:#ea5506; --town:#008a4b; --close:#333; --tenant:#7a3fa0; --chintai:#00873c; --alert:#d10066; --info:#0b2f7a;
+  --s:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#888}
+body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;height:297mm;margin:8mm auto;background:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column}
+@media screen{.page{zoom:var(--pz,1)}}
+/* 2026-11-15 社長「入力しながら、どう変わるか同じ画面で見たい」→ 広い画面は左に入力・右にチラシ（右は画面に固定してスクロール） */
+@media screen and (min-width:1100px){body.mk{display:grid;grid-template-columns:minmax(420px,600px) 1fr;gap:10px;align-items:start;padding:0 8px}body.mk .maker{margin:6mm 0;max-width:none}body.mk .pv{position:sticky;top:0;height:100vh;overflow:auto;padding-bottom:8mm}body.mk .page{margin:4mm auto}.topv,.tomk{display:none!important}}
+/* スマホ・狭い画面：入力の下にチラシ。右下のボタンで行ったり来たり */
+.topv{position:fixed;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;background:#e60012;color:#fff;font-weight:900;font-size:15px;border:0;border-radius:24px;padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.tomk{display:block;margin:4mm auto 10mm;background:#fff;color:#111;font-weight:900;font-size:15px;border:2px solid #111;border-radius:22px;padding:8px 18px}
+.prevtitle .pvhint{display:block;font-size:12px;font-weight:700;opacity:.85}
+@media print{html,body{background:#fff}.pv{display:block!important;height:auto!important;overflow:visible!important;position:static!important}.page{margin:0;box-shadow:none;break-after:page}.noprint{display:none!important}}
+.stroke{paint-order:stroke fill;-webkit-text-stroke:var(--sw,6px) var(--sc,#111)}
+
+/* ===== ヘッダー（放射＋袋文字） ===== */
+.hd{position:relative;height:66mm;flex:none;overflow:hidden;
+  background:repeating-conic-gradient(from 0deg at 50% 120%, var(--h2,#ff1a28) 0 6deg, var(--h1,#e60012) 6deg 12deg);}
+.hd .topbar{position:absolute;inset:0 0 auto 0;height:9mm;background:#111;color:var(--yel);display:flex;align-items:center;justify-content:space-between;padding:0 5mm;font-weight:900;font-size:3.6mm;letter-spacing:.06em;z-index:3}
+.hd .topbar b{color:#fff}
+.hd .logo{position:absolute;left:5mm;top:12mm;width:34mm;height:34mm;border-radius:50%;background:var(--yel);border:1.2mm solid #111;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-12deg);z-index:3;box-shadow:1.2mm 1.2mm 0 #111}
+.hd .logo img{width:15mm;height:15mm;object-fit:contain;display:block;margin-top:-1mm}   /* 2026-11-16 社長「ロゴが入ってない」→ 狐ロゴ */
+.hd .logo b{font-family:"Dela Gothic One";font-size:4.6mm;line-height:1.1;color:var(--red);margin-top:.4mm}
+.hd .logo i{font-style:normal;font-size:2.6mm;font-weight:900;background:#111;color:var(--yel);padding:.3mm 1.5mm;border-radius:1mm;margin-top:.8mm}
+.hd .ttl{position:absolute;left:38mm;right:40mm;top:11mm;text-align:center;z-index:2;transform:rotate(-4deg)}
+.hd .ttl .t1 .yr{color:#fff;font-size:.82em;margin-right:.12em;--sw:1.8mm}
+.hd .ttl .t1{font-family:"Dela Gothic One";font-size:13mm;line-height:1;color:var(--yel);--sw:2.2mm;--sc:#111}
+.hd .ttl .t2{font-family:"Dela Gothic One";font-size:20mm;line-height:1.05;color:#fff;--sw:2.6mm;--sc:#111;letter-spacing:-.04em}
+.hd .ttl .t2 em{font-style:normal;color:var(--yel)}
+.hd .boom{position:absolute;right:2mm;top:12mm;width:42mm;height:42mm;z-index:3;
+  clip-path:polygon(50% 0,61% 18%,82% 7%,79% 30%,100% 32%,85% 50%,100% 68%,79% 70%,82% 93%,61% 82%,50% 100%,39% 82%,18% 93%,21% 70%,0 68%,15% 50%,0 32%,21% 30%,18% 7%,39% 18%);
+  background:var(--yel);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(10deg)}
+.hd .boom .in{text-align:center;font-weight:900;line-height:1}
+.hd .boom .n{font-family:"Dela Gothic One";font-size:15mm;color:var(--red)}
+.hd .boom .u{font-size:4.4mm}
+.hd .boom .x{font-size:3.6mm;background:var(--red);color:#fff;padding:.5mm 1.5mm;margin-top:.8mm;display:inline-block}
+.hd .sub{position:absolute;left:0;right:0;bottom:3mm;text-align:center;z-index:2}
+.hd .sub span{display:inline-block;background:#fff;color:var(--red);font-weight:900;font-size:4.6mm;padding:1mm 4mm;border:.8mm solid #111;transform:skewX(-10deg);box-shadow:1mm 1mm 0 #111}
+
+/* ===== 前提の帯（目立たせる） ===== */
+.note{flex:none;height:9.5mm;display:flex;align-items:center;justify-content:center;gap:2mm;
+  background:repeating-linear-gradient(-45deg,var(--yel) 0 4mm,#111 4mm 8mm);padding:1.2mm 0}
+.note div{background:var(--yel);border:.6mm solid #111;padding:.6mm 3mm;font-weight:900;font-size:3.3mm;line-height:1.2;text-align:center}
+.note div b{color:var(--red)}
+
+/* ===== 本体 ===== */
+.body{flex:1;min-height:0;padding:2mm 3.5mm 0;background:#fffbe0;display:flex;flex-direction:column;gap:calc(1.6mm*var(--s))}
+.blk{display:flex;flex-direction:column;gap:calc(1mm*var(--s))}
+.rib{align-self:flex-start;display:flex;align-items:center;gap:2mm;color:#fff;font-weight:900;font-size:calc(4.6mm*var(--s));
+  padding:.4mm 6mm .4mm 3mm;clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%);line-height:1.25}
+.rib small{font-size:calc(3mm*var(--s));font-weight:700;opacity:.95}
+.grid{display:grid;gap:calc(1.4mm*var(--s))}
+.g-new,.g-mid,.g-sm{grid-template-columns:repeat(var(--cols,6),1fr)}
+.card{position:relative;background:#fff;border:.6mm solid var(--c);display:flex;flex-direction:column;overflow:hidden}
+.card .ph{position:relative;height:calc(15mm*var(--s));flex:none;background:#ddd;overflow:hidden}
+/* 2026-11-15 社長「写真が見切れるのが気になる」→ 写真は切らずに全部入れる（contain）。余りは同じ写真をぼかして埋める */
+.card .ph .phb{position:absolute;inset:-2mm;background:var(--img) center/cover no-repeat;filter:blur(1.5mm);opacity:.6}
+.card .ph .phi{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.card .ph>span{z-index:2}
+.card.hid .meta .md,.card.hid .ph,.card.hid .tx{filter:blur(.5mm)}
+.seal{position:absolute;left:56%;top:56%;transform:translate(-50%,-50%) rotate(-8deg);z-index:5;width:64%;max-width:32mm;aspect-ratio:1/1;border-radius:50%;background:#fff;border:.9mm solid #1a3a8a;outline:.6mm solid #fff;box-shadow:0 .8mm 1.6mm rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6mm}
+/* 2026-11-15 社長「黄色は下品・白地に豊川ガイドの青の枠と文字・大きめ・あくまでシールで隠してる雰囲気」 */
+.seal img{width:44%;height:auto}
+.seal b{font-family:"Noto Sans JP";font-weight:900;color:#1a3a8a;font-size:calc(2.6mm*var(--s,1));line-height:1;white-space:nowrap;letter-spacing:.05em}
+.qi{position:relative}
+.qi.pick{border:1mm solid var(--adink,var(--ac));padding-top:3.4mm}.qi .qpk{position:absolute;left:0;right:0;top:0;background:var(--adink,var(--ac));color:#fff;font-weight:900;font-size:2.1mm;line-height:1.5;text-align:center}.qi.hid .q .qb{width:100%;height:100%;background:repeating-linear-gradient(45deg,#ccc 0 1.2mm,#eee 1.2mm 2.4mm);filter:blur(.6mm)}
+.qi.hid .n{filter:blur(.8mm)}.qi.hid .seal{width:70%;left:50%;top:44%}.qi.hid .seal b{font-size:2.4mm}
+/* 2026-11-15 社長「帯と日付も写真の外に」→ 種類の札と掲載日は写真の上の帯に */
+.card .meta{flex:none;display:flex;align-items:center;justify-content:space-between;background:var(--c)}
+.card .meta .tag{position:static}
+.card .meta .md,.card.big .meta .md{position:static;transform:none;background:none;border:0;color:#fff;font-family:"Noto Sans JP";font-weight:900;font-size:calc(2.6mm*var(--s));padding:.3mm 1.6mm;line-height:1.2}
+.card .meta .md small{color:#fff;font-size:calc(2mm*var(--s))}
+.card.big .meta .tag,.card.big .meta .md{font-size:calc(3.4mm*var(--s))}
+.card .tag{position:absolute;left:0;top:0;background:var(--c);color:#fff;font-weight:900;font-size:calc(2.8mm*var(--s));padding:.3mm 1.6mm;line-height:1.2}
+.card .md{position:absolute;right:.8mm;bottom:.8mm;background:var(--yel);border:.5mm solid #111;font-family:"Dela Gothic One";font-size:calc(3mm*var(--s));line-height:1;padding:.6mm 1.2mm;color:var(--red);transform:rotate(-6deg)}
+.card .md small{font-family:"Noto Sans JP";font-weight:900;font-size:calc(2.2mm*var(--s));color:#111;margin-left:.3mm}
+.card .tx{padding:calc(.8mm*var(--s)) calc(1mm*var(--s));font-weight:700;font-size:calc(2.55mm*var(--s));line-height:1.3;flex:1}
+.card .tx .k{display:block;font-weight:900;color:var(--c);font-size:calc(2.5mm*var(--s));line-height:1.2;margin-bottom:.3mm}
+.card .tx em{font-style:normal;font-weight:900;color:var(--red);background:linear-gradient(transparent 60%,#fff38a 60%)}
+.card.big{grid-column:span 2;grid-row:span 2}
+.card.pick{outline:1.1mm solid var(--adink,var(--ac));outline-offset:-.2mm;z-index:2}.card .pkbar{flex:none;background:var(--adink,var(--ac));color:#fff;font-weight:900;text-align:center;font-size:calc(3.4mm*var(--s));line-height:1.3;padding:.5mm 0;letter-spacing:.08em}
+.card .pk{position:absolute;right:0;top:0;background:var(--adink,var(--ac));color:#fff;font-weight:900;font-size:calc(3.2mm*var(--s));padding:.4mm 2mm;line-height:1.25;z-index:3}.maker .arts li .pkr{flex:none;display:flex;align-items:center;gap:3px;font-size:12px;font-weight:900;flex-direction:row;cursor:pointer;border:2px solid #0b2f7a;color:#0b2f7a;border-radius:14px;padding:0 8px 0 4px;background:#fff}.maker .arts li .pkr:has(input:checked){background:#0b2f7a;color:#fff}
+.card.big .ph{flex:1;height:auto;min-height:calc(30mm*var(--s))}
+.card.big .tx{flex:none;font-size:calc(3.6mm*var(--s));font-weight:900}
+.card.big .tx .k{font-size:calc(3.4mm*var(--s))}
+.card.big .md{font-size:calc(7mm*var(--s))}
+.card.big .stamp{position:absolute;left:2mm;top:7mm;width:17mm;height:17mm;border-radius:50%;background:var(--red);color:var(--yel);border:.7mm solid #fff;
+  display:flex;align-items:center;justify-content:center;font-family:"Dela Gothic One";font-size:5mm;transform:rotate(-14deg);box-shadow:0 0 0 .6mm var(--red)}
+.card.fill{border-style:dashed;border-color:var(--red);background:var(--yel);align-items:center;justify-content:center;text-align:center;padding:2mm}
+.card.fill b{font-weight:900;color:var(--red);font-size:calc(4mm*var(--s));line-height:1.2}
+.card.fill p{font-weight:900;font-size:calc(2.5mm*var(--s));margin-top:1mm}
+.c-NEW{--c:var(--new)} .c-EVENT{--c:var(--event)} .c-GOURMET{--c:var(--gourmet)} .c-TOWN{--c:var(--town)}
+.c-INFO{--c:var(--info)} .c-CLOSE{--c:var(--close)} .c-TENANT{--c:var(--tenant)} .c-CHINTAI{--c:var(--chintai)} .c-ALERT{--c:var(--alert)}
+
+/* ===== フッター ===== */
+.ft{flex:none;height:21mm;background:var(--navy);color:#fff;display:flex;align-items:center;gap:3mm;padding:0 4mm;margin-top:2mm}
+.ft .qr{width:17mm;height:17mm;background:#fff;padding:.8mm;flex:none}
+.ft .qr svg{width:100%;height:100%;display:block}
+.ft .flogo{width:13mm;height:13mm;object-fit:contain;flex:none;background:#fff;border-radius:50%;padding:.6mm}
+.ft .srch{display:flex;align-items:center;border:.6mm solid #fff;border-radius:1mm;overflow:hidden;flex:none}
+.ft .srch span{background:#fff;color:#111;font-weight:900;font-size:5mm;padding:.8mm 3mm}
+.ft .srch b{background:var(--red);font-size:3.6mm;padding:1.6mm 2.5mm}
+.ft .tx{font-size:2.7mm;line-height:1.45;font-weight:700}
+.ft .tx b{color:var(--yel)}
+.ft .take{margin-left:auto;flex:none;background:var(--yel);color:var(--red);font-family:"Dela Gothic One";font-size:4.2mm;line-height:1.15;text-align:center;padding:1.5mm 2.5mm;transform:rotate(-5deg);border:.6mm solid #fff}
+
+/* ===== 裏面 ===== */
+.bk-hd{flex:none;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:2.5mm 5mm}
+.bk-hd h2{font-family:"Noto Sans JP";font-weight:900;font-size:8mm;line-height:1.1;color:var(--yel);letter-spacing:.04em}   /* 2026-11-15 社長「このフォントが読みづらい」→ Dela Gothic＋黒フチをやめて太いゴシック */
+.bk-hd p{font-weight:900;font-size:3.2mm;text-align:right;line-height:1.4}
+.qrs{flex:none;display:grid;grid-template-columns:repeat(6,1fr);gap:1.2mm 1.6mm;padding:2.5mm 4mm;background:#fffbe0}
+.qi{display:flex;flex-direction:column;align-items:center;text-align:center;background:#fff;border:.4mm solid var(--c);padding:1mm .8mm .8mm}
+.qi .q{width:min(17mm,100%);aspect-ratio:1}
+.qi .q svg{width:100%;height:100%;display:block}
+.qi .n{font-size:2.15mm;font-weight:700;line-height:1.25;margin-top:.6mm;height:5.4mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.qi .n .qd{font-weight:900;color:var(--c);margin-right:.6mm}   /* 2026-11-15 社長「QRにも日付を」 */
+.qi .n i{font-style:normal;color:#fff;background:var(--c);font-weight:900;padding:0 .8mm;margin-right:.6mm}
+.adwrap{flex:1;min-height:0;display:flex;flex-direction:column;margin:0 4mm;border:1mm solid #111}
+.adwarn{flex:none;display:flex;align-items:center;gap:2.5mm;background:#fff;border-bottom:.6mm solid #111;padding:1.6mm 3mm}
+.adwarn .tag{flex:none;background:#111;color:#fff;font-weight:900;font-size:4mm;line-height:1;padding:1.4mm 2.6mm;letter-spacing:.1em}
+.adwarn .tx{font-size:3.1mm;font-weight:700;line-height:1.45;color:#111}
+.adwarn .tx b{font-weight:900;color:var(--red)}
+.ad{flex:1;min-height:0;position:relative;overflow:hidden}
+.bk-ft{flex:none;display:flex;align-items:center;gap:3mm;padding:2mm 4mm;margin-top:2mm;background:var(--navy);color:#fff}
+.bk-ft .qr{width:16mm;height:16mm;background:#fff;padding:.7mm;flex:none}
+.bk-ft .qr svg{width:100%;height:100%;display:block}
+.bk-ft .big{font-family:"Noto Sans JP";font-weight:900;font-size:5mm;color:var(--yel);line-height:1.2;letter-spacing:.03em}
+.bk-ft .sm{font-size:2.8mm;font-weight:700;line-height:1.4}
+.bk-ft .take{margin-left:auto;background:#fff;color:var(--red);font-weight:900;font-size:3.6mm;padding:1.5mm 3mm;border-radius:6mm;flex:none}
+
+/* ===== 宣伝枠のパターン（A〜D）。--ac=お店が選んだ色、--k=文字の縮み ===== */
+.adx{position:absolute;inset:0;background:#fff;--k:1}
+.adx .pr{display:inline-block;font-weight:900;font-size:calc(3mm*var(--k));border:.5mm solid #111;padding:.1mm 2mm;background:#fff;color:#111;line-height:1.4;flex:none}
+.adx .shop{font-family:"Dela Gothic One";font-size:calc(8.5mm*min(var(--k),1.1));line-height:1.15;color:var(--adink);word-break:keep-all;overflow-wrap:anywhere}
+.adx .catch,.adx .msg,.adx .cp,.card .tx{word-break:auto-phrase;text-wrap:pretty}
+.adx .catch{font-weight:900;font-size:calc(5.2mm*var(--k));line-height:1.35}
+.adx .msg{font-size:calc(3.5mm*var(--k));font-weight:500;line-height:1.6;white-space:pre-wrap}
+.adx .cp{background:var(--yel);border:.7mm dashed var(--adink);padding:calc(2mm*var(--k));font-weight:900;font-size:calc(4.4mm*var(--k));color:var(--adink);text-align:center;line-height:1.35}
+.adx .cp small{display:block;font-size:calc(2.8mm*var(--k));color:#111}
+.adx .info{font-size:calc(3.1mm*var(--k));font-weight:700;line-height:1.55;white-space:pre-wrap}
+.adx .sq{width:20mm;flex:none;text-align:center;font-size:2.3mm;font-weight:900}
+.adx .sq svg{width:20mm;height:20mm;display:block}
+.adx .bot{display:flex;align-items:flex-end;gap:3mm}
+.adx .ph{position:relative;overflow:hidden;background:#f2f2f2}
+.adx .ph .bl{position:absolute;inset:-6mm;background:center/cover no-repeat;filter:blur(3mm);opacity:.55}
+.adx .ph img{position:absolute;inset:1.5mm;width:calc(100% - 3mm);height:calc(100% - 3mm);object-fit:contain;filter:drop-shadow(0 .4mm 1mm rgba(0,0,0,.25))}
+.adx .ph .pr{position:absolute;right:2mm;top:2mm;z-index:2}
+/* 写真は形のまま・切らない。max-width と max-height の両方で縛ると、縦横の比率を保ったまま一番大きく入る */
+.adx .pic{display:block;max-width:100%;max-height:100%;width:auto;height:auto;border:.5mm solid #fff;box-shadow:0 .4mm 1.6mm rgba(0,0,0,.3);background:#fff}
+.adx .pw{display:flex;align-items:flex-start;justify-content:center;min-width:0;min-height:0;flex:none}
+/* A：写真が左（写真の形で幅が決まる） */
+.adA{display:flex;gap:3mm;padding:3mm;background:var(--tint,#fff)}
+.adA .pw{max-width:56%;height:100%}
+.adA .r{flex:1;min-width:0;display:flex;flex-direction:column;gap:calc(1.6mm*var(--k));overflow:hidden}
+.adA .bot{margin-top:auto}
+.adA .lc{display:flex;flex-direction:column;gap:2.5mm;max-width:56%;min-width:0;flex:none}
+.adA .lc .pw{max-width:100%;flex:0 1 auto;min-height:0;justify-content:flex-start}
+.adA .lc .info{flex:none;border-top:.5mm solid var(--adink);padding-top:1.5mm}
+/* B：文字が主役（上に色の帯で お店の名前＋キャッチを大きく、写真は右下に小さめ） */
+.adB{display:flex;flex-direction:column}
+.adB .hero{flex:none;background:var(--ac);color:var(--on);padding:3mm 5mm calc(3.5mm*var(--k));display:flex;flex-direction:column;gap:calc(1.2mm*var(--k))}
+.adB .hero .top1{display:flex;align-items:center;gap:3mm}
+.adB .hero .shop{color:var(--on);font-size:calc(7mm*min(var(--k),1.1))}
+.adB .hero .catch{color:var(--on);font-size:calc(8mm*var(--k));line-height:1.3}
+.adB .hero .catch span{background:linear-gradient(transparent 72%,rgba(255,255,255,.28) 72%)}
+.adB .bd{flex:1;min-height:0;display:flex;gap:4mm;padding:3mm 4mm}
+.adB .bd .lt{flex:1;min-width:0;display:flex;flex-direction:column;gap:calc(1.8mm*var(--k));overflow:hidden}
+.adB .bd .lt .bot{margin-top:auto}
+.adB .bd .pw{max-width:38%;height:100%;align-items:center}
+/* C：写真なし。お店の色の地に白いカード */
+.adC{background:var(--ac)}
+.adC .card2{position:absolute;inset:3.5mm;background:#fff;border-radius:2.5mm;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto;gap:calc(1.8mm*var(--k)) 5mm;padding:4.5mm 6mm;overflow:hidden}
+.adC .hd2{grid-column:1/-1;display:flex;align-items:center;gap:3mm;border-bottom:.6mm solid var(--adink);padding-bottom:calc(1.5mm*var(--k))}
+.adC .shop{font-size:calc(9.5mm*min(var(--k),1.1))}
+.adC .mainc{display:flex;flex-direction:column;justify-content:center;gap:calc(2.6mm*var(--k));min-height:0;overflow:hidden}
+.adC .catch{font-size:calc(6.4mm*var(--k));line-height:1.35}
+.adC .catch span{background:linear-gradient(transparent 62%,#fff38a 62%)}
+.adC .side2{display:flex;flex-direction:column;justify-content:center;gap:3mm;max-width:62mm}
+.adC .ft2{grid-column:1/-1;display:flex;align-items:flex-end;gap:4mm}
+.adC .ft2 .info{flex:1}
+.ad .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2mm;background:#fffbe0;text-align:center}
+
+/* ===== 作成ページ（入力欄）。印刷には出ない ===== */
+.maker{max-width:210mm;margin:6mm 6px 0;margin-left:auto;margin-right:auto;background:#fff;border-radius:3mm;padding:5mm 6mm;font-size:15px;line-height:1.6;color:#111}
+.maker h1{font-size:22px;font-weight:900;color:#e60012;line-height:1.3}
+.maker .mkhd{position:relative;margin:-5mm -6mm 14px;padding:20px 22px;border-radius:3mm 3mm 0 0;overflow:hidden;display:flex;align-items:center;gap:18px;background:repeating-conic-gradient(from 0deg at 50% 130%,#e60012 0 5deg,#c4000f 5deg 10deg);border-bottom:4px solid #111}.maker .mk-logo{flex:none;width:104px;height:104px;border-radius:50%;background:#fff;border:4px solid #111;box-shadow:4px 4px 0 #111;transform:rotate(-10deg);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;text-align:center}.maker .mk-logo small{font-size:10px;font-weight:900}.maker .mk-logo b{font-family:'Dela Gothic One',sans-serif;font-size:21px;color:#e60012;font-weight:400}.maker .mk-logo img{width:70px;height:auto;display:block;margin-top:4px}.maker .mk-logo i{font-style:normal;font-size:11px;font-weight:900;background:#0b2f7a;color:#fff;padding:1px 7px;border-radius:3px;margin-top:2px;letter-spacing:.05em}.maker .mk-tt{min-width:0;flex:1}.maker .mk-sub{display:inline-block;background:#111;color:#fff;font-size:12px;font-weight:900;padding:2px 10px;border-radius:3px;margin-bottom:6px}.maker .mkhd h1{margin:0;line-height:1.1;display:flex;flex-direction:column;gap:4px}.maker .mk-h1a{font-family:'Dela Gothic One',sans-serif;font-weight:400;font-size:44px;color:#fff100;-webkit-text-stroke:3px #111;paint-order:stroke fill;text-shadow:4px 4px 0 #111;letter-spacing:.02em}.maker .mk-h1b{font-family:'Dela Gothic One',sans-serif;font-weight:400;font-size:24px;color:#fff;-webkit-text-stroke:2px #111;paint-order:stroke fill;text-shadow:3px 3px 0 #111}.maker .mk-ok{flex:none;width:138px;height:138px;background:#111;clip-path:polygon(50% 0,61% 13%,77% 6%,79% 23%,95% 25%,88% 40%,100% 50%,88% 60%,95% 75%,79% 77%,77% 94%,61% 87%,50% 100%,39% 87%,23% 94%,21% 77%,5% 75%,12% 60%,0 50%,12% 40%,5% 25%,21% 23%,23% 6%,39% 13%);transform:rotate(8deg);display:flex;align-items:center;justify-content:center}.maker .mk-ok .in{width:126px;height:126px;background:#fff100;clip-path:polygon(50% 0,61% 13%,77% 6%,79% 23%,95% 25%,88% 40%,100% 50%,88% 60%,95% 75%,79% 77%,77% 94%,61% 87%,50% 100%,39% 87%,23% 94%,21% 77%,5% 75%,12% 60%,0 50%,12% 40%,5% 25%,21% 23%,23% 6%,39% 13%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.15}.maker .mk-ok b{font-family:'Dela Gothic One',sans-serif;font-weight:400;font-size:15px;color:#e60012}.maker .mk-ok small{font-size:11px;font-weight:900;margin-top:3px}.maker .mk-feat{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 10px}.maker .mk-feat span{border:2px solid #111;border-radius:6px;padding:3px 12px;font-weight:900;font-size:13px;background:#fff}.maker .mk-feat b{color:#e60012;font-size:18px;margin-left:4px}@media(max-width:640px){.maker .mkhd{flex-wrap:wrap;gap:10px;padding:14px 14px 16px}.maker .mk-logo{width:78px;height:78px}.maker .mk-logo img{width:50px}.maker .mk-logo i{font-size:9px}.maker .mk-h1a{font-size:32px}.maker .mk-h1b{font-size:18px}.maker .mk-ok{position:absolute;right:6px;top:6px;width:96px;height:96px}.maker .mk-ok .in{width:86px;height:86px}.maker .mk-ok b{font-size:11px}.maker .mk-ok small{font-size:9px}.maker .mk-tt{flex-basis:100%}}
+
+.maker .okbadge{display:inline-block;background:#fff100;border:3px solid #111;color:#e60012;font-weight:900;font-size:19px;padding:4px 14px;border-radius:30px;margin:6px 0 4px;transform:rotate(-2deg);box-shadow:3px 3px 0 #111}
+.maker .lead{font-size:14px;margin:4px 0 10px}
+.maker .steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.maker .steps span{background:#fff100;border:2px solid #111;font-weight:900;font-size:13px;padding:2px 8px;border-radius:20px}
+.maker .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.maker label{display:flex;flex-direction:column;font-weight:700;font-size:13px;gap:3px;min-width:0}
+.maker label.full{grid-column:1/-1}
+.maker label em{font-style:normal;color:#e60012;font-size:12px}
+.maker input,.maker textarea{font:inherit;font-size:15px;padding:7px 9px;border:2px solid #bbb;border-radius:6px;width:100%}
+.maker textarea{min-height:64px;resize:vertical}
+.maker .count{font-size:11px;color:#666;font-weight:500;text-align:right}
+.maker .pats,.maker .cols{display:flex;gap:8px;flex-wrap:wrap}
+.maker .pats label{flex-direction:row;align-items:center;border:2px solid #bbb;border-radius:8px;padding:6px 10px;cursor:pointer;gap:6px}
+.maker .cols label{flex-direction:row;align-items:center;gap:4px;cursor:pointer}
+.maker .pats input,.maker .cols input{width:auto}
+.maker .cols{flex-direction:column;gap:6px}.maker .crow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.maker .crow b{font-size:12px;width:4.5em;color:#666}
+.maker .arts li .tp{flex:none;display:flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:#c00;flex-direction:row;cursor:pointer;border:2px solid #e60012;border-radius:14px;padding:0 8px 0 4px;background:#fff}
+.maker .arts li .tp:has(input:checked){background:#e60012;color:#fff}
+.maker .arts li.bh{background:#fff3c4;font-weight:900;font-size:13px;padding:5px 10px;border-top:2px solid #111}
+.maker .adminbar{background:#e60012;color:#fff;font-weight:900;padding:8px 12px;border-radius:6px;margin:10px 0;line-height:1.6}
+.maker .cols i{display:inline-block;width:22px;height:22px;border-radius:50%;border:2px solid #111;box-sizing:border-box}.maker .chint{flex-basis:100%;font-size:11px;color:#888;order:9}
+.maker .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.maker button{font:inherit;font-weight:900;font-size:17px;padding:10px 22px;border-radius:30px;border:3px solid #111;background:#e60012;color:#fff;cursor:pointer}
+.maker button.sub{background:#fff;color:#111;font-size:14px;padding:7px 14px}
+.maker .tips{font-size:12.5px;background:#f4f4f4;border-radius:6px;padding:8px 10px;margin-top:12px;line-height:1.7}
+.maker .warn{border:3px solid #111;background:repeating-linear-gradient(-45deg,#fff100 0 10px,#111 10px 20px);padding:5px;margin:10px 0}
+.maker .warn div{background:#fff100;font-weight:900;font-size:13px;padding:6px 8px;line-height:1.6}
+.maker .issue{display:flex;flex-direction:column;font-weight:900;font-size:13px;gap:3px;margin:0 0 10px;max-width:320px}
+.maker select{font:inherit;font-size:15px;padding:7px 9px;border:2px solid #bbb;border-radius:6px}
+.maker .note2{font-size:12px;color:#555;font-weight:500}
+@media (max-width:640px){.maker .grid2{grid-template-columns:1fr}}
+.prevtitle{max-width:210mm;margin:6mm auto 0;color:#fff;font-weight:900;font-size:15px}
+
+.maker .arts{margin-top:12px;border:2px solid #111;border-radius:8px;overflow:hidden}
+.maker .arts .h{background:#111;color:#fff;font-weight:900;font-size:14px;padding:6px 10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.maker .arts .h small{font-weight:700;color:#fff100}
+.maker .arts .tools{display:flex;gap:6px;padding:6px 10px;background:#f4f4f4;flex-wrap:wrap;font-size:12px;align-items:center}
+.maker .arts .tools button{font-size:12px;padding:3px 10px;border-width:2px;background:#fff;color:#111}
+.maker .arts ul{list-style:none;max-height:340px;overflow:auto;margin:0;padding:0}
+.maker .arts li{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-top:1px solid #e3e3e3;font-size:13px;line-height:1.45}
+.maker .arts li.off{opacity:.45;text-decoration:line-through}
+@media (max-width:640px){.maker .arts li{flex-wrap:wrap;row-gap:4px}.maker .arts li .x{flex-basis:100%;order:9}}   /* スマホ：タイトルは2行目に全幅で */
+.maker .arts li input{width:auto;margin-top:3px;flex:none;transform:scale(1.2)}
+.maker .arts li .t{flex:none;color:#fff;font-weight:900;font-size:11px;padding:1px 6px;border-radius:3px;margin-top:1px}
+.maker .arts li .d{flex:none;font-weight:900;color:#666;width:42px}
+.maker .arts li .x{flex:1;min-width:0}
+.maker .arts li a{flex:none;font-size:12px;color:#0068b7;white-space:nowrap}
+.maker .minibox{grid-column:1/-1;min-width:0}
+.maker .mt{font-weight:900;font-size:13px;margin-bottom:4px}
+.maker .mini{border:2px solid #111;background:#fffbe0;overflow:hidden;position:relative}
+.maker .mini{width:100%}
+.maker .mini .mi{position:absolute;left:0;top:0;transform-origin:0 0}
+.maker .mini .mi .ad{position:absolute;inset:0;overflow:hidden}
+.house{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;gap:3mm;padding:3.5mm;background:#fffbe0}
+.house .hc{border:.8mm solid #111;border-radius:2.5mm;background:#fff;padding:4mm 5mm;display:flex;flex-direction:column;gap:3mm;overflow:hidden}
+.house .hl{background:#fff;border-color:#06c755;border-width:1.2mm}.house .hl .ht{color:#e60012}.house .hl .hn b{color:#06a64a}.house .hl .lb{align-self:flex-start;background:#06c755;color:#fff;font-weight:900;font-size:4mm;padding:.6mm 3mm;border-radius:5mm}.house .hl .hq .q{width:27mm;height:27mm;padding:0}.house .hq .q img{width:100%;height:100%;display:block}
+.house .ht{font-family:"Dela Gothic One";font-size:9mm;line-height:1.15;color:#e60012}
+.house .hr .ht{color:#0b2f7a}
+.house .hp{font-weight:700;font-size:3.6mm;line-height:1.6}
+.house .hp b{color:#e60012}
+.house .hq{margin-top:auto;display:flex;align-items:center;gap:4mm}
+.house .hq .q{width:24mm;height:24mm;background:#fff;padding:1mm;flex:none}
+.house .hq .q svg{width:100%;height:100%;display:block}
+.house .hn{font-weight:900;font-size:4mm;line-height:1.45}
+.house .hn b{color:#e60012;font-size:5mm}
+.house .hr .hn b{color:#0b2f7a}
+</style>
+</head>
+<body>
+<div class="maker noprint" id="maker">
+  <div class="mkhd">
+    <div class="mk-logo"><img src="img/fox_logo.png" alt="豊川ガイド"><i>豊川ガイド</i></div>
+    <div class="mk-tt"><div class="mk-sub">豊川市の地域情報サイト「豊川ガイド」</div>
+      <h1><span class="mk-h1a">月刊チラシ</span><span class="mk-h1b">お店用 作成ページ</span></h1></div>
+    <div class="mk-ok"><div class="in"><b>勝手に<br>使ってOK！</b><small>印刷は<br>よろしく！</small></div></div>
+  </div>
+  <p class="lead">豊川ガイドの1カ月分の記事をまとめたチラシに、<b>お店の宣伝</b>を入れて印刷できます。お店に置いて、お客さまに持ち帰ってもらってOKです。</p>
+  <div class="mk-feat"><span>掲載料<b>0円</b></span><span>申込<b>不要</b></span><span>連絡も<b>いりません</b></span></div>
+  <div class="steps"><span>① 宣伝を入力</span><span>② デザインを選ぶ</span><span>③ 印刷する</span></div>
+  <label class="issue">チラシの号（過去の号も印刷できます）<select id="f_issue"></select></label>
+  <div class="warn"><div>⚠ 宣伝枠の内容は、お店の責任で作成してください。チラシには「お店の広告（PR）で、豊川ガイドが確認・保証したものではない」ことが大きく表示されます。<br>
+  法律に反する内容・他人を傷つける内容・事実と違う内容は入れないでください。</div></div>
+  <div class="grid2">
+    <label>お店の名前 <em>必須</em><input id="f_shop" maxlength="15" placeholder="例：喫茶 さくら"><span class="count" id="c_shop"></span></label>
+    <label>ひとことキャッチ <em>必須</em><input id="f_catch" maxlength="20" placeholder="例：手づくりケーキ、はじめました"><span class="count" id="c_catch"></span></label>
+    <label class="full">お店の紹介<textarea id="f_msg" maxlength="140" placeholder="例：豊川稲荷から歩いて3分。季節のフルーツを使ったケーキと、ていねいに淹れたコーヒーでお待ちしています。"></textarea><span class="count" id="c_msg"></span></label>
+    <label>クーポン・特典（なければ空でOK）<input id="f_coupon" maxlength="40" placeholder="例：ドリンク50円引き"></label>
+    <label>写真（お店の外観・商品など）<input id="f_photo" type="file" accept="image/*"><span class="note2">写真はこのパソコン・スマホの中だけで使います。どこにも送信されません</span></label>
+    <label>住所<input id="f_addr" maxlength="40" placeholder="例：豊川市〇〇町1-2-3"></label>
+    <label>営業時間・定休日<input id="f_hours" maxlength="40" placeholder="例：10:00〜18:00／水曜休み"></label>
+    <label>電話番号（任意）<input id="f_tel" maxlength="20" placeholder="例：0533-00-0000"></label>
+    <label>QRコードにするURL（インスタ・HPなど）<input id="f_link" type="url" placeholder="https://www.instagram.com/..."></label>
+    <label>QRの下の文字<input id="f_linkLabel" maxlength="14" placeholder="例：インスタはこちら"></label>
+    <label class="full">デザイン
+      <div class="pats">
+        <label><input type="radio" name="pat" value="A" checked>A 写真が主役（写真を大きく）</label>
+        <label><input type="radio" name="pat" value="B">B 文字が主役（写真は小さめ）</label>
+        <label><input type="radio" name="pat" value="C">C 写真なし</label>
+        <label><input type="radio" name="pat" value="N">D 宣伝なし（豊川ガイドの案内が入ります）</label>
+      </div></label>
+    <label class="full">色
+      <div class="cols">
+        <div class="crow"><b>はっきり</b><label><input type="radio" name="col" value="#e60012" checked><i style="background:#e60012"></i>赤</label><label><input type="radio" name="col" value="#0b2f7a"><i style="background:#0b2f7a"></i>紺</label><label><input type="radio" name="col" value="#008a4b"><i style="background:#008a4b"></i>緑</label><label><input type="radio" name="col" value="#ea5506"><i style="background:#ea5506"></i>オレンジ</label><label><input type="radio" name="col" value="#7a3fa0"><i style="background:#7a3fa0"></i>むらさき</label><label><input type="radio" name="col" value="#111111"><i style="background:#111111"></i>黒</label></div>
+        <div class="crow"><b>やさしい</b><span class="chint">淡い地＋輪っかの色の文字</span><label><input type="radio" name="col" value="#f7c6d0"><i style="background:#f7c6d0;border-color:#d94f78;border-width:4px"></i>さくら</label><label><input type="radio" name="col" value="#b9e1f5"><i style="background:#b9e1f5;border-color:#2b8fc9;border-width:4px"></i>みずいろ</label><label><input type="radio" name="col" value="#cfe8b4"><i style="background:#cfe8b4;border-color:#5c9a2e;border-width:4px"></i>わかば</label><label><input type="radio" name="col" value="#fbeaa6"><i style="background:#fbeaa6;border-color:#c99a1a;border-width:4px"></i>クリーム</label><label><input type="radio" name="col" value="#dccff0"><i style="background:#dccff0;border-color:#8a6cc4;border-width:4px"></i>ラベンダー</label><label><input type="radio" name="col" value="#eadfce"><i style="background:#eadfce;border-color:#a07e55;border-width:4px"></i>ベージュ</label></div>
+      </div></label>
+    <div class="full minibox"><div class="mt">▼ 宣伝枠の見本（入力すると、すぐここに出ます）</div><div class="mini" id="mini"></div></div>
+  </div>
+  <div class="arts" id="arts"><div class="h"><span id="a_title"></span><small>チェックを外した記事は、チラシに載りません（隠れるだけで、「全○本」の本数は変わりません）。目立たせたい記事（お店の記事など）は「ピックアップ」を押すと、そのカテゴリーの先頭に大きく出ます（1つだけ）</small></div>
+    <div class="tools"><button type="button" class="sub" id="a_all">全部のせる</button><button type="button" class="sub" id="a_nopick">ピックアップを外す</button><span id="a_count"></span></div>
+    <ul id="a_list"></ul></div>
+  <div class="btns"><button type="button" id="b_print">③ 印刷する（表・裏の2ページ）</button><button type="button" class="sub" id="b_clear">入力を消す</button></div>
+  <div class="tips">
+    ・<b>両面印刷</b>ができるプリンターなら「両面」、できなければ表と裏を1枚ずつ印刷してください。用紙は<b>A4</b>、余白は「なし」か「最小」、<b>背景のグラフィック</b>にチェックを入れるときれいです。<br>
+    ・コンビニで印刷するときは、印刷画面で「PDFに保存」を選び、そのPDFをコンビニのプリントサービスに送ってください。<br>
+    ・入力した内容はこの端末に保存されます。<b>来月は開いて「印刷する」だけ</b>で、新しい月の記事に入れ替わったチラシが印刷できます。<br>
+    ・チラシの記事は毎月はじめに自動で新しくなります（いまは <b id="m_label"></b>）。
+  </div>
+</div>
+<div class="pv" id="pv"><div class="prevtitle noprint">▼ 印刷されるチラシ（表・裏）<span class="pvhint">入力すると、すぐここが変わります</span></div>
+<div id="front" class="page"></div>
+<div id="back" class="page"></div>
+<button type="button" class="tomk noprint" id="b_tomk">▲ 入力に戻る</button></div>
+<button type="button" class="topv noprint" id="b_topv">チラシの仕上がりを見る ▼</button>
+
+<script>
+const KIND = {
+  NEW:{label:"NEW OPEN", sec:"新店オープン情報", sub:"できる・できた"},
+  EVENT:{label:"イベント", sec:"イベント・お出かけ", sub:""},
+  GOURMET:{label:"グルメ", sec:"うまいもの", sub:""},
+  TOWN:{label:"街の話題", sec:"街の話題", sub:""},
+  CLOSE:{label:"閉店・休業", sec:"閉店・休業・撤退", sub:""},
+  TENANT:{label:"テナント", sec:"テナント", sub:""},
+  CHINTAI:{label:"新築賃貸", sec:"新築賃貸", sub:""},
+  ALERT:{label:"注意", sec:"事件・事故", sub:""},
+  INFO:{label:"お知らせ", sec:"豊川ガイドから", sub:""},
+};
+const D = window.FLYER_DATA;
+let AD = window.SHOP_AD || null;             // お店の宣伝枠（作成ページの入力）
+const SITE = "https://toyokawaguide.com/";
+const MAKER = "https://toyokawaguide.github.io/toyokawa-sns/flyer/";   // ★★ チラシ作成ページの場所
+const INTRO = "https://toyokawaguide.com/flyer/";                       // ★★ 月刊チラシ紹介ページ（WordPress固定ページ）。裏の「作れます」QRはここへ
+const LINE_URL = "https://line.me/R/ti/p/@356azknd";                    // 豊川ガイド公式LINE
+const FULL = new URLSearchParams(location.search).get("full")==="1";   // 全部のせ版（PDF配布用）
+// 2026-11-15 社長「裏面に広告載せないパターンも」→ D(宣伝なし)は全部のせ版と同じく豊川ガイドの案内＋「広告」帯なし
+const NOAD = () => FULL || !!(AD && AD.pat==='N');
+function adHtml(){ return NOAD() ? HOUSE() : (AD && AD.shop) ? ADS[AD.pat||'A'](AD) : `<div class="empty"><b style="font-weight:900;font-size:8mm;color:#e60012">ここにお店の宣伝が入ります</b><p style="font-weight:900">チラシ作成ページで入力すると、この枠に表示されます</p></div>`; }
+const esc = s => String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hl = s => esc(s).replace(/「([^」]+)」/g,'「<em>$1</em>」');
+const QRC={};
+function qrSvg(url){ if(QRC[url]) return QRC[url]; const q=qrcode(0,'L'); q.addData(url); q.make(); return (QRC[url]=q.createSvgTag({cellSize:4,margin:0,scalable:true})); }
+function track(url, content, id){
+  const u=new URL(id? SITE+"?p="+id : url); u.searchParams.set("utm_source","flyer");
+  u.searchParams.set("utm_campaign",D.ym); if(content && content!=="toyokawaguide") u.searchParams.set("utm_content",content); return u.toString();
+}
+let shopKey = "toyokawaguide";
+const ADMIN = false;   // 2026-11-15 社長「管理人が選ぶトップはやめよう（贔屓してる感）」→ 管理人モード廃止。目立たせるのはお店のピックアップだけ
+let TOPS = {};
+let PICK = 0;   // お店がピックアップした記事（1つだけ・号ごと・この端末に保存）
+try{ if(!FULL) PICK = +(localStorage.getItem('tg_flyer_pick_'+D.ym)||0); }catch(e){}
+const BLK_OF = k => k==="NEW" ? "new" : (k==="EVENT"||k==="GOURMET") ? "mid" : "sm";
+const BLK_NAME = {new:"NEW OPEN！新店情報", mid:"イベント＆グルメ", sm:"街の話題・閉店・テナントほか"};
+
+const SEAL = '<div class="seal"><img src="img/fox_logo.png" alt=""><b>大人の事情</b></div>';
+function card(it, big, pick){
+  const k=KIND[it.kind];
+  // 2026-11-15 社長「上から割引シールを貼るみたいに。チラッと見えていいけど何の記事かは分からないように」
+  if(it.hidden) return card(Object.assign({}, it, {hidden:false}), false, false).replace('class="card ', 'class="card hid ').replace(/<\/div>$/, SEAL + '</div>');
+  return `<div class="card c-${it.kind}${big?' big':''}${pick?' pick':''}">
+    <div class="meta"><span class="tag">${k.label}</span><span class="md">${it.md}<small>掲載</small></span></div>
+    <div class="ph" style="--img:url('${esc(it.img)}')"><i class="phb"></i><img class="phi" src="${esc(it.img)}" alt=""></div>
+    ${pick?'<div class="pkbar">★ ピックアップ ★</div>':''}
+    <div class="tx">${(big&&it.kick)?`<span class="k">【${esc(it.kick)}】</span>`:(it.kind==='CHINTAI'&&/末時点/.test(it.shop||''))?`<span class="k">${esc(it.shop)}</span>`:''}${hl(it.head)}</div></div>`;   /* 新築賃貸の在庫は「○年○月末時点・新築賃貸物件の在庫」を1行目に（2026-11-15） */
+}
+function block(kinds, cls, opts={}){
+  const items=D.items.filter(i=>kinds.includes(i.kind)); if(!items.length) return "";
+  const tid=TOPS[opts.key]; if(tid){ const j=items.findIndex(i=>i.id==tid); if(j>0) items.unshift(items.splice(j,1)[0]); }
+  const k=KIND[kinds[0]]; const color=getComputedStyle(document.documentElement).getPropertyValue('--'+kinds[0].toLowerCase());
+  // 2026-11-15 社長「自分のお店はピックアップしたい・一つだけ」→ お店が選んだ記事はカテゴリーの先頭・大きいカード・お店の色の枠
+  const pj=PICK ? items.findIndex(i=>i.id==PICK) : -1; if(pj>0) items.unshift(items.splice(pj,1)[0]);
+  let html=items.map((it,i)=>{ const pk = pj>=0 && i===0; return card(it, (opts.bigFirst && i===0) || pk, pk); }).join("");
+  // 空いたマスは「情報募集」で埋める（チラシっぽさ＋情報提供の呼びかけ）
+  const cols=+(getComputedStyle(document.documentElement).getPropertyValue("--cols")||6); let used=items.length+(opts.bigFirst?3:0); const rest=cols>=7?0:(cols-used%cols)%cols;   // 記事が多い月は埋め草なし
+  // 2026-11-15 社長「街の情報募集中の黄色いマスは要らない」→ 空いたマスは何も置かない
+  return `<div class="blk"><div class="rib" style="background:${opts.color||color}">${opts.title||k.sec}<small>${opts.sub||''}</small></div><div class="grid ${cls}">${html}</div></div>`;
+}
+
+// 月ごとの色（上部の放射の地）。季節に合わせた12色（社長 2026-11-15「月ごとにカラーを分けたい」）
+const MONTH_COLOR = {1:["#c8102e","#e0324d"],2:["#a8326e","#c24b88"],3:["#e05a8c","#f07aa5"],4:["#6fa823","#86c03a"],
+  5:["#00897b","#1aa596"],6:["#6b4fa3","#8468bd"],7:["#0067c0","#1c84db"],8:["#ee7800","#ff9420"],
+  9:["#2d3f99","#4458b5"],10:["#8a4b20","#a6622f"],11:["#c2410c","#dd5a22"],12:["#0f5132","#1d6b45"]};
+function front(){
+  const mc = MONTH_COLOR[D.month] || ["#e60012","#ff1a28"];
+  document.documentElement.style.setProperty('--h1', mc[0]); document.documentElement.style.setProperty('--h2', mc[1]);
+  const n=D.total||D.items.length;   // 2026-11-15 社長「外しても本数は減らさない・豊川ガイドが何本書いたか分かるように」
+  document.getElementById("front").innerHTML = `
+  <div class="hd">
+    <div class="topbar"><span>豊川市の地域情報サイト <b>豊川ガイド</b></span><span>${D.label}｜${D.range}の記事 ${n}本</span></div>
+    <div class="logo"><img src="img/fox_logo.png" alt="豊川ガイド"><b>豊川ガイド</b><i>地域情報</i></div>
+    <div class="ttl"><div class="t1 stroke"><span class="yr">${D.ym.slice(0,4)}年</span>${D.month}月の</div><div class="t2 stroke">街ネタ<em>大放出!!</em></div></div>
+    <div class="boom"><div class="in"><div class="u">全</div><div class="n">${n}</div><div class="u">本</div><span class="x">一挙掲載!</span></div></div>
+    <div class="sub"><span>新店・閉店・イベント・グルメ…豊川の「今」をまるごとチェック！</span></div>
+  </div>
+  <div class="note"><div>⚠ <b>ご注意</b>：掲載内容は<b>記事を公開した時点</b>の情報です。日程・営業などは変わっていることがあります。最新情報は各記事・お店でご確認ください</div></div>
+  <div class="body" id="fbody">
+    ${block(["NEW"],"g-new",{key:"new",bigFirst:false,   /* 2026-11-15 社長「先頭の大きいカードは無し・ピックアップだけ大きく」 */title:"NEW OPEN！新店情報",sub:"できる・できた"})}
+    ${block(["EVENT","GOURMET"],"g-mid",{key:"mid",title:"イベント＆グルメ",color:"#8a5a00"})}
+    ${block(["TOWN","CLOSE","TENANT","CHINTAI","ALERT","INFO"],"g-sm",{key:"sm",title:"街の話題・閉店・テナントほか",color:"#4a5560"})}
+  </div>
+  <div class="ft">
+    <div class="qr">${qrSvg(track(SITE, shopKey))}</div>
+    <img class="flogo" src="img/fox_logo.png" alt=""><div class="srch"><span>豊川ガイド</span><b>検索</b></div>
+    <div class="tx">記事の続きはサイトで！<b>裏面のQR</b>から各記事へ飛べます。<br>インスタ・X・Threads・公式LINEでも毎日発信中 ／ 情報提供も大歓迎</div>
+    <div class="take">ご自由に<br>お持ち帰り<br>ください</div>
+  </div>`;
+}
+
+function back(){
+  const items=D.items.slice();
+  // 2026-11-15 社長「裏面のQRも、ピックアップ記事が分かるように」→ 先頭に置いて、お店の色の太枠＋「★ピックアップ」
+  const pj=PICK ? items.findIndex(i=>i.id==PICK && !i.hidden) : -1; if(pj>0) items.unshift(items.splice(pj,1)[0]);
+  const qrs=items.map(it=> it.hidden ? `<div class="qi c-${it.kind} hid"><div class="q"><div class="qb"></div></div><div class="n">ないしょ</div>${SEAL}</div>` : `<div class="qi c-${it.kind}${(pj>=0 && it.id==PICK)?' pick':''}">${(pj>=0 && it.id==PICK)?'<span class="qpk">★ピックアップ</span>':''}<div class="q">${qrSvg(track(it.url, shopKey, it.id))}</div>
+    <div class="n"><i>${KIND[it.kind].label}</i><b class="qd">${it.md}</b>${esc(it.shop||it.head)}</div></div>`).join("");
+  const ad = adHtml();
+  document.getElementById("back").innerHTML = `
+  <div class="bk-hd"><h2>スマホで続きを読む！</h2><p>${D.label}の全${D.total||items.length}本<br>QRコードを読み取ると記事が開きます</p></div>
+  <div class="qrs" style="grid-template-columns:repeat(${Math.max(6,Math.ceil(items.length/6))},1fr)">${qrs}</div>
+  <div class="adwrap">
+    ${NOAD()?"":`<div class="adwarn"><span class="tag">広告</span><span class="tx"><b>このスペースはお店の広告（PR）です。</b>内容は掲載店が作成したもので、豊川ガイドが確認・保証したものではありません。</span></div>`}
+    <div class="ad">${ad}</div>
+  </div>
+  <div class="bk-ft">
+    <div class="qr">${qrSvg(INTRO)}</div>
+    <div><div class="big">勝手に使ってOK！ 印刷はよろしく！</div><div class="sm">このチラシ、あなたのお店でも作れます。お店の宣伝を入れて印刷するだけ。掲載料0円・申込不要・連絡もいりません</div></div>
+    <div class="take">持ち帰りOK</div>
+  </div>`;
+}
+
+const nl2 = s => esc(s);
+function phBox(src, cls, inner){ if(!src && !inner) return ''; return `<div class="ph ${cls||''}">${src?`<div class="bl" style="background-image:url('${src}')"></div><img src="${src}" alt="">`:''}${inner||''}</div>`; }
+function sq(a){ return a.link?`<div class="sq">${qrSvg(a.link)}${esc(a.linkLabel||'くわしくはこちら')}</div>`:''; }
+function info(a){ return [a.addr,a.hours,a.tel].filter(Boolean).map(esc).join('\n'); }
+const pic = src => src ? `<div class="pw"><img class="pic" src="${src}" alt=""></div>` : '';
+function HOUSE(){
+  return `<div class="house"><div class="hc hl"><span class="lb">LINE</span><div class="ht">街の情報、<br>募集中!!</div>
+      <div class="hp">「新しいお店ができそう」「閉店のお知らせが貼ってある」など、なんでも教えてください。写真1枚だけでもOK！</div>
+      <div class="hq"><div class="q"><img src="img/line_qr.png" alt="豊川ガイド公式LINE 友だち追加QR"></div><div class="hn">豊川ガイド<br><b>公式LINE</b>を<br>友だち追加して<br>トークで送ってね</div></div></div>
+    <div class="hc hr"><div class="ht">お店の方へ</div>
+      <div class="hp">このチラシに<b>お店の宣伝</b>を入れて、そのまま印刷できます。<br>掲載料0円・申込不要。お店に置いて、お客さまに持ち帰ってもらってOK！</div>
+      <div class="hq"><div class="q">${qrSvg(INTRO)}</div><div class="hn">くわしくは<br><b>月刊チラシ</b><br>のページへ</div></div></div></div>`;
+}
+const ADS = {
+  get D(){ return this.A; },   // 2026-11-14 クーポン券つき(D)は廃止。保存済みでDの人はAで出す
+  A: a => `<div class="adx adA">${a.photo?`<div class="lc">${pic(a.photo)}<div class="info">${info(a)}</div></div>`:''}
+    <div class="r"><div><span class="pr">PR</span></div><div class="shop">${esc(a.shop)}</div><div class="catch">${esc(a.catch)}</div>
+    ${a.msg?`<div class="msg">${esc(a.msg)}</div>`:''}${a.coupon?`<div class="cp">${esc(a.coupon)}<small>このチラシを見せてください</small></div>`:''}
+    <div class="bot">${a.photo?'<div style="flex:1"></div>':`<div class="info" style="flex:1">${info(a)}</div>`}${sq(a)}</div></div></div>`,
+  B: a => `<div class="adx adB"><div class="hero"><div class="top1"><span class="pr">PR</span><div class="shop">${esc(a.shop)}</div></div><div class="catch"><span>${esc(a.catch)}</span></div></div>
+    <div class="bd"><div class="lt">${a.msg?`<div class="msg">${esc(a.msg)}</div>`:''}${a.coupon?`<div class="cp">${esc(a.coupon)}<small>このチラシを見せてください</small></div>`:''}
+    <div class="bot"><div class="info" style="flex:1">${info(a)}</div>${sq(a)}</div></div>${pic(a.photo)}</div></div>`,
+  C: a => `<div class="adx adC"><div class="card2">
+    <div class="hd2"><span class="pr">PR</span><div class="shop">${esc(a.shop)}</div></div>
+    <div class="mainc"><div class="catch"><span>${esc(a.catch)}</span></div>${a.msg?`<div class="msg">${esc(a.msg)}</div>`:''}</div>
+    <div class="side2">${a.coupon?`<div class="cp">${esc(a.coupon)}<small>このチラシを見せてください</small></div>`:''}</div>
+    <div class="ft2"><div class="info">${info(a)}</div>${sq(a)}</div></div></div>`
+};
+
+// 表面が1ページに収まるまで文字と隙間を縮める
+function fit(){
+  // 記事が多い月は 6列→7列→8列 と増やし、その中で文字と隙間を縮める
+  const R=document.documentElement;
+  for(const cols of [6,7,8]){
+    R.style.setProperty('--cols', cols); front();
+    const body=document.getElementById("fbody"); let s=1.0; R.style.setProperty('--s', s);
+    for(let i=0;i<(cols===8?22:15) && body.scrollHeight>body.clientHeight+1;i++){ s-=0.02; R.style.setProperty('--s', s.toFixed(2)); }
+    document.body.dataset.scale=cols+"/"+s.toFixed(2);
+    if(body.scrollHeight<=body.clientHeight+1) return;
+  }
+}
+const SOFT_INK = {"#f7c6d0": "#d94f78", "#b9e1f5": "#2b8fc9", "#cfe8b4": "#5c9a2e", "#fbeaa6": "#c99a1a", "#dccff0": "#8a6cc4", "#eadfce": "#a07e55"};   // 2026-11-15 社長「見本の色と実際が同じ色に見えない」→ 淡い色と同じ色みの、少し濃い色（見本の輪っかと同じ）
+function setAc(){ const c=(AD&&AD.color)||'#e60012'; const st=document.documentElement.style; st.setProperty('--ac',c); st.setProperty('--adink',SOFT_INK[c]||c); st.setProperty('--on',SOFT_INK[c]||'#fff'); st.setProperty('--tint',SOFT_INK[c]?c:'#fff'); }
+function renderAll(){
+  shopKey = (AD && AD.shop) ? AD.shop.slice(0,30) : "toyokawaguide";
+  setAc();
+  front(); back(); fit(); fitAd(); if(window.drawMini) window.drawMini();
+}
+// 宣伝枠だけ描き直す（入力中はこれだけ。チラシ全体は作り直さない）
+function renderAd(){
+  setAc();
+  const box=document.querySelector('#back .ad'); if(!box) return;
+  box.innerHTML = adHtml();
+  fitAd(); if(window.drawMini) window.drawMini();
+}
+window.renderAd = renderAd;
+// 宣伝枠の文字があふれたら縮める
+function fitAd(){
+  const box=document.querySelector('#back .ad'); const inner=box && box.firstElementChild; if(!inner||!AD||NOAD()) return;
+  let k=1.5; inner.style.setProperty('--k',k);
+  for(let i=0;i<40 && (inner.scrollHeight>box.clientHeight+1 || [...inner.querySelectorAll('.r,.l,.rt,.lt,.card2,.mainc')].some(e=>e.scrollHeight>e.clientHeight+1));i++){ k-=0.04; inner.style.setProperty('--k',k.toFixed(2)); }
+}
+window.renderAll = renderAll;
+// 作成ページの見本：本物の宣伝枠と同じ大きさで作り、作成ページの幅に縮めて見せる
+window.drawMini = function(){
+  const mini=document.getElementById('mini'); const box=document.querySelector('#back .ad'); if(!mini||!box) return;
+  const pzv=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pz'))||1;
+  const r=box.getBoundingClientRect(); const w=r.width/pzv, h=r.height/pzv; if(!w||!h) return;
+  const z=mini.clientWidth/w;
+  mini.style.height=(h*z)+'px';
+  mini.innerHTML=`<div class="mi" style="width:${w}px;height:${h}px;transform:scale(${z})"><div class="ad">${box.innerHTML}</div></div>`;
+};
+window.addEventListener('resize',()=>window.drawMini&&window.drawMini());
+function pz(){ const pv=document.getElementById('pv'); const wide=document.body.classList.contains('mk') && window.innerWidth>=1100; const w=wide&&pv ? pv.clientWidth-16 : document.documentElement.clientWidth; document.documentElement.style.setProperty('--pz', Math.min(1,(w-12)/(210*96/25.4)).toFixed(3)); }
+if(!new URLSearchParams(location.search).get('full')) document.body.classList.add('mk');   // 全部のせ版（PDF用）は1列のまま
+pz(); window.addEventListener('resize',pz);
+(function(){ const tp=document.getElementById('b_topv'), tm=document.getElementById('b_tomk'); if(!tp) return;
+  tp.onclick=()=>document.getElementById('pv').scrollIntoView({behavior:'smooth'});
+  tm.onclick=()=>document.getElementById('maker').scrollIntoView({behavior:'smooth'});
+  const io=new IntersectionObserver(es=>{ es.forEach(e=>{ tp.style.display = e.isIntersecting ? 'none' : ''; }); }, {threshold:0.05});
+  io.observe(document.getElementById('front'));
+  // 横並びのとき：宣伝の入力欄を触ったら、右のチラシを裏面（宣伝の面）へ。記事一覧を触ったら表面へ
+  document.getElementById('maker').addEventListener('focusin', e=>{
+    if(!(document.body.classList.contains('mk') && window.innerWidth>=1100)) return;
+    const pv=document.getElementById('pv'); const tgt = e.target.closest('#arts') ? 'front' : (e.target.closest('.grid2') ? 'back' : null);
+    if(tgt){ const el = tgt==='back' ? (document.querySelector('#back .ad') || document.getElementById('back')) : document.getElementById('front');
+      const top = pv.scrollTop + el.getBoundingClientRect().top - pv.getBoundingClientRect().top - (tgt==='back' ? Math.max(8, (pv.clientHeight - el.getBoundingClientRect().height)/2) : 8);
+      pv.scrollTo({top, behavior:'smooth'}); }
+  }); })();
+// ===== 作成ページの動き =====
+(function(){
+  const F=['shop','catch','msg','coupon','addr','hours','tel','link','linkLabel'];
+  const $=id=>document.getElementById(id);
+  if(!$('maker')) return;
+  const KEY='tg_flyer_shop_ad_v1';
+  let photo='', ratio=0;
+  function read(){
+    const a={}; F.forEach(k=>a[k]=$('f_'+k).value.trim());
+    a.pat=(document.querySelector('input[name=pat]:checked')||{}).value||'A';
+    a.color=(document.querySelector('input[name=col]:checked')||{}).value||'#e60012';
+    a.photo=photo; a.ratio=ratio; if(a.link && !/^https?:\/\//.test(a.link)) a.link='https://'+a.link;
+    return a;
+  }
+  function cnt(){ [['shop',15],['catch',20],['msg',140]].forEach(([k,m])=>{ const n=$('f_'+k).value.length; const c=$('c_'+k); c.textContent=n+' / '+m+(n>=m?'（これ以上入りません）':''); c.style.color=n>=m?'#e60012':''; }); }
+  function save(a){ try{ localStorage.setItem(KEY, JSON.stringify(a)); }catch(e){} }
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ return null; } }
+  let tAd=0, tAll=0, lastShop=null;
+  function apply(){
+    cnt();
+    clearTimeout(tAd); tAd=setTimeout(()=>{ AD=read(); save(AD); renderAd();
+      if(AD.shop!==lastShop){ clearTimeout(tAll); tAll=setTimeout(()=>{ lastShop=AD.shop; renderAll(); },900); } },180);
+  }
+  function applyNow(){ clearTimeout(tAd); clearTimeout(tAll); AD=read(); save(AD); lastShop=AD.shop; renderAll(); }
+  const prev=load();
+  if(prev){ F.forEach(k=>{ if(prev[k]) $('f_'+k).value=prev[k]; }); photo=prev.photo||''; ratio=prev.ratio||0;
+    const pr=document.querySelector('input[name=pat][value="'+prev.pat+'"]'); if(pr) pr.checked=true;
+    const cl=document.querySelector('input[name=col][value="'+prev.color+'"]'); if(cl) cl.checked=true; }
+  F.forEach(k=>$('f_'+k).addEventListener('input',apply));
+  document.querySelectorAll('input[name=col]').forEach(r=>r.addEventListener('change',apply));
+  document.querySelectorAll('input[name=pat]').forEach(r=>r.addEventListener('change',applyNow));   // 宣伝なし⇔ありで「広告」帯も変わるので全体を描き直す
+  $('f_photo').addEventListener('change',e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const img=new Image(); const url=URL.createObjectURL(f);
+    img.onload=()=>{ const m=1400, sc=Math.min(1,m/Math.max(img.width,img.height));
+      const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height); photo=c.toDataURL('image/jpeg',0.85); ratio=c.width/c.height; URL.revokeObjectURL(url); apply(); };
+    img.src=url;
+  });
+  function msg(t){ let b=$('mk_msg'); if(!b){ b=document.createElement('div'); b.id='mk_msg';
+    b.style.cssText='margin-top:10px;background:#e60012;color:#fff;font-weight:900;padding:8px 12px;border-radius:6px'; $('b_print').parentNode.after(b);} b.textContent=t; b.hidden=!t; }
+  $('b_print').addEventListener('click',()=>{
+    const a=read(); if(a.pat!=='N' && (!a.shop||!a.catch)){ msg('「お店の名前」と「ひとことキャッチ」を入れてください'); return; }
+    msg(''); applyNow(); setTimeout(()=>window.print(),400);
+  });
+  $('b_clear').addEventListener('click',()=>{ F.forEach(k=>$('f_'+k).value=''); photo=''; ratio=0; $('f_photo').value=''; applyNow(); });
+
+  // ===== この号の記事一覧（外したい記事はチェックを外す。号ごとにこの端末に保存） =====
+  const ALL = D.items.slice(); D.total = ALL.length;
+  const XKEY = 'tg_flyer_excl_' + D.ym;
+  let excl = new Set(); try{ excl = new Set(JSON.parse(localStorage.getItem(XKEY)||'[]')); }catch(e){}
+  function applyExcl(){ D.items = ALL.map(it=> excl.has(it.id) ? Object.assign({}, it, {hidden:true}) : it);   /* 2026-11-15 社長「消すと本数と合わない→豊川ガイドのロゴで隠す・『大人の事情』」 */ try{ localStorage.setItem(XKEY, JSON.stringify([...excl])); }catch(e){} }
+  function drawList(){
+    $('a_title').textContent = D.label + 'の記事（全' + ALL.length + '本）';
+    $('a_count').textContent = 'チラシに載る記事：' + (ALL.length - excl.size) + '本' + (excl.size ? '（' + excl.size + '本を外しています）' : '');
+    const li = it => {
+      const col = getComputedStyle(document.documentElement).getPropertyValue('--' + it.kind.toLowerCase()) || '#333';
+      const b = BLK_OF(it.kind);
+      const tp = ADMIN ? `<label class="tp"><input type="radio" name="top_${b}" data-top="${it.id}" data-blk="${b}" ${TOPS[b]==it.id?'checked':''}>トップ</label>` : '';
+      const pk = ADMIN ? '' : `<label class="pkr"><input type="radio" name="pick" data-pick="${it.id}" ${PICK==it.id?'checked':''}>ピックアップ</label>`;
+      return `<li class="${excl.has(it.id)?'off':''}">${tp}${pk}<input type="checkbox" data-id="${it.id}" ${excl.has(it.id)?'':'checked'}>
+        <span class="t" style="background:${col}">${KIND[it.kind].label}</span><span class="d">${it.md}</span>
+        <span class="x">${esc(it.head)}</span><a href="${esc(it.url)}" target="_blank" rel="noopener">記事を見る</a></li>`; };
+    $('a_list').innerHTML = ADMIN
+      ? ['new','mid','sm'].map(b => { const xs = ALL.filter(it => BLK_OF(it.kind)===b); if(!xs.length) return '';
+          return `<li class="bh">${BLK_NAME[b]}（${xs.length}本）　トップ：${TOPS[b] ? '選択済み' : '未選択＝日付の古い順の先頭'}</li>` + xs.map(li).join(''); }).join('')
+      : ALL.map(li).join('');
+  }
+  $('a_list').addEventListener('change', e => {
+    if(e.target.dataset.pick){ PICK=+e.target.dataset.pick; try{ localStorage.setItem('tg_flyer_pick_'+D.ym, PICK); }catch(err){} excl.delete(PICK); applyExcl(); drawList(); applyNow(); return; }
+    if(e.target.dataset.top){ const b=e.target.dataset.blk; TOPS[b]=+e.target.dataset.top; drawList(); applyNow(); saveTops(); return; }
+    const id = +e.target.dataset.id; if(!id) return;
+    if(e.target.checked) excl.delete(id); else excl.add(id);
+    applyExcl(); drawList(); applyNow();
+  });
+  $('a_nopick').addEventListener('click', () => { PICK=0; try{ localStorage.removeItem('tg_flyer_pick_'+D.ym); }catch(e){} drawList(); applyNow(); });
+  $('a_all').addEventListener('click', () => { excl.clear(); applyExcl(); drawList(); applyNow(); });
+  function saveTops(){
+    const st = $('a_admin'); st.textContent = '保存中…';
+    fetch('/save_tops', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ym:D.ym, tops:TOPS})})
+      .then(r => { if(!r.ok) throw 0; st.textContent = '✔ ' + D.label + ' のトップを保存しました（' + new Date().toLocaleTimeString() + '）'; })
+      .catch(() => { st.textContent = '⚠ 保存できませんでした。「チラシのトップを選ぶ.bat」から開き直してください'; });
+  }
+  if(ADMIN){ const bar=document.createElement('div'); bar.className='adminbar'; bar.id='a_admin';
+    bar.textContent='管理人モード：各カテゴリーで「トップ」を1つ押すと、その記事がカテゴリーの先頭（新店は大きいカード）になり、自動で保存されます';
+    $('arts').before(bar); }
+  applyExcl(); drawList();
+  $('m_label').textContent=D.label+'（'+D.range+'の記事 全'+ALL.length+'本）';
+  const sel=$('f_issue'), ms=(window.FLYER_MONTHS||[]).slice().reverse();
+  ms.forEach((m,i)=>{ const o=document.createElement('option'); const [y,mm]=m.split('-');
+    o.value=m; o.textContent=y+'年'+(+mm)+'月号'+(i===0?'（最新）':''); if(m===D.ym) o.selected=true; sel.appendChild(o); });
+  sel.addEventListener('change',()=>{ const u=new URL(location.href); if(sel.value===ms[0]) u.searchParams.delete('m'); else u.searchParams.set('m',sel.value); location.href=u.toString(); });
+  if(prev){ AD=read(); renderAll(); }
+  cnt();
+})();
+
+renderAll();
+(document.fonts? document.fonts.ready : Promise.resolve()).then(()=>{ renderAll(); document.body.dataset.ready="1"; });
+</script>
+</body>
+</html>

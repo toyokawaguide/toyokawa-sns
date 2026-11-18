@@ -1,0 +1,251 @@
+window.FLYER_DATA = {
+ "ym": "2024-05",
+ "label": "2024年5月号",
+ "month": 5,
+ "range": "5/1〜5/31",
+ "built": "2026-11-15",
+ "items": [
+  {
+   "id": 10493,
+   "date": "2024-05-02",
+   "md": "5/2",
+   "kick": "ニューオープン",
+   "head": "市田町の「スパイシースマイル」というスパイスカレー屋さん。”カレーと言えばココイチ”という人にこそオススメしたい。",
+   "shop": "スパイシースマイル",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/05/02/newopen_ichidacho_spicy_smile/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/スパイススマイル　外観-768x432.jpg"
+  },
+  {
+   "id": 11014,
+   "date": "2024-05-21",
+   "md": "5/21",
+   "kick": "ニューオープン",
+   "head": "千歳通のチトセテラスに新しいお店がオープンするぞ！何のお店？",
+   "shop": "",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/05/21/newopen_chitoseterrace_newopen_what/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/チトセテラス　外観-768x432.jpg"
+  },
+  {
+   "id": 11324,
+   "date": "2024-05-25",
+   "md": "5/25",
+   "kick": "ニューオープン",
+   "head": "為当町にパン屋が出来る！その名も「ＰＡＺＯＯ（パズー）」。２０２４年６月？オープン予定だ！",
+   "shop": "ＰＡＺＯＯ（パズー）",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/05/25/newopen_tametouchou_pan_pazoo_2024_6/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/ＰＡＺＯＯ　外観-1-768x432.jpg"
+  },
+  {
+   "id": 11421,
+   "date": "2024-05-29",
+   "md": "5/29",
+   "kick": "",
+   "head": "ヤマダ電機の隣の隣、イエローハットが出来るところの隣の建物を解体しとる！次は何が出来る？？",
+   "shop": "",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/05/29/yamadadenki_tonari_tonari_yellow_hat_tonari_kaitai_tsugihanani/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/イエローハットの隣　外観-768x432.jpg"
+  },
+  {
+   "id": 11408,
+   "date": "2024-05-29",
+   "md": "5/29",
+   "kick": "ニューオープン",
+   "head": "ぶどうの森の跡地に中古車販売の「ＶＥＲＮＯ ＣＡＲＬＡ　豊川店」が出来るよー！２０２４年７月オープン予定だって。",
+   "shop": "ＶＥＲＮＯ ＣＡＲＬＡ　豊川店",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2024/05/29/newopen_budonomoriatochi_verno_carla_toyokawaten_2024_7/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/ＶＥＲＮＯ　ＣＡＲＬＡ　豊川店　外観-768x432.jpg"
+  },
+  {
+   "id": 10655,
+   "date": "2024-05-06",
+   "md": "5/6",
+   "kick": "２０２４年５月４日（土）",
+   "head": "あなたは、デコトラ〇〇〇台が豊川市に大集結していたことをご存知だろうか。全国哥麿会ｉｎ豊川",
+   "shop": "",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/05/06/2024_5_4_toyokawashi_dekotora_300_utamarokai/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/デコトラ　外観-768x432.jpg"
+  },
+  {
+   "id": 10922,
+   "date": "2024-05-14",
+   "md": "5/14",
+   "kick": "２０２４年５月２５日（土）２６日（日）",
+   "head": "おいでん祭やるってよ！第３３回豊川市民まつり「おいでん祭」～ワクワクドキドキを体験しよう！～",
+   "shop": "おいでん祭",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/05/14/2024_5_25_26_dai33kai_oidensai/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/２０２４年おいでん祭　外観-768x432.jpg"
+  },
+  {
+   "id": 11099,
+   "date": "2024-05-24",
+   "md": "5/24",
+   "kick": "２０２４年５月２５日（土）２６日（日）",
+   "head": "輪島朝市をイオンモール豊川で開催！おいでん祭とあわせて注目してほしい！",
+   "shop": "",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/05/24/2024_5_25_26_wajimaasaichi_aeonmall_toyokawa/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/イオンモール豊川　外観-768x432.jpg"
+  },
+  {
+   "id": 11364,
+   "date": "2024-05-26",
+   "md": "5/26",
+   "kick": "２０２４年５月２６日（日）",
+   "head": "現在、豊川市、ホタルがめっちゃおるって！もうすぐ夏ですねー。",
+   "shop": "",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/05/26/2024_5_26_hotaru/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/ホタル　外観-768x432.jpg"
+  },
+  {
+   "id": 11334,
+   "date": "2024-05-26",
+   "md": "5/26",
+   "kick": "",
+   "head": "２０２４年５月２５日（土）のおいでん祭に行ってみたよ。１日単位の来場者数は、おいでん祭が豊川市で２番目に人が多く集まるイベント…かな？",
+   "shop": "",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/05/26/oidensai_ichinichi_raijoushasu_toyokawashi_2banme/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/２０２４おいでん祭　外観-768x432.jpg"
+  },
+  {
+   "id": 11369,
+   "date": "2024-05-27",
+   "md": "5/27",
+   "kick": "２０２４年５月２６日（日）",
+   "head": "出張輪島朝市に行ってみました！大盛況だったみたい。",
+   "shop": "",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/05/27/2024_5_26_wajimaasaichi_ittemita_daiseikyou/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/出張輪島朝市　外観-768x432.jpg"
+  },
+  {
+   "id": 11396,
+   "date": "2024-05-29",
+   "md": "5/29",
+   "kick": "",
+   "head": "豊川市の「リレーマラソン」って知ってる？実は第１４回目。２０２４年６月２日に開催するよー。",
+   "shop": "リレーマラソン",
+   "kind": "EVENT",
+   "url": "https://toyokawa-rentallife.com/2024/05/29/toyokawashi_relay_marathon_dai14kaime_2024_6_2/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/豊川リレーマラソン　外観1-768x433.jpg"
+  },
+  {
+   "id": 10636,
+   "date": "2024-05-05",
+   "md": "5/5",
+   "kick": "グルメ",
+   "head": "本当は教えたくない！佐奈川町にある「金龍」はマジで最強かつ最高のラーメン屋だと思う。",
+   "shop": "金龍",
+   "kind": "GOURMET",
+   "url": "https://toyokawa-rentallife.com/2024/05/05/gourmet_oshietakunai_sanagawacho_kinryu_saikyo_and_saiko_ramen/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/金龍　外観-768x432.jpg"
+  },
+  {
+   "id": 10934,
+   "date": "2024-05-15",
+   "md": "5/15",
+   "kick": "グルメ",
+   "head": "本当は教えたくない！＜２＞場所は市田町。半世紀以上も営業している中華料理「〇〇」をご存知だろうか？",
+   "shop": "〇〇",
+   "kind": "GOURMET",
+   "url": "https://toyokawa-rentallife.com/2024/05/15/gourmet_oshietakunai_ichidacho_hanseiki_chukaryouri/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/リキ　外観-768x432.jpg"
+  },
+  {
+   "id": 11037,
+   "date": "2024-05-22",
+   "md": "5/22",
+   "kick": "グルメ",
+   "head": "諏訪町駅近くにある「大衆食堂くろしお」のランチ８００円、満足です。タバコ吸えます！",
+   "shop": "大衆食堂くろしお",
+   "kind": "GOURMET",
+   "url": "https://toyokawa-rentallife.com/2024/05/22/gourmet_suwachoeki_kuroshio_tabako_ok/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/くろしお　外観-768x432.jpg"
+  },
+  {
+   "id": 11116,
+   "date": "2024-05-24",
+   "md": "5/24",
+   "kick": "グルメ",
+   "head": "豊川そばトライアングルの一角、「手打そば　つれづれ」を堪能した話。",
+   "shop": "手打そば　つれづれ",
+   "kind": "GOURMET",
+   "url": "https://toyokawa-rentallife.com/2024/05/24/gourmet_toyokawa_sobatriangle_tsuredure/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/つれづれ　外観-768x432.jpg"
+  },
+  {
+   "id": 10884,
+   "date": "2024-05-12",
+   "md": "5/12",
+   "kick": "豊川勝手にランキング",
+   "head": "コンビニ編。店舗数の一番多いコンビニはどこ！？",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2024/05/12/toyokawa_ranking_convenience_store/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/ランキング　モザイク-768x456.png"
+  },
+  {
+   "id": 11378,
+   "date": "2024-05-28",
+   "md": "5/28",
+   "kick": "",
+   "head": "豊川市内の東三河環状線がついに開通する？三蔵子町のアパートも取り壊しに向けて立ち退きが始まったみたい。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2024/05/28/higashimikawakanjousen_dekiru_apartment_tachinoki/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/スイングプレックス立ち退き　外観-768x432.jpg"
+  },
+  {
+   "id": 10693,
+   "date": "2024-05-07",
+   "md": "5/7",
+   "kick": "テナント・土地",
+   "head": "業務スーパー豊川店の跡地はどうなってんの？国府駅近く、「カラオケまねきねこ」の下ね。",
+   "shop": "カラオケまねきねこ",
+   "kind": "TENANT",
+   "url": "https://toyokawa-rentallife.com/2024/05/07/tenant_land_gyoumusuper_toyokawaten_atochi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/業務スーパー豊川店跡地　外観-768x432.jpg"
+  },
+  {
+   "id": 10973,
+   "date": "2024-05-18",
+   "md": "5/18",
+   "kick": "テナント・土地",
+   "head": "国道２３号線沿い、御津町大草にある「まんが館」跡地が募集に出てるよー。",
+   "shop": "まんが館",
+   "kind": "TENANT",
+   "url": "https://toyokawa-rentallife.com/2024/05/18/tenant_land_route23_mitochookusa_mangakan_atochi-2/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/まんが館　外観-768x432.jpg"
+  },
+  {
+   "id": 10988,
+   "date": "2024-05-19",
+   "md": "5/19",
+   "kick": "テナント・土地",
+   "head": "姫街道沿い、三谷原町にある「ＦＯＲＢＥＳ」跡地が募集に出てるよー。",
+   "shop": "ＦＯＲＢＥＳ",
+   "kind": "TENANT",
+   "url": "https://toyokawa-rentallife.com/2024/05/19/tenant_land_himekaido_miyaharacho_forbes_atochi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/05/ＦＯＲＢＥＳ跡地　外観-768x432.jpg"
+  },
+  {
+   "id": 11451,
+   "date": "2024-06-02",
+   "md": "6/2",
+   "kick": "新築賃貸物件の在庫／２０２４年５月末時点",
+   "head": "大東建託の勢い止まらず！しかし空室も増える一方…打開策はあるのか？",
+   "shop": "2024年5月末時点・新築賃貸物件の在庫",
+   "kind": "CHINTAI",
+   "url": "https://toyokawa-rentallife.com/2024/06/02/2024_5_daitoukentaku_ikioitomarazu_kushitsuhueru_dakaisaku/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2024/06/２０２４年５月末時点　豊川市賃貸物件　新築在庫状況-768x432.png"
+  }
+ ]
+};

@@ -1,0 +1,273 @@
+window.FLYER_DATA = {
+ "ym": "2025-04",
+ "label": "2025年4月号",
+ "month": 4,
+ "range": "4/1〜4/30",
+ "built": "2026-11-15",
+ "items": [
+  {
+   "id": 21740,
+   "date": "2025-04-06",
+   "md": "4/6",
+   "kick": "豊川稲荷周辺も盛り上がってきたぞ！",
+   "head": "豊川稲荷の総門（正門）前に商業施設「門前テラス縁福」が出来るぞ！２０２５年１２月にオープン予定だ！！",
+   "shop": "門前テラス縁福",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/06/toyokawainari_soumonmae_monzenterrace_enfuku_2025_12/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/monzenterrace_enpuku_4-768x432.jpg"
+  },
+  {
+   "id": 21755,
+   "date": "2025-04-07",
+   "md": "4/7",
+   "kick": "移転した？",
+   "head": "新桜町通にあった「児童デイサービス　にこにこたいよう」が移転したっぽい。おもちゃ屋→釣り具屋→介護施設→？",
+   "shop": "児童デイサービス　にこにこたいよう",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/07/iten_shinsakuramachidori_nikonikotaiyou/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/nikonikotaiyou_2-768x432.jpg"
+  },
+  {
+   "id": 21785,
+   "date": "2025-04-08",
+   "md": "4/8",
+   "kick": "ニューオープン",
+   "head": "上州屋の跡地に、超絶インパクトのあるお店が出来そうだ！その名も「日用品・雑貨　どやすいや」です。２０２５年４月８日現在、ネットに一切の情報がない！",
+   "shop": "日用品・雑貨　どやすいや",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/08/newopen_joshuyaatochi_doyasuiya/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/doyasuiya_1-768x432.jpg"
+  },
+  {
+   "id": 21810,
+   "date": "2025-04-11",
+   "md": "4/11",
+   "kick": "ニューオープン",
+   "head": "２０２５年３月１８日、金屋橋町に「軽食・モーニング　いこい」がオープンしたぞ！“ただいま”って言ってないのに、“おかえり”って言われた気がする、おふくろの味。",
+   "shop": "軽食・モーニング　いこい",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/11/newopen_2025_3_18_kanayabashicho_ikoi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/ikoi_1-768x432.jpg"
+  },
+  {
+   "id": 21827,
+   "date": "2025-04-14",
+   "md": "4/14",
+   "kick": "豊川のウワサ",
+   "head": "スギ薬局八幡駅前店の隣（北側）に、ワインの美味しいイタリアンのお店が出来るらしい？やはり八幡駅周辺、豊川市西側の盛り上がりが半端ないって！",
+   "shop": "",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/14/toyokawanouwasa_sugidrug_northside_wine_italian/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/italian_wine_1-768x432.jpg"
+  },
+  {
+   "id": 21873,
+   "date": "2025-04-16",
+   "md": "4/16",
+   "kick": "ニューオープン",
+   "head": "諏訪町駅前、モードいとう跡地に「買取大吉」が出来そうだ！２０２５年５月（？）にオープン予定らしい。看板付いてたよー！",
+   "shop": "買取大吉",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/16/newopen_suwachoekimae_kaitoridaikichi_2025_5/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/kaitoridaikichi_1-768x432.jpg"
+  },
+  {
+   "id": 21893,
+   "date": "2025-04-18",
+   "md": "4/18",
+   "kick": "ニューオープン",
+   "head": "蔵子２丁目、ショッピングおはらの跡地に「ＪＵＮＫＰＯＴ」なるリユースショップがオープンしてた！２０２５年４月５日プレオープンだって。",
+   "shop": "ＪＵＮＫＰＯＴ",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/18/newopen_shoppingohara_atochi_junkpot_2025_4_5/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/junkpot_1-768x432.jpg"
+  },
+  {
+   "id": 21882,
+   "date": "2025-04-18",
+   "md": "4/18",
+   "kick": "ウワサ通りでした",
+   "head": "八幡駅近く、「産直ひろば中部」の跡地は「トヨタカローラ愛知」が出来るぞ！完成は２０２６年５月下旬予定。おそらく豊川蔵子店の移転だと思う。",
+   "shop": "産直ひろば中部",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/18/uwasadori_sanchokuhirobachubu_atochi_toyotacorollaaichi_2026_5/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/toyotacorollaaichi_1-768x432.jpg"
+  },
+  {
+   "id": 21901,
+   "date": "2025-04-20",
+   "md": "4/20",
+   "kick": "ニューオープン",
+   "head": "２０２５年３月２４日、八幡町に「優愛豚（ゆうあいぽーく）八幡店」がオープンしたよ！ゲンキー東赤土店の目の前です。",
+   "shop": "優愛豚（ゆうあいぽーく）八幡店",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/20/newopen_2025_3_24_yuaiporky_yawataten/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/yuaiporl_yawataten_3-768x432.jpg"
+  },
+  {
+   "id": 21928,
+   "date": "2025-04-21",
+   "md": "4/21",
+   "kick": "ニューオープン・再",
+   "head": "上州屋の跡地に出来る「日用品・雑貨　どやすいや」は２０２５年４月２４日オープンだって。運営は豊川市諏訪の「ＪＡＧＡ合同会社」という会社。",
+   "shop": "日用品・雑貨　どやすいや",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/21/newopen_doyasuiya_2025_4_24_open/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/doyasuiya_open_1-768x432.jpg"
+  },
+  {
+   "id": 22004,
+   "date": "2025-04-28",
+   "md": "4/28",
+   "kick": "閉店？リニューアルオープン？",
+   "head": "２０２５年４月２７日現在、グーグルの情報では臨時休業となっている「新時代　豊川コロナ前店」は、今後どうなる？豊川市の”推し居酒屋”はどこですか？",
+   "shop": "新時代　豊川コロナ前店",
+   "kind": "NEW",
+   "url": "https://toyokawa-rentallife.com/2025/04/28/close_renewal_open_2025_4_27_temporary_closed/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/shinjidai_toyokawa_4-768x432.jpg"
+  },
+  {
+   "id": 21766,
+   "date": "2025-04-08",
+   "md": "4/8",
+   "kick": "グルメ",
+   "head": "新豊町に出来たラーメン屋さん「らぁめん楓鹿（ふうか）」を堪能した話。２０２５年４月６日グランドオープン！！醤油か塩か、あなたはどっち派？",
+   "shop": "らぁめん楓鹿（ふうか）",
+   "kind": "GOURMET",
+   "url": "https://toyokawa-rentallife.com/2025/04/08/newopen_shinyutakamachi_ramen_fuka_2025_4_6_grand_open/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/ramen_fuka_open_1-768x432.jpg"
+  },
+  {
+   "id": 21721,
+   "date": "2025-04-04",
+   "md": "4/4",
+   "kick": "豊川市のパン屋さん",
+   "head": "ブーランジェリー（ブーランジュリー）と言えばどこのお店を思い浮かべる？豊川市のブーランジェリー三兄弟、今回は末弟「ブーランジェリーあまざき」の話。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/04/toyokawashi_bread_boulangerie_amazaki/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/boulangerie_amazaki_1-768x432.jpg"
+  },
+  {
+   "id": 21801,
+   "date": "2025-04-09",
+   "md": "4/9",
+   "kick": "豊川のウワサ",
+   "head": "八幡駅近くにあった「産直ひろば中部」の跡地、新情報が出ました！近くの「カーディーラー」が移転してくる？？関係者がそう話していたらしいけど、まだ公式情報は出ていない模様。",
+   "shop": "産直ひろば中部",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/09/toyokawanouwasa_sanchokuhiroba_atochi_cardealer_iten/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/sanchokuhiroba_atochi_uwasa_1-768x432.jpg"
+  },
+  {
+   "id": 21864,
+   "date": "2025-04-15",
+   "md": "4/15",
+   "kick": "即解体開始",
+   "head": "２０２５年３月３１日に閉店した「豊川甲羅本店」、４月に入ってすぐ解体作業が始まった！もしかして次が決まってる？？",
+   "shop": "豊川甲羅本店",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/15/kaitaikaishi_2025_3_31_close_toyokawakourahonten/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/koura_kaitai_2-768x432.jpg"
+  },
+  {
+   "id": 21837,
+   "date": "2025-04-15",
+   "md": "4/15",
+   "kick": "新たなる道",
+   "head": "豊川市内の東三河環状線開通に向けて、着々と進む４車線化。国道１号線を陸橋でまたいでから野口町西野の交差点まで４車線になったよ。そしてその先へ…",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/15/newroad_higashimikawakanjosen_4shasenka_noguchicho/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/4shasenka_noguchi_19-768x432.jpg"
+  },
+  {
+   "id": 21917,
+   "date": "2025-04-21",
+   "md": "4/21",
+   "kick": "自販機シリーズ",
+   "head": "豊川市にこんな自販機があったとは！＜４＞の兄弟機を別の場所で発見！イオンモールにあった「生搾り自販機」がこんなところにも…！調べてみたら、豊川市内に結構ある？？",
+   "shop": "生搾り自販機",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/21/toyokawashi_jihanki_4_kyoudaiki_namashiborijihanki_supermarket/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/ijooz_valor_7-768x432.jpg"
+  },
+  {
+   "id": 21936,
+   "date": "2025-04-22",
+   "md": "4/22",
+   "kick": "何かやってる",
+   "head": "プリオの地下１階、アメイジングワールド跡地に動きあり？「テナント募集」は出てないけど、フロアガイドには「空き区画」となっている…。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/22/doing_something_prio_b1_amazingworld_atochi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/amazingworld_atochi_2-768x432.jpg"
+  },
+  {
+   "id": 21957,
+   "date": "2025-04-23",
+   "md": "4/23",
+   "kick": "イオンに行かないで",
+   "head": "２０２５年４月２７日に行われる「プリオ大抽選会（２回目）」の攻めすぎたチラシが話題。景品総数は１３４点。特賞はとあるテーマパークのペアチケットだ！",
+   "shop": "プリオ大抽選会（２回目）",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/23/no_aeon_2025_4_27_prio_biglottery/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/prio_big_lottery_1-768x432.jpg"
+  },
+  {
+   "id": 21968,
+   "date": "2025-04-25",
+   "md": "4/25",
+   "kick": "何かやってる",
+   "head": "姫街道沿い、ガストの斜め向かいにあった「餃子の雪松」の跡地、足場が組まれてる！何が出来るかな～？",
+   "shop": "餃子の雪松",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/25/doing_something_gyouzanoyukimatsu_atochi_ashiba/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/yukimatsu_atochi_1-768x432.jpg"
+  },
+  {
+   "id": 21977,
+   "date": "2025-04-26",
+   "md": "4/26",
+   "kick": "自販機シリーズ",
+   "head": "豊川市にこんな自販機があったとは！＜８＞これは設置場所が分かれば納得。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/26/toyokawashi_jihanki_8/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/takeshou_jihanki_6-768x432.jpg"
+  },
+  {
+   "id": 22016,
+   "date": "2025-04-29",
+   "md": "4/29",
+   "kick": "思ってたんとちがう",
+   "head": "国道１号線沿い、桜町のセブンイレブン、ガソスタの先に何かお店が出来ると思った？残念、ただの事務所でした。",
+   "shop": "",
+   "kind": "TOWN",
+   "url": "https://toyokawa-rentallife.com/2025/04/29/not_what_i_thought_r1_office/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/suzuyo_jimusho_1-768x432.jpg"
+  },
+  {
+   "id": 21992,
+   "date": "2025-04-27",
+   "md": "4/27",
+   "kick": "閉店情報",
+   "head": "諏訪３丁目、ファミリーマート向かいのセレクトショップ「Ｃａｎｖａｓ」が閉店してた。以前火事があった建物の隣のお店。",
+   "shop": "Ｃａｎｖａｓ",
+   "kind": "CLOSE",
+   "url": "https://toyokawa-rentallife.com/2025/04/27/close_suwa3_familymartmukai_canvas/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/04/close_canvas_1-768x432.jpg"
+  },
+  {
+   "id": 22045,
+   "date": "2025-05-04",
+   "md": "5/4",
+   "kick": "新築賃貸物件の在庫／２０２５年４月末時点",
+   "head": "大東建託が築２５年と築２７年の物件を取り壊して、新築を建ててるよ…。２０２３年の豪雨で床上浸水があった地域です。",
+   "shop": "2025年4月末時点・新築賃貸物件の在庫",
+   "kind": "CHINTAI",
+   "url": "https://toyokawa-rentallife.com/2025/05/04/2025_4_shinchiku_daitoukentaku_25nen_28nen_torikowashi/",
+   "img": "https://toyokawa-rentallife.com/wp-content/uploads/2025/05/2025_4_toyokawashi_chintaibukken_shinchikuzaikojokyo-768x432.jpg"
+  }
+ ]
+};
