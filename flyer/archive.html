@@ -17,9 +17,9 @@ body{font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;color:#11
 .btns a.main{background:#e60012;color:#fff}
 .btns a.sub{background:#fff;color:#111}
 h3{font-size:16px;font-weight:900;border-left:6px solid #0b2f7a;padding-left:8px;margin:18px 0 8px}
-ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:8px}
 li{border:2px solid #ddd;border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-li b{font-size:15px}
+li b{font-size:15px;white-space:nowrap}
 li span{display:flex;gap:6px;flex:none}
 li a{font-size:13px;font-weight:700;text-decoration:none;border:1.5px solid #0b2f7a;color:#0b2f7a;border-radius:20px;padding:3px 10px;white-space:nowrap}
 li a.pdf{background:#0b2f7a;color:#fff}
@@ -53,7 +53,7 @@ Object.keys(years).sort().reverse().forEach(function(y){
 h += '<p class="note">※PDFは記事を全部のせた版です。「印刷ページ」では、お店の宣伝を入れたり、載せたくない記事を外したりして印刷できます。</p>';
 document.getElementById("app").innerHTML = h;
 // 埋め込み先（WordPress）に高さを知らせる
-function tell(){ try { parent.postMessage({ flyerH: document.documentElement.scrollHeight + 10 }, "*"); } catch (e) {} }
+function tell(){ try { parent.postMessage({ flyerH: Math.ceil(document.getElementById("app").getBoundingClientRect().bottom) + 16 }, "*"); } catch (e) {} }
 window.addEventListener("load", tell); window.addEventListener("resize", tell); tell();
 </script>
 </body>
