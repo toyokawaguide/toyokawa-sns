@@ -272,6 +272,33 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
 .house .hn{font-weight:900;font-size:4mm;line-height:1.45}
 .house .hn b{color:#e60012;font-size:5mm}
 .house .hr .hn b{color:#0b2f7a}
+
+/* ===== 白黒用（2026-11-20 社長「白黒用も作って」）：ベタ塗りをなくしてインクを減らす・赤の強調は下線に・写真と宣伝枠は灰色に ===== */
+html.mono{--red:#111;--red2:#111;--yel:#fff;--navy:#111;--new:#111;--event:#111;--gourmet:#111;--town:#111;--close:#111;--tenant:#111;--chintai:#111;--alert:#111;--info:#111}
+html.mono .hd{background:#fff!important;border-bottom:.8mm solid #111}
+html.mono .hd .topbar{background:#fff;color:#111;border-bottom:.6mm solid #111}
+html.mono .hd .topbar b{color:#111}
+html.mono .hd .logo{background:#fff}
+html.mono .hd .logo i{background:#111;color:#fff}
+html.mono .hd .boom{background:#111}
+html.mono .hd .boom .n,html.mono .hd .boom .u{color:#fff}
+html.mono .hd .boom .x{background:#fff;color:#111}
+html.mono .note{background:#fff;border-top:.5mm solid #111;border-bottom:.5mm solid #111}
+html.mono .body,html.mono .qrs,html.mono #back{background:#fff}
+html.mono .rib{background:#111!important;color:#fff}
+html.mono .card .meta{background:#fff;border-bottom:.4mm solid #111}
+html.mono .card .meta .md,html.mono .card .meta .md small{color:#111}
+html.mono .card .tx em{text-decoration:underline;text-decoration-thickness:.35mm;text-underline-offset:.5mm}
+html.mono img,html.mono .card .ph .phi{filter:grayscale(1)}
+html.mono .card .ph .phb{filter:blur(1.5mm) grayscale(1)}
+html.mono .seal,html.mono .sbox{filter:grayscale(1)}
+html.mono .card.pick{outline-color:#111}html.mono .card .pkbar,html.mono .card .pk,html.mono .qi .qpk{background:#111}html.mono .qi.pick{border-color:#111}
+html.mono .ft,html.mono .bk-ft{background:#fff;color:#111;border-top:.8mm solid #111}
+html.mono .ft .srch{border-color:#111}html.mono .ft .srch b{color:#fff}
+html.mono .ft .take,html.mono .bk-ft .take{background:#fff;color:#111;border:.5mm solid #111}
+html.mono .bk-hd{background:#fff;color:#111;border-bottom:.8mm solid #111}
+html.mono .bk-hd h2{color:#111}
+html.mono .ft .tx b,html.mono .bk-ft .big{color:#111}
 </style>
 </head>
 <body>
@@ -312,6 +339,7 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
         <div class="crow"><b>やさしい</b><span class="chint">淡い地＋輪っかの色の文字</span><label><input type="radio" name="col" value="#f7c6d0"><i style="background:#f7c6d0;border-color:#d94f78;border-width:4px"></i>さくら</label><label><input type="radio" name="col" value="#b9e1f5"><i style="background:#b9e1f5;border-color:#2b8fc9;border-width:4px"></i>みずいろ</label><label><input type="radio" name="col" value="#cfe8b4"><i style="background:#cfe8b4;border-color:#5c9a2e;border-width:4px"></i>わかば</label><label><input type="radio" name="col" value="#fbeaa6"><i style="background:#fbeaa6;border-color:#c99a1a;border-width:4px"></i>クリーム</label><label><input type="radio" name="col" value="#dccff0"><i style="background:#dccff0;border-color:#8a6cc4;border-width:4px"></i>ラベンダー</label><label><input type="radio" name="col" value="#eadfce"><i style="background:#eadfce;border-color:#a07e55;border-width:4px"></i>ベージュ</label></div>
       </div></label>
     <label class="full takeopt"><input type="checkbox" id="f_take" checked> 「ご自由にお持ち帰りください」「持ち帰りOK」を表示する<br><small>お店に貼るだけ（配らない）ときはチェックを外してください</small></label>
+    <label class="full takeopt"><input type="checkbox" id="f_mono"> 白黒で印刷する（白黒用のデザインにする）<br><small>コンビニの白黒印刷は1枚10円くらい。色のベタ塗りをなくして、インクが少なく、くっきり刷れる形にします</small></label>
     <div class="full minibox"><div class="mt">▼ 宣伝枠の見本（入力すると、すぐここに出ます）</div><div class="mini" id="mini"></div></div>
   </div>
   <div class="arts" id="arts"><div class="h"><span id="a_title"></span><small>チェックを外した記事は、チラシに載りません（隠れるだけで、「全○本」の本数は変わりません）。目立たせたい記事（お店の記事など）は「ピックアップ」を押すと、そのカテゴリーの先頭に大きく出ます（1つだけ）</small></div>
@@ -487,7 +515,7 @@ function fit(){
   }
 }
 const SOFT_INK = {"#f7c6d0": "#d94f78", "#b9e1f5": "#2b8fc9", "#cfe8b4": "#5c9a2e", "#fbeaa6": "#c99a1a", "#dccff0": "#8a6cc4", "#eadfce": "#a07e55"};   // 2026-11-15 社長「見本の色と実際が同じ色に見えない」→ 淡い色と同じ色みの、少し濃い色（見本の輪っかと同じ）
-function setAc(){ const c=(AD&&AD.color)||'#e60012'; const st=document.documentElement.style; st.setProperty('--ac',c); st.setProperty('--adink',SOFT_INK[c]||c); st.setProperty('--on',SOFT_INK[c]||'#fff'); st.setProperty('--tint',SOFT_INK[c]?c:'#fff'); }
+function setAc(){ document.documentElement.classList.toggle('mono', !!(AD&&AD.mono)); const c=(AD&&AD.color)||'#e60012'; const st=document.documentElement.style; st.setProperty('--ac',c); st.setProperty('--adink',SOFT_INK[c]||c); st.setProperty('--on',SOFT_INK[c]||'#fff'); st.setProperty('--tint',SOFT_INK[c]?c:'#fff'); }
 function renderAll(){
   shopKey = (AD && AD.shop) ? AD.shop.slice(0,30) : "toyokawaguide";
   setAc();
@@ -545,7 +573,7 @@ pz(); window.addEventListener('resize',pz);
     const a={}; F.forEach(k=>a[k]=$('f_'+k).value.trim());
     a.pat=(document.querySelector('input[name=pat]:checked')||{}).value||'A';
     a.color=(document.querySelector('input[name=col]:checked')||{}).value||'#e60012';
-    a.take=$('f_take').checked;
+    a.take=$('f_take').checked; a.mono=$('f_mono').checked;
     a.photo=photo; a.ratio=ratio; if(a.link && !/^https?:\/\//.test(a.link)) a.link='https://'+a.link;
     return a;
   }
@@ -563,11 +591,11 @@ pz(); window.addEventListener('resize',pz);
   if(prev){ F.forEach(k=>{ if(prev[k]) $('f_'+k).value=prev[k]; }); photo=prev.photo||''; ratio=prev.ratio||0;
     const pr=document.querySelector('input[name=pat][value="'+prev.pat+'"]'); if(pr) pr.checked=true;
     const cl=document.querySelector('input[name=col][value="'+prev.color+'"]'); if(cl) cl.checked=true;
-    $('f_take').checked = prev.take!==false; }
+    $('f_take').checked = prev.take!==false; $('f_mono').checked = !!prev.mono; }
   F.forEach(k=>$('f_'+k).addEventListener('input',apply));
   document.querySelectorAll('input[name=col]').forEach(r=>r.addEventListener('change',apply));
   document.querySelectorAll('input[name=pat]').forEach(r=>r.addEventListener('change',applyNow));
-  $('f_take').addEventListener('change',applyNow);   // 宣伝なし⇔ありで「広告」帯も変わるので全体を描き直す
+  $('f_take').addEventListener('change',applyNow); $('f_mono').addEventListener('change',applyNow);   // 宣伝なし⇔ありで「広告」帯も変わるので全体を描き直す
   $('f_photo').addEventListener('change',e=>{
     const f=e.target.files[0]; if(!f) return;
     const img=new Image(); const url=URL.createObjectURL(f);
