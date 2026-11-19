@@ -245,6 +245,7 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
 .maker .arts .tools button{font-size:12px;padding:3px 10px;border-width:2px;background:#fff;color:#111}
 .maker .arts ul{list-style:none;max-height:340px;overflow:auto;margin:0;padding:0}
 .maker .arts li{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-top:1px solid #e3e3e3;font-size:13px;line-height:1.45}
+.maker .takeopt{display:block;font-weight:700}.maker .takeopt input{width:auto;margin-right:6px}.maker .takeopt small{font-weight:400;color:#666}
 .maker .arts li.off{opacity:.45;text-decoration:line-through}
 @media (max-width:640px){.maker .arts li{flex-wrap:wrap;row-gap:4px}.maker .arts li .x{flex-basis:100%;order:9}}   /* スマホ：タイトルは2行目に全幅で */
 .maker .arts li input{width:auto;margin-top:3px;flex:none;transform:scale(1.2)}
@@ -310,6 +311,7 @@ body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);-webkit-print-color-
         <div class="crow"><b>はっきり</b><label><input type="radio" name="col" value="#e60012" checked><i style="background:#e60012"></i>赤</label><label><input type="radio" name="col" value="#0b2f7a"><i style="background:#0b2f7a"></i>紺</label><label><input type="radio" name="col" value="#008a4b"><i style="background:#008a4b"></i>緑</label><label><input type="radio" name="col" value="#ea5506"><i style="background:#ea5506"></i>オレンジ</label><label><input type="radio" name="col" value="#7a3fa0"><i style="background:#7a3fa0"></i>むらさき</label><label><input type="radio" name="col" value="#111111"><i style="background:#111111"></i>黒</label></div>
         <div class="crow"><b>やさしい</b><span class="chint">淡い地＋輪っかの色の文字</span><label><input type="radio" name="col" value="#f7c6d0"><i style="background:#f7c6d0;border-color:#d94f78;border-width:4px"></i>さくら</label><label><input type="radio" name="col" value="#b9e1f5"><i style="background:#b9e1f5;border-color:#2b8fc9;border-width:4px"></i>みずいろ</label><label><input type="radio" name="col" value="#cfe8b4"><i style="background:#cfe8b4;border-color:#5c9a2e;border-width:4px"></i>わかば</label><label><input type="radio" name="col" value="#fbeaa6"><i style="background:#fbeaa6;border-color:#c99a1a;border-width:4px"></i>クリーム</label><label><input type="radio" name="col" value="#dccff0"><i style="background:#dccff0;border-color:#8a6cc4;border-width:4px"></i>ラベンダー</label><label><input type="radio" name="col" value="#eadfce"><i style="background:#eadfce;border-color:#a07e55;border-width:4px"></i>ベージュ</label></div>
       </div></label>
+    <label class="full takeopt"><input type="checkbox" id="f_take" checked> 「ご自由にお持ち帰りください」「持ち帰りOK」を表示する<br><small>お店に貼るだけ（配らない）ときはチェックを外してください</small></label>
     <div class="full minibox"><div class="mt">▼ 宣伝枠の見本（入力すると、すぐここに出ます）</div><div class="mini" id="mini"></div></div>
   </div>
   <div class="arts" id="arts"><div class="h"><span id="a_title"></span><small>チェックを外した記事は、チラシに載りません（隠れるだけで、「全○本」の本数は変わりません）。目立たせたい記事（お店の記事など）は「ピックアップ」を押すと、そのカテゴリーの先頭に大きく出ます（1つだけ）</small></div>
@@ -349,6 +351,7 @@ const INTRO = "https://toyokawaguide.com/flyer/";                       // ★�
 const LINE_URL = "https://line.me/R/ti/p/@356azknd";                    // 豊川ガイド公式LINE
 const FULL = new URLSearchParams(location.search).get("full")==="1";   // 全部のせ版（PDF配布用）
 // 2026-11-15 社長「裏面に広告載せないパターンも」→ D(宣伝なし)は全部のせ版と同じく豊川ガイドの案内＋「広告」帯なし
+const TAKE = () => !(AD && AD.take===false);   // 2026-11-20 社長「お持ち帰りの表示をなしにもできるように」（店に貼るだけ・配らない時）
 const NOAD = () => FULL || !!(AD && AD.pat==='N');
 function adHtml(){ return NOAD() ? HOUSE() : (AD && AD.shop) ? ADS[AD.pat||'A'](AD) : `<div class="empty"><b style="font-weight:900;font-size:8mm;color:#e60012">ここにお店の宣伝が入ります</b><p style="font-weight:900">チラシ作成ページで入力すると、この枠に表示されます</p></div>`; }
 const esc = s => String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -417,7 +420,7 @@ function front(){
     <div class="qr">${qrSvg(track(SITE, shopKey))}</div>
     <img class="flogo" src="img/fox_logo.png" alt=""><div class="srch"><span>豊川ガイド</span><b>検索</b></div>
     <div class="tx">記事の続きはサイトで！<b>裏面のQR</b>から各記事へ飛べます。<br>インスタ・X・Threads・公式LINEでも毎日発信中 ／ 情報提供も大歓迎</div>
-    <div class="take">ご自由に<br>お持ち帰り<br>ください</div>
+    ${TAKE()?`<div class="take">ご自由に<br>お持ち帰り<br>ください</div>`:""}
   </div>`;
 }
 
@@ -438,7 +441,7 @@ function back(){
   <div class="bk-ft">
     <div class="qr">${qrSvg(INTRO)}</div>
     <div><div class="big">勝手に使ってOK！ 印刷はよろしく！</div><div class="sm">このチラシ、あなたのお店でも作れます。お店の宣伝を入れて印刷するだけ。掲載料0円・申込不要・連絡もいりません</div></div>
-    <div class="take">持ち帰りOK</div>
+    ${TAKE()?`<div class="take">持ち帰りOK</div>`:""}
   </div>`;
 }
 
@@ -542,6 +545,7 @@ pz(); window.addEventListener('resize',pz);
     const a={}; F.forEach(k=>a[k]=$('f_'+k).value.trim());
     a.pat=(document.querySelector('input[name=pat]:checked')||{}).value||'A';
     a.color=(document.querySelector('input[name=col]:checked')||{}).value||'#e60012';
+    a.take=$('f_take').checked;
     a.photo=photo; a.ratio=ratio; if(a.link && !/^https?:\/\//.test(a.link)) a.link='https://'+a.link;
     return a;
   }
@@ -558,10 +562,12 @@ pz(); window.addEventListener('resize',pz);
   const prev=load();
   if(prev){ F.forEach(k=>{ if(prev[k]) $('f_'+k).value=prev[k]; }); photo=prev.photo||''; ratio=prev.ratio||0;
     const pr=document.querySelector('input[name=pat][value="'+prev.pat+'"]'); if(pr) pr.checked=true;
-    const cl=document.querySelector('input[name=col][value="'+prev.color+'"]'); if(cl) cl.checked=true; }
+    const cl=document.querySelector('input[name=col][value="'+prev.color+'"]'); if(cl) cl.checked=true;
+    $('f_take').checked = prev.take!==false; }
   F.forEach(k=>$('f_'+k).addEventListener('input',apply));
   document.querySelectorAll('input[name=col]').forEach(r=>r.addEventListener('change',apply));
-  document.querySelectorAll('input[name=pat]').forEach(r=>r.addEventListener('change',applyNow));   // 宣伝なし⇔ありで「広告」帯も変わるので全体を描き直す
+  document.querySelectorAll('input[name=pat]').forEach(r=>r.addEventListener('change',applyNow));
+  $('f_take').addEventListener('change',applyNow);   // 宣伝なし⇔ありで「広告」帯も変わるので全体を描き直す
   $('f_photo').addEventListener('change',e=>{
     const f=e.target.files[0]; if(!f) return;
     const img=new Image(); const url=URL.createObjectURL(f);
