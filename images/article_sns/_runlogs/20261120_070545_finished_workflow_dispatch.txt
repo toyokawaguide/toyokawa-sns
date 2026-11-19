@@ -1,0 +1,48 @@
+time=2026-11-20T07:05:45.189916+09:00
+event=workflow_dispatch
+run_id=44624420973
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS162 【お知らせ】いらんかもだけど「豊川ガイド 月刊チラシ」を作っ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS162_* サブフォルダ検索中...
+✅ Drive: SNS162_2026.11.20【お知らせ】いらんかもだけど「豊川ガイド 月刊チラシ」を作ってみました！あなたのお店の宣伝も出来るよ！勝手に使ってOK！掲載料0円・申込不要。 (id=1q96YUIab5...)
+  📥 DL: 0.jpg (229 KB)
+  📥 DL: 1.jpg (229 KB)
+  📥 DL: 2.jpg (439 KB)
+  📥 DL: 3.jpg (488 KB)
+  📥 DL: 4.jpg (448 KB)
+  📥 DL: 5.jpg (440 KB)
+  📥 DL: 6.jpg (384 KB)
+  ✅ SNS162: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: 豊川ガイド 月刊チラシ
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS162_* サブフォルダ検索中...
+✅ Drive: SNS162_2026.11.20【お知らせ】いらんかもだけど「豊川ガイド 月刊チラシ」を作ってみました！あなたのお店の宣伝も出来るよ！勝手に使ってOK！掲載料0円・申込不要。 (id=1q96YUIab5...)
+  📷 フィード 8枚生成
+    📤 Pages へ 8枚 commit 2af6616（反映待ち…）
+    ✅ Pages 配信確認 8枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS162_* サブフォルダ検索中...
+✅ Drive: SNS162_2026.11.20【お知らせ】いらんかもだけど「豊川ガイド 月刊チラシ」を作ってみました！あなたのお店の宣伝も出来るよ！勝手に使ってOK！掲載料0円・申込不要。 (id=1q96YUIab5...)
+カテゴリ=お知らせ / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18100295465682925', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '18157152358530259', 'dry': False}
+  🎬 IG Reels
+  container_id=17963698350254312 file_size=5,610,736 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '17934649833423549', 'media_type': 'REELS'}
+  ▶ YouTube ショート アップ完了（private）: https://youtube.com/shorts/hQG6mgxoX8o
+    → {'status': 'ok', 'video_id': 'hQG6mgxoX8o', 'url': 'https://youtube.com/shorts/hQG6mgxoX8o', 'privacy': 'private'}
+  📊 状態→投稿済
