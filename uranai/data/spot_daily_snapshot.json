@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-19T07:31:42.489571+09:00",
-  "captured_date": "2026-11-19",
+  "captured_at": "2026-11-20T07:38:35.162853+09:00",
+  "captured_date": "2026-11-20",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-19": {
-      "name": "東京庵",
-      "is_chain": false
-    },
     "2026-11-20": {
       "name": "HOANG NAM FOODS",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-19": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-20": {
       "name": null,
       "is_chain": false
     }
