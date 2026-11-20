@@ -790,16 +790,8 @@ def render_story(row: dict, band_path, output_path=None, year: int | None = None
     d.polygon(tri, fill="white"); d.line([tri[0], tri[1], tri[2]], fill=INK, width=4)
     d.line([(tx + 4, by1 - 2), (tx + 54, by1 - 2)], fill="white", width=6)
     # 2026-11-21 社長「下部のPR部分が変」→ いつものストーリーの「▶ラベル」と同じ明朝・1つの文字列として並べる（【PR】だけ赤）
-    shop = re.sub(r"\s+", " ", (row.get("店名") or "").strip())
-    parts = [("▶", INK), ("【PR】", RED), (shop, INK)]
-    full = "".join(t for t, _ in parts)
-    size = 44
-    while size > 26 and d.textlength(full, font=font(serif, size)) > 780:   # 吹き出しのしっぽ（x≈160〜230）に重ならない幅
-        size -= 2
-    fl = font(serif, size)
-    x = max(250, 640 - d.textlength(full, font=fl) / 2)
-    for t, col in parts:
-        d.text((x, 1594), t, font=fl, fill=col, anchor="lm"); x += d.textlength(t, font=fl)
+    # 同日 社長「▶さくっとPR にしようか 赤字で」→ 店名は出さず「▶さくっとPR」を赤で（PRであることはこの表示で示す）
+    d.text((580, 1594), "▶さくっとPR", font=font(serif, 44), fill=RED, anchor="mm")
     lg = _fox_logo_blue(250); base.paste(lg, (14, 1626), lg)
     if output_path:
         base.save(output_path)
