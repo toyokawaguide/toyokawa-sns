@@ -97,10 +97,16 @@ def style_from_row(row: dict) -> tuple[dict, str]:
     return theme, badge
 
 
+def _no_emoji(text: str) -> str:
+    """画像用：游ゴシックで描けない絵文字（😊🤭✨❤ など）・異体字セレクタ・ZWJを外し、行末に余った空白を詰める"""
+    t = re.sub("[\U0001F000-\U0001FAFF☀-➿⬀-⯿️‍⃣]", "", text or "")
+    return chr(10).join(l.rstrip(" 　") for l in t.split(chr(10))).strip()
+
+
 def _card_catch(catch) -> str:
     """カード表示用のキャッチ。手動改行入りなら各行末の「、」「。」を外す（キャッチコピーらしく）。
     文面（タイトル/X/Threads/IG/本文）側は pr_builder が句読点つきで使う（2026-10-04 社長指定・PR011）"""
-    c = (catch or "").strip()
+    c = _no_emoji((catch or "").strip())   # ★2026-11-18 PR020「勢揃いです🤭✨️」の絵文字が画像で□□□になった→画像からは外す（SNS文面には残る）
     if chr(10) not in c:
         return c
     return chr(10).join(l.rstrip("、。") if l.strip() else l for l in c.splitlines())
@@ -462,6 +468,8 @@ def render_169(row: dict, photo_path=None, output_path=None):
         shop_txt = st["shop"]
         if len(shop_txt) > 12 and chr(10) not in shop_txt:   # 『作品名―副題―』上映会 の類は語の切れ目で改行（「わたしのか/あさん」防止）
             shop_txt = re.sub("(.)(―)", lambda m: m.group(1) + chr(10) + m.group(2), shop_txt, count=1)
+        if len(shop_txt) > 12 and chr(10) not in shop_txt and "　" in shop_txt.strip():   # ★2026-11-18 PR020「イズモホール豊川インター店　朝マルシェ」が右端で見切れた→全角スペースで改行
+            shop_txt = shop_txt.strip().replace("　", chr(10), 1)
         s_sz, s_lines = wrap_fit(d, shop_txt, FONT_BOLD, col_w, 1, 60, 30)   # 手動改行の行数だけ許可＝行の途中で勝手に折らず縮める
         addr_txt = re.sub("(?<=.)（", chr(10) + "（", st["addr"], count=1) if chr(10) not in st["addr"] else st["addr"]   # 住所（会場名）は会場名を次の行に
         a_sz, a_lines = addr_fit(d, addr_txt, FONT_BOLD, col_w - 36) if st["addr"] else (0, [])   # ★2026-10-27 「３」だけ次の行に落ちた（PR016）→ addr_fit   # ★2026-10-23 1行だと長い住所が右端で切れた（PR015）→2行まで
@@ -765,7 +773,14 @@ def render_story(row: dict, band_path, output_path=None, year: int | None = None
     if is_photo:
         band = cover(band, W, 608, fy=photo_fy(row), zoom=photo_zoom(row))
     else:
-        band = ImageOps.fit(band, (W, 608), Image.LANCZOS)
+        # 2026-11-21 社長「白の部分が合体してる」（PR020）→ アイキャッチの白と背景の白が溶けないよう、
+        # 薄いベージュの帯の上に余白をとって載せる（案A）
+        bg = Image.new("RGB", (W, 608), (236, 228, 214))
+        ew = W - 80; eh = int(band.height * ew / band.width)
+        if eh > 608 - 60:
+            eh = 608 - 60; ew = int(band.width * eh / band.height)
+        bg.paste(band.resize((ew, eh), Image.LANCZOS), ((W - ew) // 2, (608 - eh) // 2))
+        band = bg
     base.paste(band, (0, 656))
     # 【PR】＋店名（ステマ規制：PRであることを必ず見える所に）
     shop = (row.get("店名") or "").strip()
