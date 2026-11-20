@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-20T07:38:35.162853+09:00",
-  "captured_date": "2026-11-20",
+  "captured_at": "2026-11-21T07:12:16.138114+09:00",
+  "captured_date": "2026-11-21",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-20": {
-      "name": "HOANG NAM FOODS",
-      "is_chain": false
-    },
     "2026-11-21": {
       "name": "Bee Terrace",
       "is_chain": false
@@ -16,31 +12,31 @@
       "is_chain": false
     },
     "2026-11-23": {
-      "name": null,
+      "name": "旭寿司",
       "is_chain": false
     },
     "2026-11-24": {
-      "name": null,
+      "name": "ヤマトパン",
       "is_chain": false
     },
     "2026-11-25": {
-      "name": null,
+      "name": "HAIR SALON SOLANE",
       "is_chain": false
     },
     "2026-11-26": {
-      "name": null,
+      "name": "やまと食堂",
       "is_chain": false
     },
     "2026-11-27": {
-      "name": null,
+      "name": "三河開化亭",
       "is_chain": false
     },
     "2026-11-28": {
-      "name": null,
+      "name": "アソベース豊川店",
       "is_chain": false
     },
     "2026-11-29": {
-      "name": null,
+      "name": "天婦羅 二条",
       "is_chain": false
     },
     "2026-11-30": {
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-20": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-21": {
       "name": null,
       "is_chain": false
     }
