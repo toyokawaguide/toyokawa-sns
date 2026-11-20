@@ -782,24 +782,23 @@ def render_story(row: dict, band_path, output_path=None, year: int | None = None
         bg.paste(band.resize((ew, eh), Image.LANCZOS), ((W - ew) // 2, (608 - eh) // 2))
         band = bg
     base.paste(band, (0, 656))
-    # 【PR】＋店名（ステマ規制：PRであることを必ず見える所に）
+    # 2026-11-21 社長「吹き出しは？」（PR020）→ いつものストーリー（make_story.py）と同じ下半分：
+    #   空の吹き出し（ここにリンクスタンプを置く）＋その下に ▶【PR】店名（ステマ規制：PRであることを必ず見える所に）＋青い狐
+    bx0, by0, bx1, by1, tx = 104, 1330, 1060, 1536, 160
+    d.rounded_rectangle((bx0, by0, bx1, by1), radius=22, fill="white", outline=INK, width=4)
+    tri = [(tx, by1 - 4), (tx + 10, by1 + 86), (tx + 58, by1 - 4)]
+    d.polygon(tri, fill="white"); d.line([tri[0], tri[1], tri[2]], fill=INK, width=4)
+    d.line([(tx + 4, by1 - 2), (tx + 54, by1 - 2)], fill="white", width=6)
     shop = (row.get("店名") or "").strip()
-    fpr = font(FONT_BOLD, 56)
-    pr_w = d.textlength("【PR】", font=fpr)
-    fs = fit_one(d, shop, FONT_BOLD, 64, W - 160 - pr_w, 36)
+    fpr = font(FONT_BOLD, 44)
+    pr_w = d.textlength("▶【PR】", font=fpr)
+    fs = fit_one(d, shop, FONT_BOLD, 44, 780 - pr_w, 26)   # 吹き出しのしっぽ（x≈160〜230）に重ならない幅
     sw = d.textlength(shop, font=fs)
-    x0 = (W - (pr_w + sw)) / 2
-    d.text((x0, 1350), "【PR】", font=fpr, fill=RED, anchor="lm")
-    d.text((x0 + pr_w, 1350), shop, font=fs, fill=INK, anchor="lm")
-    catch = _card_catch(row.get("ひとことキャッチ")).replace("\n", " ")
-    if catch:
-        s, lines = wrap_fit(d, catch, FONT_BOLD, W - 200, 2, 46, 30)
-        y = 1440
-        for ln in lines[:2]:
-            d.text((W // 2, y), ln, font=font(FONT_BOLD, s), fill=GRAY, anchor="mm"); y += int(s * 1.35)
-    d.text((620, 1690), "記事は @toyokawaguide の", font=font(FONT_BOLD, 42), fill=NAVY, anchor="mm")
-    d.text((620, 1750), "プロフィールのリンクから", font=font(FONT_BOLD, 42), fill=NAVY, anchor="mm")
-    lg = _fox_logo_blue(220); base.paste(lg, (14, 1650), lg)
+    x0 = max(250, 640 - (pr_w + sw) / 2)
+    d.text((x0, 1594), "▶", font=fpr, fill=INK, anchor="lm")
+    d.text((x0 + d.textlength("▶", font=fpr), 1594), "【PR】", font=fpr, fill=RED, anchor="lm")
+    d.text((x0 + pr_w, 1594), shop, font=fs, fill=INK, anchor="lm")
+    lg = _fox_logo_blue(250); base.paste(lg, (14, 1626), lg)
     if output_path:
         base.save(output_path)
     return base
