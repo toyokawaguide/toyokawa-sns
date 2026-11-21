@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-21T07:12:16.138114+09:00",
-  "captured_date": "2026-11-21",
+  "captured_at": "2026-11-22T05:51:48.491760+09:00",
+  "captured_date": "2026-11-22",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-21": {
-      "name": "Bee Terrace",
-      "is_chain": false
-    },
     "2026-11-22": {
       "name": "香味食彩 たま",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-21": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-22": {
       "name": null,
       "is_chain": false
     }
