@@ -1,0 +1,43 @@
+time=2026-11-23T07:05:18.749267+09:00
+event=workflow_dispatch
+run_id=45075245950
+label=finished
+mode_input=publish
+
+=== run.log (tail) ===
+🔑 Token を更新中...
+✅ Token 保存: sheets_token.json
+========================================================
+ 通常記事SNS自動投稿 [本番] 対象1件
+========================================================
+
+📝 SNS165 【豊川稲荷近くのテナント】豊川西町にあった「あらいやコインラ… (dry=False)
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS165_* サブフォルダ検索中...
+✅ Drive: SNS165_2026.11.23【豊川稲荷近くのテナント】豊川西町にあった「あらいやコインランドリー」跡地、テナント募集中！飲食店不可なのが残念！！めちゃ良い場所だと思う…。 (id=12xHVg96mG...)
+  📥 DL: 0.jpg (247 KB)
+  📥 DL: 1.jpg (579 KB)
+  📥 DL: 2.jpg (591 KB)
+  ✅ SNS165: 0と1は同じ写真（差 0.0）
+  🎨 赤文字: 豊川稲荷近くのテナント
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS165_* サブフォルダ検索中...
+✅ Drive: SNS165_2026.11.23【豊川稲荷近くのテナント】豊川西町にあった「あらいやコインランドリー」跡地、テナント募集中！飲食店不可なのが残念！！めちゃ良い場所だと思う…。 (id=12xHVg96mG...)
+  📷 フィード 4枚生成
+    📤 Pages へ 4枚 commit af59586（反映待ち…）
+    ✅ Pages 配信確認 4枚
+🔍 Drive: SNS投稿_写真フォルダ検索中...
+🔍 Drive: SNS165_* サブフォルダ検索中...
+✅ Drive: SNS165_2026.11.23【豊川稲荷近くのテナント】豊川西町にあった「あらいやコインランドリー」跡地、テナント募集中！飲食店不可なのが残念！！めちゃ良い場所だと思う…。 (id=12xHVg96mG...)
+カテゴリ=テナント / カバー=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel_cover.png / 動画=/home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🎬 リール: /home/runner/work/toyokawa-article-sns/toyokawa-article-sns/scripts/_work/reel.mp4
+  🧵 Threads
+    → {'post_id': '18043869632837976', 'dry': False}
+  📷 IG Feed カルーセル
+    → {'post_id': '17943562431396605', 'dry': False}
+  🎬 IG Reels
+  container_id=17964138885254312 file_size=5,610,724 bytes
+  upload OK
+    → {'status': 'ok', 'post_id': '18643289638019054', 'media_type': 'REELS'}
+  ▶ YouTube ショート → 対象外カテゴリの記事なので出さない
+  📊 状態→投稿済
