@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-23T05:59:18.071018+09:00",
-  "captured_date": "2026-11-23",
+  "captured_at": "2026-11-24T11:05:41.613913+09:00",
+  "captured_date": "2026-11-24",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-23": {
-      "name": "旭寿司",
-      "is_chain": false
-    },
     "2026-11-24": {
       "name": "ヤマトパン",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-23": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-24": {
       "name": null,
       "is_chain": false
     }
