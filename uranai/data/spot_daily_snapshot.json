@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-25T08:50:04.229005+09:00",
-  "captured_date": "2026-11-25",
+  "captured_at": "2026-11-26T08:32:11.359909+09:00",
+  "captured_date": "2026-11-26",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-25": {
-      "name": "HAIR SALON SOLANE",
-      "is_chain": false
-    },
     "2026-11-26": {
       "name": "やまと食堂",
       "is_chain": false
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-25": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-26": {
       "name": null,
       "is_chain": false
     }
