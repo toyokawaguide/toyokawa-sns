@@ -26,7 +26,8 @@ SAKUTTO_PR_BLOCK = "\n".join([
     "<strong>「さくっとPR」</strong>をやっています。"
     "記事＋Instagram（フィード・リール）＋Threads＋Xでまとめてお知らせします。"
     "<strong>当面すべて無料</strong>・写真は無くてもOK・"
-    "記事の下書きを見てから決められます。</p>",
+    "記事の下書きを見てから決められます。"
+    "<strong>チラシやInstagramの投稿を送っていただくだけでもOK</strong>です（こちらで記事にまとめます）。</p>",
     "<!-- /wp:paragraph -->",
     "",
     "<!-- wp:paragraph -->",
