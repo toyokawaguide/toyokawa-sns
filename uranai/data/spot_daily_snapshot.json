@@ -1,12 +1,8 @@
 {
-  "captured_at": "2026-11-27T08:39:38.115530+09:00",
-  "captured_date": "2026-11-27",
+  "captured_at": "2026-11-28T08:20:06.488022+09:00",
+  "captured_date": "2026-11-28",
   "lookahead_days": 30,
   "spots": {
-    "2026-11-27": {
-      "name": "三河開化亭",
-      "is_chain": false
-    },
     "2026-11-28": {
       "name": "アソベース豊川店",
       "is_chain": false
@@ -16,31 +12,31 @@
       "is_chain": false
     },
     "2026-11-30": {
-      "name": null,
+      "name": "持ち帰り寿司 海幸丸",
       "is_chain": false
     },
     "2026-12-01": {
-      "name": null,
+      "name": "酒菜なごみ",
       "is_chain": false
     },
     "2026-12-02": {
-      "name": null,
+      "name": "BICOLANA PHILIPPINE STORE",
       "is_chain": false
     },
     "2026-12-03": {
-      "name": null,
+      "name": "二代目 焼肉平安",
       "is_chain": false
     },
     "2026-12-04": {
-      "name": null,
+      "name": "MIRAINO(ミライノ)",
       "is_chain": false
     },
     "2026-12-05": {
-      "name": null,
-      "is_chain": false
+      "name": "コインランドリーボーテ",
+      "is_chain": true
     },
     "2026-12-06": {
-      "name": null,
+      "name": "居酒屋よんきゅう",
       "is_chain": false
     },
     "2026-12-07": {
@@ -64,7 +60,7 @@
       "is_chain": false
     },
     "2026-12-12": {
-      "name": null,
+      "name": "MEXIPON INARI",
       "is_chain": false
     },
     "2026-12-13": {
@@ -124,6 +120,10 @@
       "is_chain": false
     },
     "2026-12-27": {
+      "name": null,
+      "is_chain": false
+    },
+    "2026-12-28": {
       "name": null,
       "is_chain": false
     }
